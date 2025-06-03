@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminHeader from '@/components/AdminHeader';
 import AdminStats from '@/components/AdminStats';
 import ProjectsTable from '@/components/ProjectsTable';
 import ProjectDialog from '@/components/ProjectDialog';
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 
 interface Project {
   id: string;
@@ -36,7 +38,6 @@ const AdminDashboard = () => {
     try {
       console.log('Fetching data for admin dashboard...');
       
-      // Fetch projects with client info
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
         .select(`
@@ -80,7 +81,7 @@ const AdminDashboard = () => {
         .eq('id', projectId);
 
       if (error) throw error;
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error updating project:', error);
     }
@@ -100,7 +101,7 @@ const AdminDashboard = () => {
         description: "Project deleted successfully!"
       });
       
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error) {
       console.error('Error deleting project:', error);
       toast({
@@ -113,7 +114,7 @@ const AdminDashboard = () => {
 
   const stats = {
     totalProjects: projects.length,
-    totalClients: 0, // We'll calculate this differently later
+    totalClients: 0,
     activeProjects: projects.filter(p => p.status === 'in_progress').length,
     completedProjects: projects.filter(p => p.status === 'completed').length
   };
@@ -125,20 +126,42 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto">
         <AdminHeader onSignOut={signOut} />
         
-        <AdminStats 
-          totalProjects={stats.totalProjects}
-          totalClients={stats.totalClients}
-          activeProjects={stats.activeProjects}
-          completedProjects={stats.completedProjects}
-        />
-
-        <ProjectsTable
-          projects={projects}
-          loading={loading}
-          onCreateProject={() => setShowCreateDialog(true)}
-          onUpdateProjectStatus={updateProjectStatus}
-          onDeleteProject={deleteProject}
-        />
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm">
+            <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
+              Projects
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="mt-6">
+            <AdminStats 
+              totalProjects={stats.totalProjects}
+              totalClients={stats.totalClients}
+              activeProjects={stats.activeProjects}
+              completedProjects={stats.completedProjects}
+            />
+          </TabsContent>
+          
+          <TabsContent value="projects" className="mt-6">
+            <ProjectsTable
+              projects={projects}
+              loading={loading}
+              onCreateProject={() => setShowCreateDialog(true)}
+              onUpdateProjectStatus={updateProjectStatus}
+              onDeleteProject={deleteProject}
+            />
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="mt-6">
+            <AnalyticsDashboard />
+          </TabsContent>
+        </Tabs>
       </div>
       
       <ProjectDialog
