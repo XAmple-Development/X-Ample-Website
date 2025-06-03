@@ -12,7 +12,7 @@ const Contact = () => {
     {
       icon: <Mail className="w-6 h-6 text-white" />,
       title: "Email Us",
-      info: "contact@xample.dev",
+      info: "info@x-ampledevelopment.com",
       description: "Send us an email anytime"
     },
     {
