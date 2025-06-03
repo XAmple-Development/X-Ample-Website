@@ -23,8 +23,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { LogOut, Users, Folder, CheckCircle, Clock, Plus, Trash2 } from 'lucide-react';
+import { LogOut, Users, Folder, CheckCircle, Clock, Plus, Trash2, Edit, UserPlus, Shield, ShieldOff } from 'lucide-react';
 import ProjectDialog from '@/components/ProjectDialog';
+import UserDialog from '@/components/UserDialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface Project {
@@ -54,6 +55,8 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState<Profile | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -130,6 +133,69 @@ const AdminDashboard = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const deleteUser = async (userId: string) => {
+    try {
+      // Delete user from auth (this will cascade to profiles due to foreign key)
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "User deleted successfully!"
+      });
+      
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleUserRole = async (userId: string, currentRole: string) => {
+    const newRole = currentRole === 'admin' ? 'client' : 'admin';
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          role: newRole,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: `User ${newRole === 'admin' ? 'promoted to admin' : 'demoted to client'} successfully!`
+      });
+      
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update user role",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditUser = (user: Profile) => {
+    setEditingUser(user);
+    setShowUserDialog(true);
+  };
+
+  const handleCloseUserDialog = () => {
+    setShowUserDialog(false);
+    setEditingUser(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -317,10 +383,19 @@ const AdminDashboard = () => {
           </div>
         </Card>
 
-        {/* Clients Table */}
+        {/* Users Table */}
         <Card className="bg-white/10 backdrop-blur-sm border-white/20">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">All Users</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">All Users</h2>
+              <Button
+                onClick={() => setShowUserDialog(true)}
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Create User
+              </Button>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow className="border-white/20">
@@ -328,22 +403,76 @@ const AdminDashboard = () => {
                   <TableHead className="text-gray-300">Email</TableHead>
                   <TableHead className="text-gray-300">Role</TableHead>
                   <TableHead className="text-gray-300">Joined</TableHead>
+                  <TableHead className="text-gray-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {profiles.map((profile) => (
-                  <TableRow key={profile.id} className="border-white/20">
-                    <TableCell className="text-white">{profile.full_name || 'Unknown'}</TableCell>
-                    <TableCell className="text-white">{profile.email}</TableCell>
+                {profiles.map((user) => (
+                  <TableRow key={user.id} className="border-white/20">
+                    <TableCell className="text-white">{user.full_name || 'Unknown'}</TableCell>
+                    <TableCell className="text-white">{user.email}</TableCell>
                     <TableCell>
                       <Badge 
-                        className={profile.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}
+                        className={user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}
                       >
-                        {profile.role}
+                        {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-gray-300">
-                      {new Date(profile.created_at).toLocaleDateString()}
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditUser(user)}
+                          className="border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleUserRole(user.id, user.role)}
+                          className="border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/10"
+                          title={user.role === 'admin' ? 'Demote to Client' : 'Promote to Admin'}
+                        >
+                          {user.role === 'admin' ? <ShieldOff className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+                        </Button>
+                        {user.id !== profile?.id && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-red-500/20 text-red-400 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-white/20">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-white">Delete User</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-300">
+                                  Are you sure you want to delete user "{user.full_name || user.email}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteUser(user.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -357,6 +486,13 @@ const AdminDashboard = () => {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onProjectCreated={fetchData}
+      />
+
+      <UserDialog
+        open={showUserDialog}
+        onOpenChange={handleCloseUserDialog}
+        onUserCreated={fetchData}
+        user={editingUser}
       />
     </div>
   );
