@@ -12,7 +12,7 @@ const Services = () => {
       title: "FiveM Development",
       description: "Custom scripts, vehicles, maps, and complete server packages for GTA V FiveM servers.",
       features: ["Custom Scripts & Resources", "Vehicle & Weapon Packs", "Map Development", "Server Optimization", "MLO Interiors", "Economy Systems"],
-      pricing: "Starting at $299",
+      pricing: "Starting at £75",
       popular: false
     },
     {
@@ -20,7 +20,7 @@ const Services = () => {
       title: "Roblox Development", 
       description: "Professional Roblox game development and server management solutions.",
       features: ["Game Development", "Server Management", "Custom Features", "Monetization Setup", "UI/UX Design", "Performance Optimization"],
-      pricing: "Starting at $499",
+      pricing: "Starting at £25",
       popular: true
     },
     {
@@ -28,7 +28,7 @@ const Services = () => {
       title: "Web Development",
       description: "Modern, responsive websites and web applications built with cutting-edge technology.",
       features: ["Responsive Design", "E-commerce Solutions", "CMS Integration", "Performance Optimization", "SEO Optimization", "Analytics Setup"],
-      pricing: "Starting at $799",
+      pricing: "Starting at £95",
       popular: false
     },
     {
@@ -36,7 +36,7 @@ const Services = () => {
       title: "Discord Development",
       description: "Advanced Discord bots and server management solutions for communities.",
       features: ["Custom Bots", "Server Setup", "Moderation Tools", "Integration Systems", "Database Management", "Custom Commands"],
-      pricing: "Starting at $199",
+      pricing: "Starting at £15",
       popular: false
     }
   ];
@@ -121,15 +121,20 @@ const Services = () => {
           <div className="text-center text-white max-w-4xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">Ready to Start Your Project?</h2>
             <p className="text-xl mb-8 opacity-90">
-              Let's discuss your requirements and create something amazing together. 
-              Get a free consultation and quote today.
+              Join hundreds of satisfied clients who have trusted us with their digital projects. 
+              Let's create something amazing together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="bg-white text-cyan-600 hover:bg-gray-100">
                 Get Free Quote
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                View Portfolio
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+                onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
+              >
+                Schedule Consultation
               </Button>
             </div>
           </div>
