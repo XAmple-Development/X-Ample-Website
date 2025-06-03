@@ -41,38 +41,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('AuthContext: Initializing auth state');
     
-    // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('AuthContext: Auth state changed:', event, session?.user?.email || 'no user');
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user && event === 'SIGNED_IN') {
-          console.log('AuthContext: User signed in, fetching profile');
-          // Use setTimeout to defer profile fetching and prevent potential deadlocks
-          setTimeout(() => {
-            fetchUserProfile(session.user);
-          }, 100);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('AuthContext: User signed out, clearing profile');
-          setProfile(null);
-        }
-        
-        // Only set loading to false after we've handled the auth state
-        setLoading(false);
-      }
-    );
-
     // Get initial session
-    const initializeAuth = async () => {
+    const getInitialSession = async () => {
       try {
-        console.log('AuthContext: Getting initial session');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('AuthContext: Error getting session:', error);
+          console.error('AuthContext: Error getting initial session:', error);
           setLoading(false);
           return;
         }
@@ -80,19 +55,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('AuthContext: Initial session:', session?.user?.email || 'no session');
         
         if (session?.user) {
-          // Don't fetch profile here - let the auth state change handler do it
           setSession(session);
           setUser(session.user);
-        } else {
-          setLoading(false);
+          await fetchUserProfile(session.user);
         }
+        
+        setLoading(false);
       } catch (error) {
-        console.error('AuthContext: Error in initializeAuth:', error);
+        console.error('AuthContext: Error in getInitialSession:', error);
         setLoading(false);
       }
     };
 
-    initializeAuth();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('AuthContext: Auth state changed:', event, session?.user?.email || 'no user');
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          console.log('AuthContext: User signed in, fetching profile');
+          await fetchUserProfile(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('AuthContext: User signed out, clearing profile');
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    getInitialSession();
     
     return () => {
       console.log('AuthContext: Cleaning up auth listener');
@@ -159,13 +154,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     console.log('AuthContext: Sign up attempt for:', email);
-    const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName
         }
@@ -178,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     console.log('AuthContext: Sign in attempt for:', email);
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password

@@ -56,6 +56,11 @@ const Auth = () => {
             title: "Success",
             description: "Please check your email to confirm your account."
           });
+        } else {
+          toast({
+            title: "Success",
+            description: "Signed in successfully!"
+          });
         }
       }
     } catch (error: any) {
