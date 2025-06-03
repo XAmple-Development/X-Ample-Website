@@ -78,7 +78,9 @@ const AdminDashboard = () => {
 
       // Fetch auth users to ensure we have all users
       try {
-        const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+        const { data: authData, error: usersError } = await supabase.auth.admin.listUsers();
+        const users = authData?.users;
+        
         if (usersError) {
           console.error('Error fetching auth users:', usersError);
         } else {
@@ -88,7 +90,7 @@ const AdminDashboard = () => {
           // Create missing profiles for auth users
           if (users && users.length > 0) {
             const existingProfileIds = new Set(profilesData?.map(p => p.id) || []);
-            const usersWithoutProfiles = users.filter(user => !existingProfileIds.has(user.id));
+            const usersWithoutProfiles = users.filter(user => user && user.id && !existingProfileIds.has(user.id));
             
             console.log('Users without profiles:', usersWithoutProfiles.length);
             
