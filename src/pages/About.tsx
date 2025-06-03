@@ -111,15 +111,16 @@ const About = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {stats.map((stat, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6">
-                  <div className="flex justify-center text-cyan-500 mb-4">
-                    {stat.icon}
-                  </div>
-                  <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
-                  <div className="text-gray-600">{stat.label}</div>
-                </CardContent>
-              </Card>
+              <Card  key={index}className="bg-white text-gray-900 border border-gray-200 text-center hover:shadow-lg transition-shadow duration-300"
+>
+  <CardContent className="p-6">
+    <div className="flex justify-center text-cyan-500 mb-4">
+      {stat.icon}
+    </div>
+    <div className="text-3xl font-bold mb-2">{stat.number}</div>
+    <div className="text-gray-600">{stat.label}</div>
+  </CardContent>
+</Card>
             ))}
           </div>
         </div>
