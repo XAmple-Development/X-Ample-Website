@@ -177,119 +177,124 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {/* Enhanced Contact Form with Security */}
             <div>
-              <Card className="bg-white border-0 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-3xl font-bold text-gray-900">Send us a message</CardTitle>
-                  <p className="text-gray-600">Fill out the form below and we'll get back to you within 24 hours.</p>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                        <Input 
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          placeholder="Your first name" 
-                          className="border-gray-200 focus:border-cyan-500" 
-                          maxLength={50}
-                          required
-                        />
-                        {errors.firstName && (
-                          <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                        <Input 
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          placeholder="Your last name" 
-                          className="border-gray-200 focus:border-cyan-500" 
-                          maxLength={50}
-                          required
-                        />
-                        {errors.lastName && (
-                          <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                      <Input 
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="your.email@example.com" 
-                        className="border-gray-200 focus:border-cyan-500" 
-                        maxLength={254}
-                        required
-                      />
-                      {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
-                      <select 
-                        name="projectType"
-                        value={formData.projectType}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500"
-                      >
-                        <option value="">Select a service</option>
-                        <option value="FiveM Development">FiveM Development</option>
-                        <option value="Roblox Development">Roblox Development</option>
-                        <option value="Web Development">Web Development</option>
-                        <option value="Discord Development">Discord Development</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
-                      <select 
-                        name="budgetRange"
-                        value={formData.budgetRange}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500"
-                      >
-                        <option value="">Select budget range</option>
-                        <option value="Under £500">Under £500</option>
-                        <option value="£500 - £1,000">£500 - £1,000</option>
-                        <option value="£1,000 - £5,000">£1,000 - £5,000</option>
-                        <option value="£5,000 - £10,000">£5,000 - £10,000</option>
-                        <option value="£10,000+">£10,000+</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-                      <Textarea 
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        placeholder="Tell us about your project..." 
-                        rows={6} 
-                        className="border-gray-200 focus:border-cyan-500 resize-none"
-                        maxLength={2000}
-                        required
-                      />
-                      {errors.message && (
-                        <p className="text-red-500 text-sm mt-1">{errors.message}</p>
-                      )}
-                    </div>
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting || Object.keys(errors).length > 0}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send className="w-5 h-5 mr-2" />
-                      {isSubmitting ? "Sending..." : "Send Message"}
-                    </Button>
-                  </form>
-                </CardContent>
+              <Card className="bg-white text-gray-900 border border-gray-200 shadow-xl">
+  <CardHeader>
+    <CardTitle className="text-3xl font-bold text-gray-900">Send us a message</CardTitle>
+    <p className="text-gray-700">Fill out the form below and we'll get back to you within 24 hours.</p>
+  </CardHeader>
+  <CardContent>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-800 mb-2">First Name *</label>
+          <Input
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleInputChange}
+            placeholder="Your first name"
+            className="bg-white text-gray-900 border border-gray-200 focus:border-cyan-500"
+            maxLength={50}
+            required
+          />
+          {errors.firstName && (
+            <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+          )}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-800 mb-2">Last Name *</label>
+          <Input
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleInputChange}
+            placeholder="Your last name"
+            className="bg-white text-gray-900 border border-gray-200 focus:border-cyan-500"
+            maxLength={50}
+            required
+          />
+          {errors.lastName && (
+            <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-800 mb-2">Email *</label>
+        <Input
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          placeholder="your.email@example.com"
+          className="bg-white text-gray-900 border border-gray-200 focus:border-cyan-500"
+          maxLength={254}
+          required
+        />
+        {errors.email && (
+          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-800 mb-2">Project Type</label>
+        <select
+          name="projectType"
+          value={formData.projectType}
+          onChange={handleInputChange}
+          className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500"
+        >
+          <option value="">Select a service</option>
+          <option value="FiveM Development">FiveM Development</option>
+          <option value="Roblox Development">Roblox Development</option>
+          <option value="Web Development">Web Development</option>
+          <option value="Discord Development">Discord Development</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-800 mb-2">Budget Range</label>
+        <select
+          name="budgetRange"
+          value={formData.budgetRange}
+          onChange={handleInputChange}
+          className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500"
+        >
+          <option value="">Select budget range</option>
+          <option value="Under £500">Under £500</option>
+          <option value="£500 - £1,000">£500 - £1,000</option>
+          <option value="£1,000 - £5,000">£1,000 - £5,000</option>
+          <option value="£5,000 - £10,000">£5,000 - £10,000</option>
+          <option value="£10,000+">£10,000+</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-800 mb-2">Message *</label>
+        <Textarea
+          name="message"
+          value={formData.message}
+          onChange={handleInputChange}
+          placeholder="Tell us about your project..."
+          rows={6}
+          className="bg-white text-gray-900 border border-gray-200 focus:border-cyan-500 resize-none"
+          maxLength={2000}
+          required
+        />
+        {errors.message && (
+          <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+        )}
+      </div>
+
+      <Button
+        type="submit"
+        disabled={isSubmitting || Object.keys(errors).length > 0}
+        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Send className="w-5 h-5 mr-2" />
+        {isSubmitting ? "Sending..." : "Send Message"}
+      </Button>
+    </form>
+  </CardContent>
               </Card>
             </div>
 
