@@ -30,7 +30,7 @@ const Contact = () => {
     {
       icon: <MessageCircle className="w-6 h-6 text-white" />,
       title: "Discord",
-      info: "X-Ample#1234",
+      info: "https://discord.gg/bGhguE93Xp",
       description: "Join our community"
     }
   ];
@@ -71,7 +71,7 @@ const Contact = () => {
             </p>
             <div className="flex items-center justify-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 border border-cyan-200">
               <Clock className="w-5 h-5 text-cyan-500" />
-              <span className="text-gray-700">Average response time: 2 hours</span>
+              <span className="text-gray-700">Average response time: 24 hours</span>
             </div>
           </div>
         </div>
@@ -138,11 +138,11 @@ const Contact = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
                     <select className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500">
                       <option>Select budget range</option>
-                      <option>Under $500</option>
-                      <option>$500 - $1,000</option>
-                      <option>$1,000 - $5,000</option>
-                      <option>$5,000 - $10,000</option>
-                      <option>$10,000+</option>
+                      <option>Under £500</option>
+                      <option>£500 - £1,000</option>
+                      <option>£1,000 - £5,000</option>
+                      <option>£5,000 - £10,000</option>
+                      <option>£10,000+</option>
                     </select>
                   </div>
                   <div>
