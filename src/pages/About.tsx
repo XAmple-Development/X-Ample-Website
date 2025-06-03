@@ -34,7 +34,7 @@ const About = () => {
     {
       name: "Danny Pilkington",
       role: "Lead Developer & Founder",
-      image: "https://i.imgur.com/7s6AK6P.png",
+      image: "https://cdn.discordapp.com/avatars/1059503129672040458/bc398ae06720419eb3600c565b28ba70?size=1024",
       bio: "Full-stack developer with 8+ years experience in gaming and full stack development."
     },
     {
