@@ -8,7 +8,7 @@ const About = () => {
   const stats = [
     { icon: <Users className="w-8 h-8" />, number: "500+", label: "Happy Clients" },
     { icon: <Award className="w-8 h-8" />, number: "1000+", label: "Projects Completed" },
-    { icon: <Clock className="w-8 h-8" />, number: "5+", label: "Years Experience" },
+    { icon: <Clock className="w-8 h-8" />, number: "8+", label: "Years Experience" },
     { icon: <Star className="w-8 h-8" />, number: "4.9", label: "Average Rating" }
   ];
 
@@ -32,10 +32,10 @@ const About = () => {
 
   const team = [
     {
-      name: "Alex Thompson",
-      role: "Lead Developer",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-      bio: "Full-stack developer with 8+ years experience in gaming and web development."
+      name: "Danny Pilkington",
+      role: "Lead Developer & Founder",
+      image: "https://i.imgur.com/7s6AK6P.png",
+      bio: "Full-stack developer with 8+ years experience in gaming and full stack development."
     },
     {
       name: "Sarah Chen",
