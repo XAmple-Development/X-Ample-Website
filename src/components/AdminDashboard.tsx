@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +9,6 @@ import ProjectsTable from '@/components/ProjectsTable';
 import UsersTable from '@/components/UsersTable';
 import ProjectDialog from '@/components/ProjectDialog';
 import UserDialog from '@/components/UserDialog';
-import type { User } from '@supabase/supabase-js';
 
 interface Project {
   id: string;
@@ -63,7 +63,7 @@ const AdminDashboard = () => {
         console.error('Error fetching projects:', projectsError);
       }
 
-      // Fetch all profiles
+      // Fetch all profiles - this should work without admin privileges
       console.log('Fetching all profiles...');
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -72,66 +72,18 @@ const AdminDashboard = () => {
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user profiles",
+          variant: "destructive"
+        });
       } else {
         console.log('Fetched profiles:', profilesData);
         console.log('Number of profiles found:', profilesData?.length || 0);
-      }
-
-      // Fetch auth users to ensure we have all users
-      try {
-        const { data: authData, error: usersError } = await supabase.auth.admin.listUsers();
-        const users: User[] = authData?.users || [];
-        
-        if (usersError) {
-          console.error('Error fetching auth users:', usersError);
-        } else {
-          console.log('Auth users found:', users.length);
-          console.log('Auth users:', users.map(u => ({ id: u.id, email: u.email, created_at: u.created_at })));
-          
-          // Create missing profiles for auth users
-          if (users.length > 0) {
-            const existingProfileIds = new Set(profilesData?.map(p => p.id) || []);
-            const usersWithoutProfiles = users.filter((user: User) => user?.id && !existingProfileIds.has(user.id));
-            
-            console.log('Users without profiles:', usersWithoutProfiles.length);
-            
-            if (usersWithoutProfiles.length > 0) {
-              const missingProfiles = usersWithoutProfiles.map((user: User) => ({
-                id: user.id,
-                email: user.email || '',
-                full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-                role: 'client',
-                created_at: user.created_at,
-                updated_at: new Date().toISOString()
-              }));
-              
-              const { error: insertError } = await supabase
-                .from('profiles')
-                .insert(missingProfiles);
-                
-              if (insertError) {
-                console.error('Error creating missing profiles:', insertError);
-              } else {
-                console.log('Created missing profiles for:', missingProfiles.length, 'users');
-                // Refetch profiles to get the complete list
-                const { data: updatedProfilesData } = await supabase
-                  .from('profiles')
-                  .select('*')
-                  .order('created_at', { ascending: false });
-                
-                setProfiles(updatedProfilesData || []);
-                setProjects(projectsData || []);
-                return;
-              }
-            }
-          }
-        }
-      } catch (authError) {
-        console.error('Cannot fetch auth users (normal if not admin):', authError);
+        setProfiles(profilesData || []);
       }
 
       setProjects(projectsData || []);
-      setProfiles(profilesData || []);
     } catch (error) {
       console.error('Error in fetchData:', error);
       toast({
@@ -185,15 +137,30 @@ const AdminDashboard = () => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // Delete user from auth (this will cascade to profiles due to foreign key)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-
-      if (error) throw error;
+      // Try to delete user from auth first (this may fail if not admin)
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
       
-      toast({
-        title: "Success",
-        description: "User deleted successfully!"
-      });
+      if (authError) {
+        console.error('Cannot delete from auth (not admin):', authError);
+        // If we can't delete from auth, just delete the profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
+          
+        if (profileError) throw profileError;
+        
+        toast({
+          title: "Warning",
+          description: "User profile deleted, but auth user remains (requires admin privileges)",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "User deleted successfully!"
+        });
+      }
       
       fetchData(); // Refresh data
     } catch (error) {
