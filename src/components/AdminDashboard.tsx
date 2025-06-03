@@ -47,6 +47,8 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
+      console.log('Fetching data for admin dashboard...');
+      
       // Fetch projects with client info
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
@@ -61,10 +63,18 @@ const AdminDashboard = () => {
 
       if (projectsError) {
         console.error('Error fetching projects:', projectsError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch projects",
+          variant: "destructive"
+        });
+      } else {
+        console.log('Projects fetched successfully:', projectsData?.length || 0);
+        setProjects(projectsData || []);
       }
 
-      // Fetch all profiles - this should work without admin privileges
-      console.log('Fetching all profiles...');
+      // Fetch all profiles from the profiles table
+      console.log('Fetching all user profiles...');
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -78,12 +88,11 @@ const AdminDashboard = () => {
           variant: "destructive"
         });
       } else {
-        console.log('Fetched profiles:', profilesData);
-        console.log('Number of profiles found:', profilesData?.length || 0);
+        console.log('Profiles fetched successfully:', profilesData?.length || 0);
+        console.log('Profile data:', profilesData);
         setProfiles(profilesData || []);
       }
 
-      setProjects(projectsData || []);
     } catch (error) {
       console.error('Error in fetchData:', error);
       toast({
@@ -137,30 +146,18 @@ const AdminDashboard = () => {
 
   const deleteUser = async (userId: string) => {
     try {
-      // Try to delete user from auth first (this may fail if not admin)
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (authError) {
-        console.error('Cannot delete from auth (not admin):', authError);
-        // If we can't delete from auth, just delete the profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', userId);
-          
-        if (profileError) throw profileError;
+      // Only delete from profiles table since we don't have admin permissions
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
         
-        toast({
-          title: "Warning",
-          description: "User profile deleted, but auth user remains (requires admin privileges)",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "User deleted successfully!"
-        });
-      }
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "User profile deleted successfully! Note: Auth user remains active."
+      });
       
       fetchData(); // Refresh data
     } catch (error) {
@@ -220,7 +217,7 @@ const AdminDashboard = () => {
     completedProjects: projects.filter(p => p.status === 'completed').length
   };
 
-  console.log('Rendering AdminDashboard with profiles:', profiles);
+  console.log('Rendering AdminDashboard with profiles:', profiles.length, 'users');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
