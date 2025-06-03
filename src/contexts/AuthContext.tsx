@@ -96,10 +96,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    console.log('AuthContext: Signing out and clearing all auth state');
+    
+    // Clear all auth-related storage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
     await authSignOut();
     setUser(null);
     setProfile(null);
     setSession(null);
+    
+    // Force page reload to ensure clean state
+    window.location.href = '/auth';
   };
 
   const value = {

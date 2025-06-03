@@ -16,6 +16,7 @@ export const fetchUserProfile = async (user: User): Promise<Profile> => {
   try {
     console.log('AuthUtils: Fetching profile for user:', user.id);
     
+    // Force fresh data by bypassing cache
     const { data: profileData, error } = await supabase
       .from('profiles')
       .select('*')
