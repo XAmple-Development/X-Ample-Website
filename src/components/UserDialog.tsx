@@ -100,7 +100,7 @@ const UserDialog = ({ open, onOpenChange, onUserCreated, user }: UserDialogProps
           return;
         }
 
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-user`, {
+        const response = await fetch('https://dzcezcoivezflchsewhq.supabase.co/functions/v1/create-user', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
