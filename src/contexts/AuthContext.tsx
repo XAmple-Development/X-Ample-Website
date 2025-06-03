@@ -57,7 +57,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setSession(session);
           setUser(session.user);
-          await fetchUserProfile(session.user);
+          // Use setTimeout to avoid potential deadlock
+          setTimeout(() => {
+            fetchUserProfile(session.user);
+          }, 0);
         }
         
         setLoading(false);
@@ -77,7 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           console.log('AuthContext: User signed in, fetching profile');
-          await fetchUserProfile(session.user);
+          // Use setTimeout to avoid potential deadlock
+          setTimeout(() => {
+            fetchUserProfile(session.user);
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: User signed out, clearing profile');
           setProfile(null);
@@ -107,6 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) {
         console.error('AuthContext: Error fetching profile:', error);
+        // Create profile if it doesn't exist (might be missing)
+        await createUserProfile(user);
         return;
       }
       
@@ -119,36 +127,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(typedProfile);
       } else {
         console.log('AuthContext: No profile found, creating new one');
-        // Create profile if it doesn't exist
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: user.id,
-              email: user.email || '',
-              full_name: user.user_metadata?.full_name || null,
-              role: 'client'
-            }
-          ])
-          .select()
-          .maybeSingle();
-        
-        if (createError) {
-          console.error('AuthContext: Error creating profile:', createError);
-          return;
-        }
-        
-        if (newProfile) {
-          console.log('AuthContext: Profile created:', newProfile);
-          const typedProfile: Profile = {
-            ...newProfile,
-            role: newProfile.role as 'client' | 'admin'
-          };
-          setProfile(typedProfile);
-        }
+        await createUserProfile(user);
       }
     } catch (error) {
       console.error('AuthContext: Error in fetchUserProfile:', error);
+      // Try to create profile as fallback
+      await createUserProfile(user);
+    }
+  };
+
+  const createUserProfile = async (user: User) => {
+    try {
+      console.log('AuthContext: Creating profile for user:', user.id);
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || null,
+            role: 'client'
+          }
+        ])
+        .select()
+        .maybeSingle();
+      
+      if (createError) {
+        console.error('AuthContext: Error creating profile:', createError);
+        return;
+      }
+      
+      if (newProfile) {
+        console.log('AuthContext: Profile created:', newProfile);
+        const typedProfile: Profile = {
+          ...newProfile,
+          role: newProfile.role as 'client' | 'admin'
+        };
+        setProfile(typedProfile);
+      }
+    } catch (error) {
+      console.error('AuthContext: Error in createUserProfile:', error);
     }
   };
 
