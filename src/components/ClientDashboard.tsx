@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, LogOut, User, Folder } from 'lucide-react';
-import ProjectDialog from '@/components/ProjectDialog';
+import SecureProjectDialog from '@/components/SecureProjectDialog';
 
 interface Project {
   id: string;
@@ -161,7 +161,7 @@ const ClientDashboard = () => {
         </div>
       </div>
 
-      <ProjectDialog 
+      <SecureProjectDialog 
         open={showProjectDialog} 
         onOpenChange={setShowProjectDialog}
         onProjectCreated={fetchProjects}

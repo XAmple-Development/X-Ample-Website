@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -7,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send, Clock, MessageCircle } from "lucide-react";
-import { useContactForm } from "@/hooks/useContactForm";
+import { useSecureContactForm } from "@/hooks/useSecureContactForm";
+import { contactFormSchema, type ContactFormData } from "@/utils/validation";
 
 const Contact = () => {
-  const { submitForm, isSubmitting } = useContactForm();
-  const [formData, setFormData] = useState({
+  const { submitForm, isSubmitting } = useSecureContactForm();
+  const [formData, setFormData] = useState<ContactFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -19,6 +19,25 @@ const Contact = () => {
     budgetRange: "",
     message: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (name: keyof ContactFormData, value: string) => {
+    const fieldSchema = contactFormSchema.shape[name];
+    const result = fieldSchema.safeParse(value);
+    
+    if (!result.success) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: result.error.errors[0].message
+      }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -26,17 +45,28 @@ const Contact = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Real-time validation
+    validateField(name as keyof ContactFormData, value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.message) {
+    // Validate all fields before submission
+    const validationResult = contactFormSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const fieldErrors: Record<string, string> = {};
+      validationResult.error.errors.forEach(error => {
+        if (error.path[0]) {
+          fieldErrors[error.path[0] as string] = error.message;
+        }
+      });
+      setErrors(fieldErrors);
       return;
     }
 
-    const result = await submitForm(formData);
+    const result = await submitForm(validationResult.data);
     
     if (result.success) {
       // Reset form on successful submission
@@ -48,6 +78,7 @@ const Contact = () => {
         budgetRange: "",
         message: "",
       });
+      setErrors({});
     }
   };
 
@@ -144,7 +175,7 @@ const Contact = () => {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* Contact Form */}
+            {/* Enhanced Contact Form with Security */}
             <div>
               <Card className="border-0 shadow-xl">
                 <CardHeader>
@@ -162,8 +193,12 @@ const Contact = () => {
                           onChange={handleInputChange}
                           placeholder="Your first name" 
                           className="border-gray-200 focus:border-cyan-500" 
+                          maxLength={50}
                           required
                         />
+                        {errors.firstName && (
+                          <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
@@ -173,8 +208,12 @@ const Contact = () => {
                           onChange={handleInputChange}
                           placeholder="Your last name" 
                           className="border-gray-200 focus:border-cyan-500" 
+                          maxLength={50}
                           required
                         />
+                        {errors.lastName && (
+                          <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -186,8 +225,12 @@ const Contact = () => {
                         onChange={handleInputChange}
                         placeholder="your.email@example.com" 
                         className="border-gray-200 focus:border-cyan-500" 
+                        maxLength={254}
                         required
                       />
+                      {errors.email && (
+                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
@@ -230,12 +273,16 @@ const Contact = () => {
                         placeholder="Tell us about your project..." 
                         rows={6} 
                         className="border-gray-200 focus:border-cyan-500 resize-none"
+                        maxLength={2000}
                         required
                       />
+                      {errors.message && (
+                        <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+                      )}
                     </div>
                     <Button 
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || Object.keys(errors).length > 0}
                       className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send className="w-5 h-5 mr-2" />
