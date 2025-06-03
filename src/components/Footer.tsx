@@ -35,30 +35,62 @@ const Footer = () => {
           
           {/* Services */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-cyan-400">Services</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li className="hover:text-white transition-colors cursor-pointer">FiveM Development</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Roblox Servers</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Web Development</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Discord Bots</li>
-            </ul>
-          </div>
-          
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-teal-400">Quick Links</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li className="hover:text-white transition-colors cursor-pointer">About Us</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Portfolio</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Contact</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Support</li>
-            </ul>
-          </div>
-        </div>
+  <h3 className="text-lg font-semibold mb-4 text-cyan-400">Services</h3>
+  <ul className="space-y-2 text-gray-400">
+    <li>
+      <a href="/services/fivem-development" className="hover:text-white transition-colors cursor-pointer">
+        FiveM Development
+      </a>
+    </li>
+    <li>
+      <a href="/services/roblox-servers" className="hover:text-white transition-colors cursor-pointer">
+        Roblox Servers
+      </a>
+    </li>
+    <li>
+      <a href="/services/web-development" className="hover:text-white transition-colors cursor-pointer">
+        Web Development
+      </a>
+    </li>
+    <li>
+      <a href="/services/discord-bots" className="hover:text-white transition-colors cursor-pointer">
+        Discord Bots
+      </a>
+    </li>
+  </ul>
+</div>
+
+{/* Quick Links */}
+<div>
+  <h3 className="text-lg font-semibold mb-4 text-teal-400">Quick Links</h3>
+  <ul className="space-y-2 text-gray-400">
+    <li>
+      <a href="/about" className="hover:text-white transition-colors cursor-pointer">
+        About Us
+      </a>
+    </li>
+    <li>
+      <a href="/portfolio" className="hover:text-white transition-colors cursor-pointer">
+        Portfolio
+      </a>
+    </li>
+    <li>
+      <a href="/contact" className="hover:text-white transition-colors cursor-pointer">
+        Contact
+      </a>
+    </li>
+    <li>
+      <a href="/support" className="hover:text-white transition-colors cursor-pointer">
+        Support
+      </a>
+    </li>
+  </ul>
+</div>
+
         
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 X-Ample Development. All rights reserved.
+            © 2025 X-Ample Development. All rights reserved.
           </p>
           <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
             <span>Made with</span>
