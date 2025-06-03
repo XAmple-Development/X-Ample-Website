@@ -2,25 +2,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: 'client' | 'admin';
-  created_at: string;
-  updated_at: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  profile: Profile | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-}
+import { Profile, AuthContextType } from '@/types/auth';
+import { fetchUserProfile } from '@/utils/authUtils';
+import { useAuthOperations } from '@/hooks/useAuthOperations';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -38,12 +22,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { signUp, signIn, signOut: authSignOut } = useAuthOperations();
+
   useEffect(() => {
     console.log('AuthContext: Initializing auth state');
     
     let mounted = true;
     
-    // Get initial session
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -59,7 +44,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user && mounted) {
           setSession(session);
           setUser(session.user);
-          await fetchUserProfile(session.user);
+          
+          setTimeout(async () => {
+            if (mounted) {
+              const userProfile = await fetchUserProfile(session.user);
+              setProfile(userProfile);
+            }
+          }, 0);
         }
         
         if (mounted) setLoading(false);
@@ -69,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('AuthContext: Auth state changed:', event, session?.user?.email || 'no user');
@@ -81,7 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           console.log('AuthContext: User signed in, fetching profile');
-          await fetchUserProfile(session.user);
+          setTimeout(async () => {
+            if (mounted) {
+              const userProfile = await fetchUserProfile(session.user);
+              setProfile(userProfile);
+            }
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: User signed out, clearing profile');
           setProfile(null);
@@ -100,112 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const fetchUserProfile = async (user: User) => {
-    try {
-      console.log('AuthContext: Fetching profile for user:', user.id);
-      
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('AuthContext: Error fetching profile:', error);
-        // Create a basic profile as fallback
-        const basicProfile: Profile = {
-          id: user.id,
-          email: user.email || '',
-          full_name: user.user_metadata?.full_name || null,
-          role: 'client',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        console.log('AuthContext: Setting basic profile fallback');
-        setProfile(basicProfile);
-        return;
-      }
-      
-      if (profileData) {
-        console.log('AuthContext: Profile found:', profileData);
-        const typedProfile: Profile = {
-          ...profileData,
-          role: profileData.role as 'client' | 'admin'
-        };
-        setProfile(typedProfile);
-      } else {
-        console.log('AuthContext: No profile found in database, creating basic profile');
-        // Try to create profile in database if it doesn't exist
-        const newProfile = {
-          id: user.id,
-          email: user.email || '',
-          full_name: user.user_metadata?.full_name || null,
-          role: 'client' as const
-        };
-        
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([newProfile]);
-          
-        if (insertError) {
-          console.error('AuthContext: Error creating profile:', insertError);
-        }
-        
-        const basicProfile: Profile = {
-          ...newProfile,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setProfile(basicProfile);
-      }
-    } catch (error) {
-      console.error('AuthContext: Error in fetchUserProfile:', error);
-      // Create a basic profile as final fallback
-      const basicProfile: Profile = {
-        id: user.id,
-        email: user.email || '',
-        full_name: user.user_metadata?.full_name || null,
-        role: 'client',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      console.log('AuthContext: Setting final fallback profile');
-      setProfile(basicProfile);
-    }
-  };
-
-  const signUp = async (email: string, password: string, fullName: string) => {
-    console.log('AuthContext: Sign up attempt for:', email);
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName
-        }
-      }
-    });
-    
-    console.log('AuthContext: Sign up result:', error ? 'Error' : 'Success');
-    return { error };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    console.log('AuthContext: Sign in attempt for:', email);
-    
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
-    console.log('AuthContext: Sign in result:', error ? 'Error' : 'Success');
-    return { error };
-  };
-
   const signOut = async () => {
-    console.log('AuthContext: Sign out');
-    await supabase.auth.signOut();
+    await authSignOut();
     setUser(null);
     setProfile(null);
     setSession(null);
