@@ -37,7 +37,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-cyan-400">Services</h3>
             <ul className="space-y-2 text-gray-400">
-              <li ref="/services/web-development"  className="hover:text-white transition-colors cursor-pointer">FiveM Development</li>
+              <li className="hover:text-white transition-colors cursor-pointer">FiveM Development</li>
               <li className="hover:text-white transition-colors cursor-pointer">Roblox Servers</li>
               <li className="hover:text-white transition-colors cursor-pointer">Web Development</li>
               <li className="hover:text-white transition-colors cursor-pointer">Discord Bots</li>
@@ -48,10 +48,26 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-teal-400">Quick Links</h3>
             <ul className="space-y-2 text-gray-400">
-              <li className="hover:text-white transition-colors cursor-pointer">About Us</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Portfolio</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Contact</li>
-              <li className="hover:text-white transition-colors cursor-pointer">Support</li>
+              <li>
+  <a href="/about" className="hover:text-white transition-colors cursor-pointer">
+    About Us
+  </a>
+</li>
+<li>
+  <a href="/portfolio" className="hover:text-white transition-colors cursor-pointer">
+    Portfolio
+  </a>
+</li>
+<li>
+  <a href="/contact" className="hover:text-white transition-colors cursor-pointer">
+    Contact
+  </a>
+</li>
+<li>
+  <a href="/support" className="hover:text-white transition-colors cursor-pointer">
+    Support
+  </a>
+</li>
             </ul>
           </div>
         </div>
