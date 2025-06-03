@@ -22,7 +22,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-// Initialize with a default value to prevent undefined context
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
@@ -42,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Get initial session first
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -52,21 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileData) {
-            console.log('Profile loaded:', profileData);
-            const typedProfile: Profile = {
-              ...profileData,
-              role: profileData.role as 'client' | 'admin'
-            };
-            setProfile(typedProfile);
-          }
+          await fetchUserProfile(session.user.id);
         }
         
         setLoading(false);
@@ -78,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getInitialSession();
     
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email || 'none');
@@ -87,28 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user && event === 'SIGNED_IN') {
-          // Defer profile fetch to prevent potential issues
-          setTimeout(async () => {
-            try {
-              console.log('Fetching user profile for:', session.user.id);
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (profileData) {
-                console.log('Profile loaded:', profileData);
-                const typedProfile: Profile = {
-                  ...profileData,
-                  role: profileData.role as 'client' | 'admin'
-                };
-                setProfile(typedProfile);
-              }
-            } catch (error) {
-              console.error('Error fetching profile:', error);
-            }
-          }, 100);
+          await fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out, clearing profile');
           setProfile(null);
@@ -120,6 +82,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      console.log('Fetching user profile for:', userId);
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      if (profileData) {
+        console.log('Profile loaded:', profileData);
+        const typedProfile: Profile = {
+          ...profileData,
+          role: profileData.role as 'client' | 'admin'
+        };
+        setProfile(typedProfile);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -173,6 +162,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  // Remove the error throwing since we now have a default context value
   return context;
 }
