@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from "@/integrations/supabase/client";
 import { contactFormSchema, sanitizeInput, checkRateLimit, type ContactFormData } from '@/utils/validation';
 
 export const useSecureContactForm = () => {
@@ -45,18 +46,18 @@ export const useSecureContactForm = () => {
         budgetRange: validationResult.data.budgetRange ? sanitizeInput(validationResult.data.budgetRange) : ''
       };
 
-      // Submit to Supabase edge function
-      const response = await fetch('/api/send-contact-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(sanitizedData),
+      console.log("Submitting contact form:", sanitizedData);
+
+      // Submit to Supabase edge function using the correct method
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: sanitizedData
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      if (error) {
+        throw error;
       }
+
+      console.log("Form submitted successfully:", data);
 
       toast({
         title: "Message sent successfully!",
@@ -64,7 +65,7 @@ export const useSecureContactForm = () => {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Contact form error:', error);
       toast({
         title: "Error sending message",
