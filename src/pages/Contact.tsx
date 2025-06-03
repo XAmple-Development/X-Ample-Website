@@ -18,7 +18,7 @@ const Contact = () => {
     {
       icon: <Phone className="w-6 h-6 text-white" />,
       title: "Call Us",
-      info: "+1 (555) 123-4567",
+      info: "UNDER CONSTRUCTION",
       description: "Mon-Fri from 8am to 5pm"
     },
     {
