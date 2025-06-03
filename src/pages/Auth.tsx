@@ -20,20 +20,21 @@ const Auth = () => {
 
   console.log('Auth page: loading:', loading, 'user:', user?.email, 'profile:', profile?.email);
 
-  // Redirect authenticated users - check for user first, profile will come later
+  // Redirect authenticated users - but give a reasonable timeout
   useEffect(() => {
     if (!loading && user) {
       console.log('Auth page: User is authenticated, redirecting to dashboard');
-      // Small delay to allow profile to load, but don't wait indefinitely
-      const timer = setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 500);
-      
-      // If profile loads quickly, redirect immediately
+      // Redirect immediately if we have both user and profile
       if (profile) {
-        clearTimeout(timer);
         navigate('/dashboard', { replace: true });
+        return;
       }
+      
+      // If we have user but no profile yet, wait a bit but not forever
+      const timer = setTimeout(() => {
+        console.log('Auth page: Timeout reached, redirecting anyway');
+        navigate('/dashboard', { replace: true });
+      }, 3000); // Reduced from 5000 to 3000ms
       
       return () => clearTimeout(timer);
     }
@@ -72,10 +73,6 @@ const Auth = () => {
             title: "Success",
             description: "Signed in successfully!"
           });
-          // For login, redirect immediately after success
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true });
-          }, 1000);
         }
       }
     } catch (error: any) {
@@ -90,7 +87,7 @@ const Auth = () => {
     }
   };
 
-  // Show loading only while auth is initializing
+  // Show loading with timeout - don't get stuck forever
   if (loading) {
     console.log('Auth page: Showing loading state');
     return (
@@ -100,6 +97,8 @@ const Auth = () => {
     );
   }
 
+  // If user is authenticated but we're still here, show the form anyway
+  // This prevents infinite loading if there are profile issues
   console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">

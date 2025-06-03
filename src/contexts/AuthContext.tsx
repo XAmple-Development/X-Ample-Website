@@ -41,6 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('AuthContext: Initializing auth state');
     
+    let mounted = true;
+    
     // Get initial session
     const getInitialSession = async () => {
       try {
@@ -48,22 +50,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.error('AuthContext: Error getting initial session:', error);
-          setLoading(false);
+          if (mounted) setLoading(false);
           return;
         }
 
         console.log('AuthContext: Initial session:', session?.user?.email || 'no session');
         
-        if (session?.user) {
+        if (session?.user && mounted) {
           setSession(session);
           setUser(session.user);
           await fetchUserProfile(session.user);
         }
         
-        setLoading(false);
+        if (mounted) setLoading(false);
       } catch (error) {
         console.error('AuthContext: Error in getInitialSession:', error);
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
@@ -71,6 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('AuthContext: Auth state changed:', event, session?.user?.email || 'no user');
+        
+        if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -90,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getInitialSession();
     
     return () => {
+      mounted = false;
       console.log('AuthContext: Cleaning up auth listener');
       subscription.unsubscribe();
     };
@@ -116,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
+        console.log('AuthContext: Setting basic profile fallback');
         setProfile(basicProfile);
         return;
       }
@@ -128,13 +134,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setProfile(typedProfile);
       } else {
-        console.log('AuthContext: No profile found, creating basic one');
-        // Create a basic profile as fallback
-        const basicProfile: Profile = {
+        console.log('AuthContext: No profile found in database, creating basic profile');
+        // Try to create profile in database if it doesn't exist
+        const newProfile = {
           id: user.id,
           email: user.email || '',
           full_name: user.user_metadata?.full_name || null,
-          role: 'client',
+          role: 'client' as const
+        };
+        
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([newProfile]);
+          
+        if (insertError) {
+          console.error('AuthContext: Error creating profile:', insertError);
+        }
+        
+        const basicProfile: Profile = {
+          ...newProfile,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
@@ -151,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+      console.log('AuthContext: Setting final fallback profile');
       setProfile(basicProfile);
     }
   };
