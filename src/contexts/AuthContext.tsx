@@ -31,15 +31,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with a slight delay to prevent deadlocks
           setTimeout(async () => {
+            console.log('Fetching user profile for:', session.user.id);
             const { data: profileData } = await supabase
               .from('profiles')
               .select('*')
@@ -47,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .single();
             
             if (profileData) {
+              console.log('Profile loaded:', profileData);
               // Type assertion to ensure role is properly typed
               const typedProfile: Profile = {
                 ...profileData,
@@ -54,8 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               };
               setProfile(typedProfile);
             }
-          }, 0);
+          }, 100);
         } else {
+          console.log('No user, clearing profile');
           setProfile(null);
         }
         setLoading(false);
@@ -63,10 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // Get initial session
+    console.log('Getting initial session');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (!session) {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -89,10 +99,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('AuthContext signIn called');
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
+    console.log('SignIn result:', error ? 'Error' : 'Success');
     return { error };
   };
 

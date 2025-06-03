@@ -18,13 +18,10 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Use a ref to track if we've already redirected to prevent infinite loops
-  const hasRedirected = React.useRef(false);
-
   useEffect(() => {
-    // Only redirect if user exists, auth is not loading, and we haven't redirected yet
-    if (user && !authLoading && !hasRedirected.current) {
-      hasRedirected.current = true;
+    // Only redirect if user exists and auth is not loading
+    if (user && !authLoading) {
+      console.log('User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [user, authLoading, navigate]);
@@ -36,18 +33,22 @@ const Auth = () => {
     try {
       let result;
       if (isLogin) {
+        console.log('Attempting sign in');
         result = await signIn(email, password);
       } else {
+        console.log('Attempting sign up');
         result = await signUp(email, password, fullName);
       }
 
       if (result.error) {
+        console.error('Auth error:', result.error);
         toast({
           title: "Error",
           description: result.error.message,
           variant: "destructive"
         });
       } else {
+        console.log('Auth successful');
         if (!isLogin) {
           toast({
             title: "Success",
@@ -56,6 +57,7 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
         description: error.message,
