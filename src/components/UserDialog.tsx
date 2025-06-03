@@ -80,7 +80,7 @@ const UserDialog = ({ open, onOpenChange, onUserCreated, user }: UserDialogProps
           description: "User updated successfully!"
         });
       } else {
-        // Create new user
+        // Create new user using edge function
         if (!password) {
           toast({
             title: "Error",
@@ -90,17 +90,36 @@ const UserDialog = ({ open, onOpenChange, onUserCreated, user }: UserDialogProps
           return;
         }
 
-        const { error } = await supabase.auth.admin.createUser({
-          email,
-          password,
-          user_metadata: {
-            full_name: fullName
-          }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast({
+            title: "Error",
+            description: "You must be logged in to create users",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-user`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            fullName,
+            role
+          }),
         });
 
-        if (error) throw error;
+        const result = await response.json();
 
-        // Note: The profile will be created automatically by the trigger
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to create user');
+        }
+
         toast({
           title: "Success",
           description: "User created successfully!"
