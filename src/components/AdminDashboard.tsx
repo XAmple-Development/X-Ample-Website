@@ -6,9 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import AdminHeader from '@/components/AdminHeader';
 import AdminStats from '@/components/AdminStats';
 import ProjectsTable from '@/components/ProjectsTable';
-import UsersTable from '@/components/UsersTable';
 import ProjectDialog from '@/components/ProjectDialog';
-import UserDialog from '@/components/UserDialog';
 
 interface Project {
   id: string;
@@ -23,22 +21,11 @@ interface Project {
   };
 }
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string;
-  role: string;
-  created_at: string;
-}
-
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showUserDialog, setShowUserDialog] = useState(false);
-  const [editingUser, setEditingUser] = useState<Profile | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,26 +58,6 @@ const AdminDashboard = () => {
       } else {
         console.log('Projects fetched successfully:', projectsData?.length || 0);
         setProjects(projectsData || []);
-      }
-
-      // Fetch all profiles from the profiles table
-      console.log('Fetching all user profiles...');
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        toast({
-          title: "Error",
-          description: "Failed to fetch user profiles",
-          variant: "destructive"
-        });
-      } else {
-        console.log('Profiles fetched successfully:', profilesData?.length || 0);
-        console.log('Profile data:', profilesData);
-        setProfiles(profilesData || []);
       }
 
     } catch (error) {
@@ -144,80 +111,14 @@ const AdminDashboard = () => {
     }
   };
 
-  const deleteUser = async (userId: string) => {
-    try {
-      // Only delete from profiles table since we don't have admin permissions
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "User profile deleted successfully! Note: Auth user remains active."
-      });
-      
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const toggleUserRole = async (userId: string, currentRole: string) => {
-    const newRole = currentRole === 'admin' ? 'client' : 'admin';
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          role: newRole,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: `User ${newRole === 'admin' ? 'promoted to admin' : 'demoted to client'} successfully!`
-      });
-      
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update user role",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleEditUser = (user: Profile) => {
-    setEditingUser(user);
-    setShowUserDialog(true);
-  };
-
-  const handleCloseUserDialog = () => {
-    setShowUserDialog(false);
-    setEditingUser(null);
-  };
-
   const stats = {
     totalProjects: projects.length,
-    totalClients: profiles.filter(p => p.role === 'client').length,
+    totalClients: 0, // We'll calculate this differently later
     activeProjects: projects.filter(p => p.status === 'in_progress').length,
     completedProjects: projects.filter(p => p.status === 'completed').length
   };
 
-  console.log('Rendering AdminDashboard with profiles:', profiles.length, 'users');
+  console.log('Rendering AdminDashboard');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
@@ -238,28 +139,12 @@ const AdminDashboard = () => {
           onUpdateProjectStatus={updateProjectStatus}
           onDeleteProject={deleteProject}
         />
-
-        <UsersTable
-          profiles={profiles}
-          currentUserId={profile?.id}
-          onCreateUser={() => setShowUserDialog(true)}
-          onEditUser={handleEditUser}
-          onToggleUserRole={toggleUserRole}
-          onDeleteUser={deleteUser}
-        />
       </div>
       
       <ProjectDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onProjectCreated={fetchData}
-      />
-
-      <UserDialog
-        open={showUserDialog}
-        onOpenChange={handleCloseUserDialog}
-        onUserCreated={fetchData}
-        user={editingUser}
       />
     </div>
   );
