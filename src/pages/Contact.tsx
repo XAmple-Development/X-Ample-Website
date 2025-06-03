@@ -277,7 +277,12 @@ const Contact = () => {
               <Button size="lg" variant="secondary" className="bg-white text-cyan-600 hover:bg-gray-100">
                 Get Free Quote
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white/10"
+                onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
+              >
                 Schedule Consultation
               </Button>
             </div>
