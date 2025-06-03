@@ -14,17 +14,17 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { signUp, signIn, user, loading: authLoading } = useAuth();
+  const { signUp, signIn, user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Redirect if user is already authenticated
+  // Redirect if user is authenticated and has profile
   useEffect(() => {
-    if (user && !authLoading) {
-      console.log('User detected, redirecting to dashboard');
+    if (!authLoading && user && profile) {
+      console.log('User authenticated with profile, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,10 +54,8 @@ const Auth = () => {
             title: "Success",
             description: "Please check your email to confirm your account."
           });
-        } else {
-          // For successful login, the useEffect will handle the redirect
-          console.log('Login successful, redirect will be handled by useEffect');
         }
+        // For successful login, the useEffect will handle the redirect
       }
     } catch (error: any) {
       console.error('Unexpected error:', error);

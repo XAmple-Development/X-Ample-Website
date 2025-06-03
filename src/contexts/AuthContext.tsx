@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          await fetchOrCreateUserProfile(session.user);
         }
         
         setLoading(false);
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user && event === 'SIGNED_IN') {
-          await fetchUserProfile(session.user.id);
+          await fetchOrCreateUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out, clearing profile');
           setProfile(null);
@@ -83,17 +83,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchOrCreateUserProfile = async (user: User) => {
     try {
-      console.log('Fetching user profile for:', userId);
-      const { data: profileData, error } = await supabase
+      console.log('Fetching user profile for:', user.id);
+      
+      // First try to fetch existing profile
+      const { data: profileData, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single();
       
-      if (error) {
-        console.error('Error fetching profile:', error);
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        // PGRST116 means no rows returned, which is fine for new users
+        console.error('Error fetching profile:', fetchError);
         return;
       }
       
@@ -104,9 +107,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: profileData.role as 'client' | 'admin'
         };
         setProfile(typedProfile);
+      } else {
+        // Profile doesn't exist, create it
+        console.log('Creating new profile for user:', user.id);
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: user.id,
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || null,
+              role: 'client'
+            }
+          ])
+          .select()
+          .single();
+        
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return;
+        }
+        
+        if (newProfile) {
+          console.log('Profile created:', newProfile);
+          const typedProfile: Profile = {
+            ...newProfile,
+            role: newProfile.role as 'client' | 'admin'
+          };
+          setProfile(typedProfile);
+        }
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in fetchOrCreateUserProfile:', error);
     }
   };
 
