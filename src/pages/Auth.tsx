@@ -20,11 +20,22 @@ const Auth = () => {
 
   console.log('Auth page: loading:', loading, 'user:', user?.email, 'profile:', profile?.email);
 
-  // Redirect authenticated users
+  // Redirect authenticated users - check for user first, profile will come later
   useEffect(() => {
-    if (!loading && user && profile) {
+    if (!loading && user) {
       console.log('Auth page: User is authenticated, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
+      // Small delay to allow profile to load, but don't wait indefinitely
+      const timer = setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 500);
+      
+      // If profile loads quickly, redirect immediately
+      if (profile) {
+        clearTimeout(timer);
+        navigate('/dashboard', { replace: true });
+      }
+      
+      return () => clearTimeout(timer);
     }
   }, [user, profile, loading, navigate]);
 
@@ -61,6 +72,10 @@ const Auth = () => {
             title: "Success",
             description: "Signed in successfully!"
           });
+          // For login, redirect immediately after success
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 1000);
         }
       }
     } catch (error: any) {
