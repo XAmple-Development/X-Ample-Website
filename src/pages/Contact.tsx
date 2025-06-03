@@ -301,14 +301,17 @@ const Contact = () => {
             {/* FAQ Section */}
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h2>
-              <div className="space-y-6">
-                {faqs.map((faq, index) => (
-                  <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">{faq.question}</h3>
-                      <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
-                    </CardContent>
-                  </Card>
+  <div className="space-y-6">
+    {faqs.map((faq, index) => (
+      <Card
+        key={index}
+        className="bg-white text-gray-900 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">{faq.question}</h3>
+          <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+        </CardContent>
+      </Card>
                 ))}
               </div>
             </div>
