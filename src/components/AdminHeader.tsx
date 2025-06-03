@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, Users, Moon, Sun } from 'lucide-react';
+import { LogOut, Users } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme } from '@/contexts/ThemeContext';
 import NotificationCenter from '@/components/NotificationCenter';
 
 interface AdminHeaderProps {
@@ -13,7 +12,6 @@ interface AdminHeaderProps {
 const AdminHeader = ({ onSignOut }: AdminHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
   const isOnUserManagement = location.pathname === '/users';
   const isOnDashboard = location.pathname === '/dashboard';
 
@@ -27,14 +25,6 @@ const AdminHeader = ({ onSignOut }: AdminHeaderProps) => {
       </div>
       <div className="flex items-center space-x-4">
         <NotificationCenter />
-        <Button
-          onClick={toggleTheme}
-          variant="outline"
-          size="sm"
-          className="border-white/20 text-white hover:bg-white/10"
-        >
-          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
         {isOnUserManagement ? (
           <Button
             onClick={() => navigate('/dashboard')}

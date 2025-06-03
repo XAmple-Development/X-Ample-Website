@@ -45,7 +45,6 @@ const NotificationCenter = () => {
     let channel: any = null;
 
     const setupRealtimeSubscription = () => {
-      // Create a unique channel name to avoid conflicts
       const channelName = `notifications_${Date.now()}_${Math.random()}`;
       
       channel = supabase
@@ -84,9 +83,10 @@ const NotificationCenter = () => {
           }
         );
 
-      // Subscribe to the channel
       channel.subscribe((status: string) => {
-        console.log('Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Notification subscription active');
+        }
       });
     };
 
@@ -124,10 +124,10 @@ const NotificationCenter = () => {
 
   const getTypeColor = (type: Notification['type']) => {
     switch (type) {
-      case 'success': return 'text-green-400';
-      case 'warning': return 'text-yellow-400';
-      case 'error': return 'text-red-400';
-      default: return 'text-blue-400';
+      case 'success': return 'text-green-600';
+      case 'warning': return 'text-yellow-600';
+      case 'error': return 'text-red-600';
+      default: return 'text-blue-600';
     }
   };
 
@@ -150,16 +150,16 @@ const NotificationCenter = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 bg-slate-900 border-white/20" align="end">
+      <PopoverContent className="w-80 bg-white border-gray-200" align="end">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white">Notifications</h3>
+            <h3 className="font-semibold text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="text-blue-400 hover:text-blue-300"
+                className="text-blue-600 hover:text-blue-700"
               >
                 Mark all read
               </Button>
@@ -168,15 +168,15 @@ const NotificationCenter = () => {
           
           <div className="max-h-96 overflow-y-auto space-y-2">
             {notifications.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No notifications</p>
+              <p className="text-gray-500 text-center py-4">No notifications</p>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`p-3 rounded-lg border transition-colors ${
                     notification.read
-                      ? 'bg-white/5 border-white/10'
-                      : 'bg-white/10 border-white/20'
+                      ? 'bg-gray-50 border-gray-200'
+                      : 'bg-blue-50 border-blue-200'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -189,7 +189,7 @@ const NotificationCenter = () => {
                           <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-gray-300 text-xs mt-1">
+                      <p className="text-gray-600 text-xs mt-1">
                         {notification.message}
                       </p>
                       <p className="text-gray-400 text-xs mt-1">
@@ -202,7 +202,7 @@ const NotificationCenter = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => markAsRead(notification.id)}
-                          className="h-6 w-6 p-0 text-gray-400 hover:text-white"
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
                         >
                           •
                         </Button>
@@ -211,7 +211,7 @@ const NotificationCenter = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeNotification(notification.id)}
-                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-400"
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
                       >
                         <X className="w-3 h-3" />
                       </Button>
