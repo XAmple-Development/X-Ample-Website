@@ -9,6 +9,8 @@ const Dashboard = () => {
   const { user, profile, loading } = useAuth();
 
   console.log('Dashboard: loading:', loading, 'user:', user?.email, 'profile:', profile);
+  console.log('Dashboard: profile role:', profile?.role);
+  console.log('Dashboard: profile object:', JSON.stringify(profile, null, 2));
 
   // Show loading only if auth is still initializing
   if (loading) {
@@ -33,7 +35,11 @@ const Dashboard = () => {
     );
   }
 
-  return profile.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />;
+  // Add explicit check for admin role
+  const isAdmin = profile.role === 'admin';
+  console.log('Dashboard: isAdmin check:', isAdmin);
+
+  return isAdmin ? <AdminDashboard /> : <ClientDashboard />;
 };
 
 export default Dashboard;

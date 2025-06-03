@@ -22,6 +22,8 @@ export const fetchUserProfile = async (user: User): Promise<Profile> => {
       .eq('id', user.id)
       .maybeSingle();
     
+    console.log('AuthUtils: Profile query result:', { profileData, error });
+    
     if (error) {
       console.error('AuthUtils: Error fetching profile:', error);
       return createBasicProfile(user);
@@ -29,6 +31,7 @@ export const fetchUserProfile = async (user: User): Promise<Profile> => {
     
     if (profileData) {
       console.log('AuthUtils: Profile found:', profileData);
+      console.log('AuthUtils: Profile role:', profileData.role);
       return {
         ...profileData,
         role: profileData.role as 'client' | 'admin'
