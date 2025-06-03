@@ -5,45 +5,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Code, Gamepad2, Globe, MessageSquare, Zap, Shield, ArrowRight, CheckCircle } from "lucide-react";
 
-const services = [
-  {
-    icon: <Gamepad2 className="w-12 h-12 text-cyan-500" />,
-    title: "FiveM Development",
-    description: "Custom scripts, vehicles, maps, and complete server packages for GTA V FiveM servers.",
-    features: ["Custom Scripts & Resources", "Vehicle & Weapon Packs", "Map Development", "Server Optimization", "MLO Interiors", "Economy Systems"],
-    pricing: "Starting at £75",
-    popular: true,
-    link: "https://discord.gg/bGhguE93Xp" // Add this
-  },
-  {
-    icon: <Code className="w-12 h-12 text-teal-500" />,
-    title: "Roblox Development", 
-    description: "Professional Roblox game development and server management solutions.",
-    features: ["Game Development", "Server Management", "Custom Features", "Monetization Setup", "UI/UX Design", "Performance Optimization"],
-    pricing: "Starting at £25",
-    popular: false,
-    link: "https://discord.gg/bGhguE93Xp" // Add this
-  },
-  {
-    icon: <Globe className="w-12 h-12 text-cyan-600" />,
-    title: "Web Development",
-    description: "Modern, responsive websites and web applications built with cutting-edge technology.",
-    features: ["Responsive Design", "E-commerce Solutions", "CMS Integration", "Performance Optimization", "SEO Optimization", "Analytics Setup"],
-    pricing: "Starting at £95",
-    popular: false,
-    link: "https://discord.gg/bGhguE93Xp" // Add this
-  },
-  {
-    icon: <MessageSquare className="w-12 h-12 text-teal-600" />,
-    title: "Discord Development",
-    description: "Advanced Discord bots and server management solutions for communities.",
-    features: ["Custom Bots", "Server Setup", "Moderation Tools", "Integration Systems", "Database Management", "Custom Commands"],
-    pricing: "Starting at £15",
-    popular: true,
-    link: "https://discord.gg/bGhguE93Xp" // Add this
-  }
-];
-
+const Services = () => {
+  const services = [
+    {
+      icon: <Gamepad2 className="w-12 h-12 text-cyan-500" />,
+      title: "FiveM Development",
+      description: "Custom scripts, vehicles, maps, and complete server packages for GTA V FiveM servers.",
+      features: ["Custom Scripts & Resources", "Vehicle & Weapon Packs", "Map Development", "Server Optimization", "MLO Interiors", "Economy Systems"],
+      pricing: "Starting at £75",
+      popular: true
+    },
+    {
+      icon: <Code className="w-12 h-12 text-teal-500" />,
+      title: "Roblox Development", 
+      description: "Professional Roblox game development and server management solutions.",
+      features: ["Game Development", "Server Management", "Custom Features", "Monetization Setup", "UI/UX Design", "Performance Optimization"],
+      pricing: "Starting at £25",
+      popular: false
+    },
+    {
+      icon: <Globe className="w-12 h-12 text-cyan-600" />,
+      title: "Web Development",
+      description: "Modern, responsive websites and web applications built with cutting-edge technology.",
+      features: ["Responsive Design", "E-commerce Solutions", "CMS Integration", "Performance Optimization", "SEO Optimization", "Analytics Setup"],
+      pricing: "Starting at £95",
+      popular: false
+    },
+    {
+      icon: <MessageSquare className="w-12 h-12 text-teal-600" />,
+      title: "Discord Development",
+      description: "Advanced Discord bots and server management solutions for communities.",
+      features: ["Custom Bots", "Server Setup", "Moderation Tools", "Integration Systems", "Database Management", "Custom Commands"],
+      pricing: "Starting at £15",
+      popular: true
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,21 +96,19 @@ const services = [
                   </div>
                 </CardHeader>
                 <CardContent>
-  <ul className="space-y-3 mb-6">
-    {service.features.map((feature, featureIndex) => (
-      <li key={featureIndex} className="flex items-center space-x-3">
-        <CheckCircle className="w-5 h-5 text-cyan-500 flex-shrink-0" />
-        <span className="text-gray-700">{feature}</span>
-      </li>
-    ))}
-  </ul>
-  <a href={service.link}>
-    <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white">
-      Get Started
-      <ArrowRight className="w-4 h-4 ml-2" />
-    </Button>
-  </a>
-</CardContent>
+                  <ul className="space-y-3 mb-6">
+                    {service.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center space-x-3">
+                        <CheckCircle className="w-5 h-5 text-cyan-500 flex-shrink-0" />
+                        <span className="text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white">
+                    Get Started
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
               </Card>
             ))}
           </div>
