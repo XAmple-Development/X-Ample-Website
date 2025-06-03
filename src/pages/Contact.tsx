@@ -177,7 +177,7 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {/* Enhanced Contact Form with Security */}
             <div>
-              <Card className="border-0 shadow-xl">
+              <Card className="bg-white border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle className="text-3xl font-bold text-gray-900">Send us a message</CardTitle>
                   <p className="text-gray-600">Fill out the form below and we'll get back to you within 24 hours.</p>
