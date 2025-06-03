@@ -159,18 +159,19 @@ const About = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {team.map((member, index) => (
-              <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                <CardContent className="p-8">
-                  <img 
-                    src={member.image} 
-                    alt={member.name}
-                    className="w-24 h-24 rounded-full mx-auto mb-6 object-cover"
-                  />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>
-                  <p className="text-cyan-600 font-semibold mb-4">{member.role}</p>
-                  <p className="text-gray-600">{member.bio}</p>
-                </CardContent>
-              </Card>
+              <Card  key={index}className="bg-white text-gray-900 border border-gray-200 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+>
+  <CardContent className="p-8">
+    <img
+      src={member.image}
+      alt={member.name}
+      className="w-24 h-24 rounded-full mx-auto mb-6 object-cover"
+    />
+    <h3 className="text-xl font-bold mb-2">{member.name}</h3>
+    <p className="text-cyan-600 font-semibold mb-4">{member.role}</p>
+    <p className="text-gray-700">{member.bio}</p>
+  </CardContent>
+</Card>
             ))}
           </div>
         </div>
