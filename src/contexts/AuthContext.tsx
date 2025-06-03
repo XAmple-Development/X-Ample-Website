@@ -42,51 +42,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+    // Get initial session first
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session?.user?.email || 'none');
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile with a slight delay to prevent deadlocks
+          // Fetch user profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileData) {
+            console.log('Profile loaded:', profileData);
+            const typedProfile: Profile = {
+              ...profileData,
+              role: profileData.role as 'client' | 'admin'
+            };
+            setProfile(typedProfile);
+          }
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email || 'none');
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && event === 'SIGNED_IN') {
+          // Defer profile fetch to prevent potential issues
           setTimeout(async () => {
-            console.log('Fetching user profile for:', session.user.id);
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profileData) {
-              console.log('Profile loaded:', profileData);
-              // Type assertion to ensure role is properly typed
-              const typedProfile: Profile = {
-                ...profileData,
-                role: profileData.role as 'client' | 'admin'
-              };
-              setProfile(typedProfile);
+            try {
+              console.log('Fetching user profile for:', session.user.id);
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (profileData) {
+                console.log('Profile loaded:', profileData);
+                const typedProfile: Profile = {
+                  ...profileData,
+                  role: profileData.role as 'client' | 'admin'
+                };
+                setProfile(typedProfile);
+              }
+            } catch (error) {
+              console.error('Error fetching profile:', error);
             }
           }, 100);
-        } else {
-          console.log('No user, clearing profile');
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out, clearing profile');
           setProfile(null);
         }
+        
         setLoading(false);
       }
     );
-
-    // Get initial session
-    console.log('Getting initial session');
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (!session) {
-        setLoading(false);
-      }
-    });
 
     return () => subscription.unsubscribe();
   }, []);

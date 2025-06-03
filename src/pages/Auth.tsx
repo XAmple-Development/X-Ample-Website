@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,12 +17,21 @@ const Auth = () => {
   const { signUp, signIn, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    // Only redirect if user exists and auth is not loading
-    if (user && !authLoading) {
-      console.log('User authenticated, redirecting to dashboard');
+    console.log('Auth useEffect - user:', !!user, 'authLoading:', authLoading, 'hasRedirected:', hasRedirected.current);
+    
+    // Only redirect if we have a user, auth is not loading, and we haven't redirected yet
+    if (user && !authLoading && !hasRedirected.current) {
+      console.log('Redirecting to dashboard');
+      hasRedirected.current = true;
       navigate('/dashboard', { replace: true });
+    }
+    
+    // Reset redirect flag if user becomes null (logged out)
+    if (!user && !authLoading) {
+      hasRedirected.current = false;
     }
   }, [user, authLoading, navigate]);
 
@@ -55,6 +64,7 @@ const Auth = () => {
             description: "Please check your email to confirm your account."
           });
         }
+        // Don't manually redirect here - let the useEffect handle it
       }
     } catch (error: any) {
       console.error('Unexpected error:', error);
