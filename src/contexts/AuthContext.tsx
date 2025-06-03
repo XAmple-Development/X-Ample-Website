@@ -45,12 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setUser(session.user);
           
+          // Fetch profile with a small delay to ensure database is ready
           setTimeout(async () => {
             if (mounted) {
               const userProfile = await fetchUserProfile(session.user);
+              console.log('AuthContext: Setting profile:', userProfile);
               setProfile(userProfile);
             }
-          }, 0);
+          }, 100);
         }
         
         if (mounted) setLoading(false);
@@ -71,12 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           console.log('AuthContext: User signed in, fetching profile');
+          // Clear any existing profile first
+          setProfile(null);
+          
           setTimeout(async () => {
             if (mounted) {
               const userProfile = await fetchUserProfile(session.user);
+              console.log('AuthContext: Setting profile after auth change:', userProfile);
               setProfile(userProfile);
             }
-          }, 0);
+          }, 100);
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: User signed out, clearing profile');
           setProfile(null);
