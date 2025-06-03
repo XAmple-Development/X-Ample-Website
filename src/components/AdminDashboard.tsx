@@ -8,6 +8,7 @@ import ProjectsTable from '@/components/ProjectsTable';
 import UsersTable from '@/components/UsersTable';
 import ProjectDialog from '@/components/ProjectDialog';
 import UserDialog from '@/components/UserDialog';
+import type { User } from '@supabase/supabase-js';
 
 interface Project {
   id: string;
@@ -79,23 +80,23 @@ const AdminDashboard = () => {
       // Fetch auth users to ensure we have all users
       try {
         const { data: authData, error: usersError } = await supabase.auth.admin.listUsers();
-        const users = authData?.users;
+        const users: User[] = authData?.users || [];
         
         if (usersError) {
           console.error('Error fetching auth users:', usersError);
         } else {
-          console.log('Auth users found:', users?.length || 0);
-          console.log('Auth users:', users?.map(u => ({ id: u.id, email: u.email, created_at: u.created_at })));
+          console.log('Auth users found:', users.length);
+          console.log('Auth users:', users.map(u => ({ id: u.id, email: u.email, created_at: u.created_at })));
           
           // Create missing profiles for auth users
-          if (users && users.length > 0) {
+          if (users.length > 0) {
             const existingProfileIds = new Set(profilesData?.map(p => p.id) || []);
-            const usersWithoutProfiles = users.filter(user => user && user.id && !existingProfileIds.has(user.id));
+            const usersWithoutProfiles = users.filter((user: User) => user?.id && !existingProfileIds.has(user.id));
             
             console.log('Users without profiles:', usersWithoutProfiles.length);
             
             if (usersWithoutProfiles.length > 0) {
-              const missingProfiles = usersWithoutProfiles.map(user => ({
+              const missingProfiles = usersWithoutProfiles.map((user: User) => ({
                 id: user.id,
                 email: user.email || '',
                 full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
