@@ -280,7 +280,7 @@ const Contact = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white/10"
+                className="flex flex-col sm:flex-row gap-4 justify-center"
                 onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
               >
                 Schedule Consultation
