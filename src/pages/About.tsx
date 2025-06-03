@@ -38,16 +38,16 @@ const About = () => {
       bio: "Full-stack developer with 8+ years experience in gaming and full stack development."
     },
     {
-      name: "Sarah Chen",
-      role: "UI/UX Designer",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b131?w=400&h=400&fit=crop&crop=face",
+      name: "zvapor_",
+      role: "Asst Lead Developer",
+      image: "https://cdn.discordapp.com/avatars/501700626690998280/a_cbb7036dc635697ffeb9520970dd8f27?size=1024",
       bio: "Creative designer passionate about creating intuitive and beautiful user experiences."
     },
     {
-      name: "Marcus Rodriguez",
-      role: "Game Developer",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      bio: "Specialist in FiveM and Roblox development with a focus on immersive gameplay."
+      name: "DJKnaeckebrot",
+      role: "Asst Lead Developer",
+      image: "https://cdn.discordapp.com/avatars/424868316398747648/e9f4962349b1a8e1041060087fc0aac6?size=1024",
+      bio: "Specialist in Web development with a focus on immersive touch."
     }
   ];
 
