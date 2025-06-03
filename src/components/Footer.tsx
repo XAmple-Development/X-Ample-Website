@@ -37,7 +37,7 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4 text-cyan-400">Services</h3>
             <ul className="space-y-2 text-gray-400">
-              <li className="hover:text-white transition-colors cursor-pointer">FiveM Development</li>
+              <li ref="/services/web-development"  className="hover:text-white transition-colors cursor-pointer">FiveM Development</li>
               <li className="hover:text-white transition-colors cursor-pointer">Roblox Servers</li>
               <li className="hover:text-white transition-colors cursor-pointer">Web Development</li>
               <li className="hover:text-white transition-colors cursor-pointer">Discord Bots</li>
