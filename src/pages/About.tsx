@@ -135,15 +135,16 @@ const About = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {values.map((value, index) => (
-              <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                <CardContent className="p-8">
-                  <div className="flex justify-center mb-6">
-                    {value.icon}
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{value.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{value.description}</p>
-                </CardContent>
-              </Card>
+              <Card key={index}className="bg-white text-gray-900 border border-gray-200 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+>
+  <CardContent className="p-8">
+    <div className="flex justify-center mb-6">
+      {value.icon}
+    </div>
+    <h3 className="text-2xl font-bold mb-4">{value.title}</h3>
+    <p className="text-gray-700 leading-relaxed">{value.description}</p>
+  </CardContent>
+</Card>
             ))}
           </div>
         </div>
