@@ -45,7 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .select('*')
               .eq('id', session.user.id)
               .single();
-            setProfile(profileData);
+            
+            if (profileData) {
+              // Type assertion to ensure role is properly typed
+              const typedProfile: Profile = {
+                ...profileData,
+                role: profileData.role as 'client' | 'admin'
+              };
+              setProfile(typedProfile);
+            }
           }, 0);
         } else {
           setProfile(null);
