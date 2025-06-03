@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     console.log('AuthContext: Initializing auth state');
@@ -57,10 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setSession(session);
           setUser(session.user);
-          // Use setTimeout to avoid potential deadlock
-          setTimeout(() => {
-            fetchUserProfile(session.user);
-          }, 0);
+          // Fetch profile with error handling
+          fetchUserProfileSafely(session.user);
         }
         
         setLoading(false);
@@ -80,10 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           console.log('AuthContext: User signed in, fetching profile');
-          // Use setTimeout to avoid potential deadlock
-          setTimeout(() => {
-            fetchUserProfile(session.user);
-          }, 0);
+          fetchUserProfileSafely(session.user);
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: User signed out, clearing profile');
           setProfile(null);
@@ -101,20 +97,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const fetchUserProfile = async (user: User) => {
+  const fetchUserProfileSafely = async (user: User) => {
+    // Prevent multiple concurrent profile fetches
+    if (profileLoading) {
+      console.log('AuthContext: Profile fetch already in progress, skipping');
+      return;
+    }
+
+    setProfileLoading(true);
+    
     try {
       console.log('AuthContext: Fetching profile for user:', user.id);
       
-      const { data: profileData, error } = await supabase
+      // Try to fetch profile with timeout
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+      
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
       
+      const { data: profileData, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      
       if (error) {
         console.error('AuthContext: Error fetching profile:', error);
-        // Create profile if it doesn't exist (might be missing)
-        await createUserProfile(user);
+        // If profile doesn't exist, create it
+        if (error.code === 'PGRST116' || error.message?.includes('No rows found')) {
+          console.log('AuthContext: No profile found, creating new one');
+          await createUserProfileSafely(user);
+        }
         return;
       }
       
@@ -127,19 +141,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(typedProfile);
       } else {
         console.log('AuthContext: No profile found, creating new one');
-        await createUserProfile(user);
+        await createUserProfileSafely(user);
       }
     } catch (error) {
       console.error('AuthContext: Error in fetchUserProfile:', error);
-      // Try to create profile as fallback
-      await createUserProfile(user);
+      // As a fallback, create a basic profile without database call
+      setProfile({
+        id: user.id,
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || null,
+        role: 'client',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    } finally {
+      setProfileLoading(false);
     }
   };
 
-  const createUserProfile = async (user: User) => {
+  const createUserProfileSafely = async (user: User) => {
     try {
       console.log('AuthContext: Creating profile for user:', user.id);
-      const { data: newProfile, error: createError } = await supabase
+      
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile creation timeout')), 5000)
+      );
+      
+      const createPromise = supabase
         .from('profiles')
         .insert([
           {
@@ -152,8 +180,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select()
         .maybeSingle();
       
+      const { data: newProfile, error: createError } = await Promise.race([createPromise, timeoutPromise]) as any;
+      
       if (createError) {
         console.error('AuthContext: Error creating profile:', createError);
+        // Set a basic profile as fallback
+        setProfile({
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || null,
+          role: 'client',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
         return;
       }
       
@@ -167,6 +206,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('AuthContext: Error in createUserProfile:', error);
+      // Set a basic profile as final fallback
+      setProfile({
+        id: user.id,
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || null,
+        role: 'client',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     }
   };
 
