@@ -64,8 +64,8 @@ const Footer = () => {
   </a>
 </li>
 <li>
-  <a href="/support" className="hover:text-white transition-colors cursor-pointer">
-    Support
+  <a href="https://discord.gg/3mNGT2AwNy" className="hover:text-white transition-colors cursor-pointer">
+    Discord Support
   </a>
 </li>
             </ul>
