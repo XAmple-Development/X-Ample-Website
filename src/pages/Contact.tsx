@@ -152,24 +152,27 @@ const Contact = () => {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {contactInfo.map((contact, index) => (
-              <Card key={index} className="text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-white">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    {contact.icon}
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-2">{contact.title}</h3>
-                  <p className="text-cyan-600 font-semibold mb-1">{contact.info}</p>
-                  <p className="text-gray-500 text-sm">{contact.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <section className="py-16 bg-white">
+  <div className="container mx-auto px-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+      {contactInfo.map((contact, index) => (
+        <Card
+          key={index}
+          className="bg-white text-gray-900 text-center border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+        >
+          <CardContent className="p-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              {contact.icon}
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">{contact.title}</h3>
+            <p className="text-cyan-600 font-semibold mb-1">{contact.info}</p>
+            <p className="text-gray-600 text-sm">{contact.description}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Contact Form & Map */}
       <section className="py-20 bg-white">
