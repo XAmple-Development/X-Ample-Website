@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,50 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send, Clock, MessageCircle } from "lucide-react";
+import { useContactForm } from "@/hooks/useContactForm";
 
 const Contact = () => {
+  const { submitForm, isSubmitting } = useContactForm();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    projectType: "",
+    budgetRange: "",
+    message: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.message) {
+      return;
+    }
+
+    const result = await submitForm(formData);
+    
+    if (result.success) {
+      // Reset form on successful submission
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        projectType: "",
+        budgetRange: "",
+        message: "",
+      });
+    }
+  };
+
   const contactInfo = [
     {
       icon: <Mail className="w-6 h-6 text-white" />,
@@ -108,55 +151,97 @@ const Contact = () => {
                   <CardTitle className="text-3xl font-bold text-gray-900">Send us a message</CardTitle>
                   <p className="text-gray-600">Fill out the form below and we'll get back to you within 24 hours.</p>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                      <Input placeholder="Your first name" className="border-gray-200 focus:border-cyan-500" />
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                        <Input 
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          placeholder="Your first name" 
+                          className="border-gray-200 focus:border-cyan-500" 
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                        <Input 
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          placeholder="Your last name" 
+                          className="border-gray-200 focus:border-cyan-500" 
+                          required
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                      <Input placeholder="Your last name" className="border-gray-200 focus:border-cyan-500" />
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                      <Input 
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="your.email@example.com" 
+                        className="border-gray-200 focus:border-cyan-500" 
+                        required
+                      />
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <Input placeholder="your.email@example.com" type="email" className="border-gray-200 focus:border-cyan-500" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
-                    <select className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500">
-                      <option>Select a service</option>
-                      <option>FiveM Development</option>
-                      <option>Roblox Development</option>
-                      <option>Web Development</option>
-                      <option>Discord Development</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
-                    <select className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500">
-                      <option>Select budget range</option>
-                      <option>Under £500</option>
-                      <option>£500 - £1,000</option>
-                      <option>£1,000 - £5,000</option>
-                      <option>£5,000 - £10,000</option>
-                      <option>£10,000+</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                    <Textarea 
-                      placeholder="Tell us about your project..." 
-                      rows={6} 
-                      className="border-gray-200 focus:border-cyan-500 resize-none"
-                    />
-                  </div>
-                  <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105">
-                    <Send className="w-5 h-5 mr-2" />
-                    Send Message
-                  </Button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
+                      <select 
+                        name="projectType"
+                        value={formData.projectType}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500"
+                      >
+                        <option value="">Select a service</option>
+                        <option value="FiveM Development">FiveM Development</option>
+                        <option value="Roblox Development">Roblox Development</option>
+                        <option value="Web Development">Web Development</option>
+                        <option value="Discord Development">Discord Development</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                      <select 
+                        name="budgetRange"
+                        value={formData.budgetRange}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-cyan-500"
+                      >
+                        <option value="">Select budget range</option>
+                        <option value="Under £500">Under £500</option>
+                        <option value="£500 - £1,000">£500 - £1,000</option>
+                        <option value="£1,000 - £5,000">£1,000 - £5,000</option>
+                        <option value="£5,000 - £10,000">£5,000 - £10,000</option>
+                        <option value="£10,000+">£10,000+</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                      <Textarea 
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        placeholder="Tell us about your project..." 
+                        rows={6} 
+                        className="border-gray-200 focus:border-cyan-500 resize-none"
+                        required
+                      />
+                    </div>
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className="w-5 h-5 mr-2" />
+                      {isSubmitting ? "Sending..." : "Send Message"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </div>
