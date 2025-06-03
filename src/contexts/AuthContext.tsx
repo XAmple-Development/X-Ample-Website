@@ -52,10 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           await fetchOrCreateUserProfile(session.user);
         }
-        
-        setLoading(false);
       } catch (error) {
         console.error('Error getting initial session:', error);
+      } finally {
+        // Always set loading to false, regardless of success or error
         setLoading(false);
       }
     };
@@ -76,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
         
+        // Ensure loading is set to false after auth state changes
         setLoading(false);
       }
     );
