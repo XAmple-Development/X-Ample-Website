@@ -95,17 +95,28 @@ const SecureProjectDialog = ({ open, onOpenChange, onProjectCreated }: SecurePro
     }
 
     setLoading(true);
+    console.log('Creating project with user ID:', user.id);
+    console.log('Project data:', validationResult.data);
+    
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('projects')
         .insert({
           title: validationResult.data.title,
           description: validationResult.data.description || '',
           category: validationResult.data.category,
-          client_id: user.id
-        });
+          client_id: user.id,
+          status: 'pending'
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Project created successfully:', data);
 
       toast({
         title: "Success",
@@ -120,7 +131,7 @@ const SecureProjectDialog = ({ open, onOpenChange, onProjectCreated }: SecurePro
       console.error('Project creation error:', error);
       toast({
         title: "Error",
-        description: "Failed to create project. Please try again.",
+        description: error.message || "Failed to create project. Please try again.",
         variant: "destructive"
       });
     } finally {

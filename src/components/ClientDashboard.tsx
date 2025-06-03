@@ -15,26 +15,43 @@ interface Project {
   category: string;
   status: string;
   created_at: string;
+  client_id: string;
 }
 
 const ClientDashboard = () => {
-  const { profile, signOut } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (user) {
+      fetchProjects();
+    }
+  }, [user]);
 
   const fetchProjects = async () => {
+    if (!user) {
+      console.log('No user found, skipping project fetch');
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log('Fetching projects for user:', user.id);
+      
       const { data, error } = await supabase
         .from('projects')
         .select('*')
+        .eq('client_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
+      }
+      
+      console.log('Projects fetched:', data);
       setProjects(data || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
