@@ -13,8 +13,7 @@ const Services = () => {
       description: "Custom scripts, vehicles, maps, and complete server packages for GTA V FiveM servers.",
       features: ["Custom Scripts & Resources", "Vehicle & Weapon Packs", "Map Development", "Server Optimization", "MLO Interiors", "Economy Systems"],
       pricing: "Starting at £75",
-      popular: true,
-      Link: https://x-ampledevelopment.com/contact
+      popular: true
     },
     {
       icon: <Code className="w-12 h-12 text-teal-500" />,
@@ -22,8 +21,7 @@ const Services = () => {
       description: "Professional Roblox game development and server management solutions.",
       features: ["Game Development", "Server Management", "Custom Features", "Monetization Setup", "UI/UX Design", "Performance Optimization"],
       pricing: "Starting at £25",
-      popular: false,
-      Link: https://x-ampledevelopment.com/contact
+      popular: false
     },
     {
       icon: <Globe className="w-12 h-12 text-cyan-600" />,
@@ -31,8 +29,7 @@ const Services = () => {
       description: "Modern, responsive websites and web applications built with cutting-edge technology.",
       features: ["Responsive Design", "E-commerce Solutions", "CMS Integration", "Performance Optimization", "SEO Optimization", "Analytics Setup"],
       pricing: "Starting at £95",
-      popular: false,
-      Link: https://x-ampledevelopment.com/contact
+      popular: false
     },
     {
       icon: <MessageSquare className="w-12 h-12 text-teal-600" />,
@@ -40,8 +37,7 @@ const Services = () => {
       description: "Advanced Discord bots and server management solutions for communities.",
       features: ["Custom Bots", "Server Setup", "Moderation Tools", "Integration Systems", "Database Management", "Custom Commands"],
       pricing: "Starting at £15",
-      popular: true,
-      Link: https://x-ampledevelopment.com/contact
+      popular: true
     }
   ];
 
@@ -97,9 +93,6 @@ const Services = () => {
                   </CardDescription>
                   <div className="text-3xl font-bold text-cyan-600 mt-4">
                     {service.pricing}
-                     </CardDescription>
-                  <div className="text-3xl font-bold text-cyan-600 mt-4">
-                    {service.Link}
                   </div>
                 </CardHeader>
                 <CardContent>
