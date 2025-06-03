@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,7 +62,7 @@ const AdminDashboard = () => {
         console.error('Error fetching projects:', projectsError);
       }
 
-      // Fetch all profiles with more detailed logging
+      // Fetch all profiles
       console.log('Fetching all profiles...');
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -77,7 +76,7 @@ const AdminDashboard = () => {
         console.log('Number of profiles found:', profilesData?.length || 0);
       }
 
-      // Also fetch auth users to compare
+      // Fetch auth users to ensure we have all users
       try {
         const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
         if (usersError) {
@@ -85,6 +84,42 @@ const AdminDashboard = () => {
         } else {
           console.log('Auth users found:', users?.length || 0);
           console.log('Auth users:', users?.map(u => ({ id: u.id, email: u.email, created_at: u.created_at })));
+          
+          // Create missing profiles for auth users
+          const existingProfileIds = new Set(profilesData?.map(p => p.id) || []);
+          const usersWithoutProfiles = users?.filter(user => !existingProfileIds.has(user.id)) || [];
+          
+          console.log('Users without profiles:', usersWithoutProfiles.length);
+          
+          if (usersWithoutProfiles.length > 0) {
+            const missingProfiles = usersWithoutProfiles.map(user => ({
+              id: user.id,
+              email: user.email || '',
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+              role: 'client',
+              created_at: user.created_at,
+              updated_at: new Date().toISOString()
+            }));
+            
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert(missingProfiles);
+              
+            if (insertError) {
+              console.error('Error creating missing profiles:', insertError);
+            } else {
+              console.log('Created missing profiles for:', missingProfiles.length, 'users');
+              // Refetch profiles to get the complete list
+              const { data: updatedProfilesData } = await supabase
+                .from('profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+              
+              setProfiles(updatedProfilesData || []);
+              setProjects(projectsData || []);
+              return;
+            }
+          }
         }
       } catch (authError) {
         console.error('Cannot fetch auth users (normal if not admin):', authError);
