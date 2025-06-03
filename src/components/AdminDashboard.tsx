@@ -59,20 +59,46 @@ const AdminDashboard = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (projectsError) throw projectsError;
+      if (projectsError) {
+        console.error('Error fetching projects:', projectsError);
+      }
 
-      // Fetch all profiles
+      // Fetch all profiles with more detailed logging
+      console.log('Fetching all profiles...');
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      } else {
+        console.log('Fetched profiles:', profilesData);
+        console.log('Number of profiles found:', profilesData?.length || 0);
+      }
+
+      // Also fetch auth users to compare
+      try {
+        const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+        if (usersError) {
+          console.error('Error fetching auth users:', usersError);
+        } else {
+          console.log('Auth users found:', users?.length || 0);
+          console.log('Auth users:', users?.map(u => ({ id: u.id, email: u.email, created_at: u.created_at })));
+        }
+      } catch (authError) {
+        console.error('Cannot fetch auth users (normal if not admin):', authError);
+      }
 
       setProjects(projectsData || []);
       setProfiles(profilesData || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error in fetchData:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch data",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -186,6 +212,8 @@ const AdminDashboard = () => {
     activeProjects: projects.filter(p => p.status === 'in_progress').length,
     completedProjects: projects.filter(p => p.status === 'completed').length
   };
+
+  console.log('Rendering AdminDashboard with profiles:', profiles);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">

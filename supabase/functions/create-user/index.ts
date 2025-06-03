@@ -55,6 +55,8 @@ serve(async (req) => {
     // Parse the request body
     const { email, password, fullName, role } = await req.json()
 
+    console.log('Creating user with data:', { email, fullName, role })
+
     // Create the user
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -66,18 +68,37 @@ serve(async (req) => {
     })
 
     if (createError) {
+      console.error('Error creating user:', createError)
       return new Response(
         JSON.stringify({ error: createError.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Update the user's profile with the specified role
-    if (newUser.user && role !== 'client') {
-      await supabaseAdmin
+    console.log('User created successfully:', newUser.user?.id)
+
+    // Create or update the user's profile 
+    if (newUser.user) {
+      const { error: profileError } = await supabaseAdmin
         .from('profiles')
-        .update({ role })
-        .eq('id', newUser.user.id)
+        .upsert({
+          id: newUser.user.id,
+          email: newUser.user.email,
+          full_name: fullName,
+          role: role || 'client',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError)
+        return new Response(
+          JSON.stringify({ error: 'User created but profile creation failed: ' + profileError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('Profile created successfully for user:', newUser.user.id)
     }
 
     return new Response(
@@ -86,6 +107,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Edge function error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
