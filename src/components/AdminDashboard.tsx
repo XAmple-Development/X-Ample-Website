@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +12,20 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { LogOut, Users, Folder, CheckCircle, Clock } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { LogOut, Users, Folder, CheckCircle, Clock, Plus, Trash2 } from 'lucide-react';
+import ProjectDialog from '@/components/ProjectDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface Project {
   id: string;
@@ -41,6 +53,8 @@ const AdminDashboard = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
@@ -90,6 +104,31 @@ const AdminDashboard = () => {
       fetchData(); // Refresh data
     } catch (error) {
       console.error('Error updating project:', error);
+    }
+  };
+
+  const deleteProject = async (projectId: string) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Project deleted successfully!"
+      });
+      
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive"
+      });
     }
   };
 
@@ -174,7 +213,16 @@ const AdminDashboard = () => {
         {/* Projects Table */}
         <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">All Projects</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">All Projects</h2>
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Project
+              </Button>
+            </div>
             {loading ? (
               <div className="text-white">Loading...</div>
             ) : (
@@ -218,16 +266,48 @@ const AdminDashboard = () => {
                         {new Date(project.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <select
-                          value={project.status}
-                          onChange={(e) => updateProjectStatus(project.id, e.target.value)}
-                          className="bg-white/10 border border-white/20 rounded px-2 py-1 text-white text-sm"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={project.status}
+                            onChange={(e) => updateProjectStatus(project.id, e.target.value)}
+                            className="bg-white/10 border border-white/20 rounded px-2 py-1 text-white text-sm"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-red-500/20 text-red-400 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-white/20">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-white">Delete Project</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-300">
+                                  Are you sure you want to delete "{project.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteProject(project.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -272,6 +352,12 @@ const AdminDashboard = () => {
           </div>
         </Card>
       </div>
+      
+      <ProjectDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onProjectCreated={fetchData}
+      />
     </div>
   );
 };
