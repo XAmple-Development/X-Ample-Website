@@ -37,7 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     console.log('AuthContext: Initializing auth state');
@@ -58,8 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setSession(session);
           setUser(session.user);
-          // Fetch profile with error handling
-          fetchUserProfileSafely(session.user);
+          await fetchUserProfile(session.user);
         }
         
         setLoading(false);
@@ -79,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           console.log('AuthContext: User signed in, fetching profile');
-          fetchUserProfileSafely(session.user);
+          await fetchUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthContext: User signed out, clearing profile');
           setProfile(null);
@@ -97,38 +95,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const fetchUserProfileSafely = async (user: User) => {
-    // Prevent multiple concurrent profile fetches
-    if (profileLoading) {
-      console.log('AuthContext: Profile fetch already in progress, skipping');
-      return;
-    }
-
-    setProfileLoading(true);
-    
+  const fetchUserProfile = async (user: User) => {
     try {
       console.log('AuthContext: Fetching profile for user:', user.id);
       
-      // Try to fetch profile with timeout
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-      );
-      
-      const fetchPromise = supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
       
-      const { data: profileData, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-      
       if (error) {
         console.error('AuthContext: Error fetching profile:', error);
-        // If profile doesn't exist, create it
-        if (error.code === 'PGRST116' || error.message?.includes('No rows found')) {
-          console.log('AuthContext: No profile found, creating new one');
-          await createUserProfileSafely(user);
-        }
+        // Create a basic profile as fallback
+        const basicProfile: Profile = {
+          id: user.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || null,
+          role: 'client',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setProfile(basicProfile);
         return;
       }
       
@@ -140,81 +128,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setProfile(typedProfile);
       } else {
-        console.log('AuthContext: No profile found, creating new one');
-        await createUserProfileSafely(user);
-      }
-    } catch (error) {
-      console.error('AuthContext: Error in fetchUserProfile:', error);
-      // As a fallback, create a basic profile without database call
-      setProfile({
-        id: user.id,
-        email: user.email || '',
-        full_name: user.user_metadata?.full_name || null,
-        role: 'client',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  const createUserProfileSafely = async (user: User) => {
-    try {
-      console.log('AuthContext: Creating profile for user:', user.id);
-      
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile creation timeout')), 5000)
-      );
-      
-      const createPromise = supabase
-        .from('profiles')
-        .insert([
-          {
-            id: user.id,
-            email: user.email || '',
-            full_name: user.user_metadata?.full_name || null,
-            role: 'client'
-          }
-        ])
-        .select()
-        .maybeSingle();
-      
-      const { data: newProfile, error: createError } = await Promise.race([createPromise, timeoutPromise]) as any;
-      
-      if (createError) {
-        console.error('AuthContext: Error creating profile:', createError);
-        // Set a basic profile as fallback
-        setProfile({
+        console.log('AuthContext: No profile found, creating basic one');
+        // Create a basic profile as fallback
+        const basicProfile: Profile = {
           id: user.id,
           email: user.email || '',
           full_name: user.user_metadata?.full_name || null,
           role: 'client',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
-        return;
-      }
-      
-      if (newProfile) {
-        console.log('AuthContext: Profile created:', newProfile);
-        const typedProfile: Profile = {
-          ...newProfile,
-          role: newProfile.role as 'client' | 'admin'
         };
-        setProfile(typedProfile);
+        setProfile(basicProfile);
       }
     } catch (error) {
-      console.error('AuthContext: Error in createUserProfile:', error);
-      // Set a basic profile as final fallback
-      setProfile({
+      console.error('AuthContext: Error in fetchUserProfile:', error);
+      // Create a basic profile as final fallback
+      const basicProfile: Profile = {
         id: user.id,
         email: user.email || '',
         full_name: user.user_metadata?.full_name || null,
         role: 'client',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      });
+      };
+      setProfile(basicProfile);
     }
   };
 
