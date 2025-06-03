@@ -87,6 +87,7 @@ const UserDialog = ({ open, onOpenChange, onUserCreated, user }: UserDialogProps
             description: "Password is required for new users",
             variant: "destructive"
           });
+          setLoading(false);
           return;
         }
 
@@ -97,6 +98,7 @@ const UserDialog = ({ open, onOpenChange, onUserCreated, user }: UserDialogProps
             description: "You must be logged in to create users",
             variant: "destructive"
           });
+          setLoading(false);
           return;
         }
 
@@ -126,7 +128,10 @@ const UserDialog = ({ open, onOpenChange, onUserCreated, user }: UserDialogProps
         });
       }
 
-      onUserCreated?.();
+      // Always call onUserCreated to refresh the data
+      if (onUserCreated) {
+        onUserCreated();
+      }
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving user:', error);
