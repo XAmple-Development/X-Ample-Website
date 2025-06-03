@@ -129,7 +129,7 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-10">
       <Header />
       
       {/* Hero Section */}
