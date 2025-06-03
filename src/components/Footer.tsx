@@ -8,8 +8,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <Code className="w-8 h-8 text-purple-400" />
+            <div className="flex items-center space-x-3 mb-4">
+              <img 
+                src="/lovable-uploads/c54aa9aa-58db-4f2f-87df-5637b62b5f99.png" 
+                alt="X-Ample Development" 
+                className="h-8 w-auto"
+              />
               <span className="text-2xl font-bold">X-Ample Development</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
@@ -31,7 +35,7 @@ const Footer = () => {
           
           {/* Services */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-purple-400">Services</h3>
+            <h3 className="text-lg font-semibold mb-4 text-cyan-400">Services</h3>
             <ul className="space-y-2 text-gray-400">
               <li className="hover:text-white transition-colors cursor-pointer">FiveM Development</li>
               <li className="hover:text-white transition-colors cursor-pointer">Roblox Servers</li>
@@ -42,7 +46,7 @@ const Footer = () => {
           
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-cyan-400">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4 text-teal-400">Quick Links</h3>
             <ul className="space-y-2 text-gray-400">
               <li className="hover:text-white transition-colors cursor-pointer">About Us</li>
               <li className="hover:text-white transition-colors cursor-pointer">Portfolio</li>

@@ -11,7 +11,7 @@ const Contact = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Get In <span className="bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">Touch</span>
+            Get In <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">Touch</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Ready to start your next project? Contact us today for a free consultation
@@ -23,7 +23,7 @@ const Contact = () => {
           <div className="space-y-6">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
@@ -33,7 +33,7 @@ const Contact = () => {
             
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Phone className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Call Us</h3>
@@ -43,7 +43,7 @@ const Contact = () => {
             
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Visit Us</h3>
@@ -60,16 +60,16 @@ const Contact = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input placeholder="Your Name" className="border-gray-200 focus:border-purple-500" />
-                  <Input placeholder="Your Email" type="email" className="border-gray-200 focus:border-purple-500" />
+                  <Input placeholder="Your Name" className="border-gray-200 focus:border-cyan-500" />
+                  <Input placeholder="Your Email" type="email" className="border-gray-200 focus:border-cyan-500" />
                 </div>
-                <Input placeholder="Subject" className="border-gray-200 focus:border-purple-500" />
+                <Input placeholder="Subject" className="border-gray-200 focus:border-cyan-500" />
                 <Textarea 
                   placeholder="Your Message" 
                   rows={6} 
-                  className="border-gray-200 focus:border-purple-500 resize-none"
+                  className="border-gray-200 focus:border-cyan-500 resize-none"
                 />
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105">
+                <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105">
                   <Send className="w-5 h-5 mr-2" />
                   Send Message
                 </Button>
@@ -80,12 +80,12 @@ const Contact = () => {
         
         {/* Call to Action */}
         <div className="text-center mt-16">
-          <div className="bg-gradient-to-r from-purple-600 to-cyan-600 rounded-xl p-8 text-white max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-cyan-500 to-teal-500 rounded-xl p-8 text-white max-w-4xl mx-auto">
             <h3 className="text-3xl font-bold mb-4">Ready to Start Your Project?</h3>
             <p className="text-xl mb-6 opacity-90">
               Let's discuss your ideas and bring them to life with our expertise
             </p>
-            <Button size="lg" variant="secondary" className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full">
+            <Button size="lg" variant="secondary" className="bg-white text-cyan-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full">
               Get Free Quote
             </Button>
           </div>
