@@ -12,65 +12,67 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   
-  const { signUp, signIn, user, profile, loading: authLoading } = useAuth();
+  const { signUp, signIn, user, profile, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Redirect if user is authenticated and has profile
+  console.log('Auth page: loading:', loading, 'user:', user?.email, 'profile:', profile?.email);
+
+  // Redirect authenticated users
   useEffect(() => {
-    if (!authLoading && user && profile) {
-      console.log('User authenticated with profile, redirecting to dashboard');
+    if (!loading && user && profile) {
+      console.log('Auth page: User is authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, profile, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       let result;
       if (isLogin) {
-        console.log('Attempting sign in');
+        console.log('Auth page: Attempting sign in');
         result = await signIn(email, password);
       } else {
-        console.log('Attempting sign up');
+        console.log('Auth page: Attempting sign up');
         result = await signUp(email, password, fullName);
       }
 
       if (result.error) {
-        console.error('Auth error:', result.error);
+        console.error('Auth page: Auth error:', result.error);
         toast({
           title: "Error",
           description: result.error.message,
           variant: "destructive"
         });
       } else {
-        console.log('Auth successful');
+        console.log('Auth page: Auth successful');
         if (!isLogin) {
           toast({
             title: "Success",
             description: "Please check your email to confirm your account."
           });
         }
-        // For successful login, the useEffect will handle the redirect
       }
     } catch (error: any) {
-      console.error('Unexpected error:', error);
+      console.error('Auth page: Unexpected error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  // Show loading state while auth is initializing
-  if (authLoading) {
+  // Show loading only while auth is initializing
+  if (loading) {
+    console.log('Auth page: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -78,6 +80,7 @@ const Auth = () => {
     );
   }
 
+  console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 w-full max-w-md border border-white/20">
@@ -135,9 +138,9 @@ const Auth = () => {
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
-            disabled={loading}
+            disabled={submitting}
           >
-            {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {submitting ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
           </Button>
         </form>
 
@@ -145,6 +148,7 @@ const Auth = () => {
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="text-purple-400 hover:text-purple-300 transition-colors"
+            type="button"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
