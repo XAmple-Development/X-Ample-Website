@@ -27,7 +27,7 @@ const Contact = () => {
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
-                <p className="text-gray-600">contact@xample.dev</p>
+                <p className="text-gray-600">info@x-ampledevelopment.com</p>
               </CardContent>
             </Card>
             
@@ -37,7 +37,7 @@ const Contact = () => {
                   <Phone className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">Call Us</h3>
-                <p className="text-gray-600">+1 (555) 123-4567</p>
+                <p className="text-gray-600">UNDER CONSTRUCTION</p>
               </CardContent>
             </Card>
             
@@ -51,32 +51,6 @@ const Contact = () => {
               </CardContent>
             </Card>
           </div>
-          
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <Card className="border-0 shadow-xl bg-white">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-900">Send us a message</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input placeholder="Your Name" className="border-gray-200 focus:border-cyan-500" />
-                  <Input placeholder="Your Email" type="email" className="border-gray-200 focus:border-cyan-500" />
-                </div>
-                <Input placeholder="Subject" className="border-gray-200 focus:border-cyan-500" />
-                <Textarea 
-                  placeholder="Your Message" 
-                  rows={6} 
-                  className="border-gray-200 focus:border-cyan-500 resize-none"
-                />
-                <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white py-6 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105">
-                  <Send className="w-5 h-5 mr-2" />
-                  Send Message
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
         
         {/* Call to Action */}
         <div className="text-center mt-16">
