@@ -21,7 +21,7 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Contact Info */}
           <div className="space-y-6">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Mail className="w-6 h-6 text-white" />
@@ -31,7 +31,7 @@ const Contact = () => {
               </CardContent>
             </Card>
             
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Phone className="w-6 h-6 text-white" />
@@ -41,7 +41,7 @@ const Contact = () => {
               </CardContent>
             </Card>
             
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-6 h-6 text-white" />
@@ -54,7 +54,7 @@ const Contact = () => {
           
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="border-0 shadow-xl">
+            <Card className="border-0 shadow-xl bg-white">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-gray-900">Send us a message</CardTitle>
               </CardHeader>

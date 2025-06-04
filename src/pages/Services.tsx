@@ -13,7 +13,8 @@ const Services = () => {
       description: "Custom scripts, vehicles, maps, and complete server packages for GTA V FiveM servers.",
       features: ["Custom Scripts & Resources", "Vehicle & Weapon Packs", "Map Development", "Server Optimization", "MLO Interiors", "Economy Systems"],
       pricing: "Starting at £75",
-      popular: true
+      popular: true,
+      redirectUrl: "https://discord.gg/bGhguE93Xp"
     },
     {
       icon: <Code className="w-12 h-12 text-teal-500" />,
@@ -21,7 +22,8 @@ const Services = () => {
       description: "Professional Roblox game development and server management solutions.",
       features: ["Game Development", "Server Management", "Custom Features", "Monetization Setup", "UI/UX Design", "Performance Optimization"],
       pricing: "Starting at £25",
-      popular: false
+      popular: false,
+      redirectUrl: "https://discord.gg/bGhguE93Xp"
     },
     {
       icon: <Globe className="w-12 h-12 text-cyan-600" />,
@@ -29,7 +31,8 @@ const Services = () => {
       description: "Modern, responsive websites and web applications built with cutting-edge technology.",
       features: ["Responsive Design", "E-commerce Solutions", "CMS Integration", "Performance Optimization", "SEO Optimization", "Analytics Setup"],
       pricing: "Starting at £95",
-      popular: false
+      popular: false,
+      redirectUrl: "https://discord.gg/bGhguE93Xp"
     },
     {
       icon: <MessageSquare className="w-12 h-12 text-teal-600" />,
@@ -37,9 +40,14 @@ const Services = () => {
       description: "Advanced Discord bots and server management solutions for communities.",
       features: ["Custom Bots", "Server Setup", "Moderation Tools", "Integration Systems", "Database Management", "Custom Commands"],
       pricing: "Starting at £15",
-      popular: true
+      popular: true,
+      redirectUrl: "https://discord.gg/bGhguE93Xp"
     }
   ];
+
+  const handleGetStarted = (url: string) => {
+    window.open(url, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -104,7 +112,10 @@ const Services = () => {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                    onClick={() => handleGetStarted(service.redirectUrl)}
+                  >
                     Get Started
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
@@ -131,7 +142,7 @@ const Services = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="flex flex-col sm:flex-row gap-4 justify-center"
+                className="border-white text-white hover:bg-white hover:text-cyan-600"
                 onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
               >
                 Schedule Consultation
