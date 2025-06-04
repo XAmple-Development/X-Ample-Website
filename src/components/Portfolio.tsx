@@ -34,13 +34,6 @@ const Portfolio = () => {
       category: "Discord"
     },
     {
-      title: "FiveM Racing Script Pack",
-      description: "Comprehensive racing system with leaderboards and custom tracks.",
-      image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=500&h=300&fit=crop",
-      tags: ["FiveM", "Racing", "Leaderboards", "Custom UI"],
-      category: "FiveM"
-    },
-    {
       title: "Corporate Website Redesign",
       description: "Modern, responsive website with CMS integration and SEO optimization.",
       image: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=500&h=300&fit=crop",
