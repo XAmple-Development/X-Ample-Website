@@ -43,15 +43,7 @@ const Portfolio = () => {
       image: "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=600&h=400&fit=crop",
       tags: ["Discord.js", "Node.js", "PostgreSQL", "API"],
       category: "Discord",
-      featured: false
-    },
-    {
-      title: "FiveM Racing Championship",
-      description: "Comprehensive racing system with leaderboards, custom tracks, vehicle tuning, and tournament management for competitive racing.",
-      image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&h=400&fit=crop",
-      tags: ["FiveM", "Racing", "Leaderboards", "Custom UI"],
-      category: "FiveM",
-      featured: false
+      featured: true
     },
     {
       title: "Corporate Website Redesign",
@@ -62,20 +54,12 @@ const Portfolio = () => {
       featured: false
     },
     {
-      title: "Roblox Tower Defense",
-      description: "Strategic tower defense game with unique mechanics, multiple difficulty levels, and extensive upgrade systems with over 50 tower types.",
-      image: "https://images.unsplash.com/photo-1551103782-8ab07afd745d?w=600&h=400&fit=crop",
-      tags: ["Roblox", "Strategy", "Monetization", "UI"],
-      category: "Roblox",
-      featured: false
-    },
-    {
       title: "Multi-Server Discord Network",
       description: "Complex Discord bot network managing multiple servers with shared databases, cross-server communication, and advanced analytics.",
       image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=600&h=400&fit=crop",
       tags: ["Discord.js", "Microservices", "Analytics", "Network"],
       category: "Discord",
-      featured: false
+      featured: true
     }
   ];
 
