@@ -6,35 +6,59 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
+declare global {
+  interface Window {
+    liquidGlass?: any;
+  }
+}
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
   const { signUp, signIn, user, profile, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  console.log('Auth page: loading:', loading, 'user:', user?.email, 'profile:', profile?.email);
+  // Load Liquid Glass CSS and JS dynamically
+  useEffect(() => {
+    // Add CSS link
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/liquid-glass-ui@1.0.0/liquid-glass.min.css';
+    document.head.appendChild(link);
 
-  // Redirect authenticated users - but give a reasonable timeout
+    // Add JS script
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/liquid-glass-ui@1.0.0/liquid-glass.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.liquidGlass) {
+        window.liquidGlass.init();
+      }
+    };
+    document.body.appendChild(script);
+
+    // Cleanup on unmount
+    return () => {
+      document.head.removeChild(link);
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  // Redirect if authenticated
   useEffect(() => {
     if (!loading && user) {
-      console.log('Auth page: User is authenticated, redirecting to dashboard');
-      // Redirect immediately if we have both user and profile
       if (profile) {
         navigate('/dashboard', { replace: true });
         return;
       }
-      
-      // If we have user but no profile yet, wait a bit but not forever
       const timer = setTimeout(() => {
-        console.log('Auth page: Timeout reached, redirecting anyway');
         navigate('/dashboard', { replace: true });
-      }, 3000); // Reduced from 5000 to 3000ms
-      
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [user, profile, loading, navigate]);
@@ -46,22 +70,18 @@ const Auth = () => {
     try {
       let result;
       if (isLogin) {
-        console.log('Auth page: Attempting sign in');
         result = await signIn(email, password);
       } else {
-        console.log('Auth page: Attempting sign up');
         result = await signUp(email, password, fullName);
       }
 
       if (result.error) {
-        console.error('Auth page: Auth error:', result.error);
         toast({
           title: "Error",
           description: result.error.message,
           variant: "destructive"
         });
       } else {
-        console.log('Auth page: Auth successful');
         if (!isLogin) {
           toast({
             title: "Success",
@@ -75,7 +95,6 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
-      console.error('Auth page: Unexpected error:', error);
       toast({
         title: "Error",
         description: error.message || "An unexpected error occurred",
@@ -86,9 +105,7 @@ const Auth = () => {
     }
   };
 
-  // Show loading with timeout - don't get stuck forever
   if (loading) {
-    console.log('Auth page: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -96,15 +113,19 @@ const Auth = () => {
     );
   }
 
-  // If user is authenticated but we're still here, show the form anyway
-  // This prevents infinite loading if there are profile issues
-  console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 w-full max-w-md shadow-2xl">
+      <div
+        className="liquid-glass w-full max-w-md rounded-2xl p-8 shadow-2xl"
+        style={{
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Join X-Ample Dev'}
+            {isLogin ? 'Welcome Back' : 'Join X-Ample Development'}
           </h1>
           <p className="text-gray-300">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
