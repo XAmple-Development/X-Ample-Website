@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { LiquidGlass } from 'liquid-glass-react';
+import LiquidGlass from 'liquid-glass-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
