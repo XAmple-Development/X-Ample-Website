@@ -13,7 +13,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
   const { signUp, signIn, user, profile, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -77,8 +77,16 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <LiquidGlass>
-        <div className="p-8 w-full max-w-md rounded-2xl shadow-2xl border border-white/20">
+      <LiquidGlass
+        width={480}
+        height={640}
+        background="url('https://images.unsplash.com/photo-1587502537745-84b59e8f1f5d?auto=format&fit=crop&w=800&q=80')"
+        borderRadius={24}
+        blur={10}
+        borderWidth={2}
+        borderColor="#ffffff30"
+      >
+        <div className="p-8 w-full h-full rounded-2xl shadow-2xl border border-white/20 overflow-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
               {isLogin ? 'Welcome Back' : 'Join X-Ample Development'}
