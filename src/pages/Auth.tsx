@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 
 type AuthResult = {
   error?: { message: string };
-  // Add other properties here if your signIn/signUp returns more info
 };
 
 const Auth = () => {
@@ -22,17 +21,13 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  console.log('Auth page: loading:', loading, 'user:', user?.email, 'profile:', profile?.email);
-
   useEffect(() => {
     if (!loading && user) {
-      console.log('Auth page: User is authenticated, redirecting to dashboard');
       if (profile) {
         navigate('/dashboard', { replace: true });
         return;
       }
       const timer = setTimeout(() => {
-        console.log('Auth page: Timeout reached, redirecting anyway');
         navigate('/dashboard', { replace: true });
       }, 3000);
       return () => clearTimeout(timer);
@@ -42,41 +37,27 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
     let result: AuthResult | undefined;
 
     try {
       if (isLogin) {
-        console.log('Auth page: Attempting sign in');
         result = await signIn(email, password);
       } else {
-        console.log('Auth page: Attempting sign up');
         result = await signUp(email, password, fullName);
       }
-
       if (result?.error) {
-        console.error('Auth page: Auth error:', result.error);
         toast({
           title: "Error",
           description: result.error.message,
           variant: "destructive"
         });
       } else {
-        console.log('Auth page: Auth successful');
-        if (!isLogin) {
-          toast({
-            title: "Success",
-            description: "Please check your email to confirm your account."
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Signed in successfully!"
-          });
-        }
+        toast({
+          title: "Success",
+          description: isLogin ? "Signed in successfully!" : "Please check your email to confirm your account."
+        });
       }
     } catch (error: any) {
-      console.error('Auth page: Unexpected error:', error);
       toast({
         title: "Error",
         description: error.message || "An unexpected error occurred",
@@ -88,7 +69,6 @@ const Auth = () => {
   };
 
   if (loading) {
-    console.log('Auth page: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -96,17 +76,30 @@ const Auth = () => {
     );
   }
 
-  console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 w-full max-w-md shadow-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Join X-Ample Development'}
-          </h1>
-          <p className="text-gray-300">
-            {isLogin ? 'Sign in to your account' : 'Create your account'}
-          </p>
+      <div
+        className="w-full max-w-md p-8 rounded-2xl
+          bg-white/20
+          border border-white/30
+          backdrop-blur-md
+          drop-shadow-lg
+          shadow-white/20
+          transition-shadow duration-300
+          hover:drop-shadow-2xl
+          "
+        style={{
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+          WebkitBackdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <div className="text-center mb-8 text-white">
+          <h1 className="text-3xl font-bold mb-2">{isLogin ? 'Welcome Back' : 'Join X-Ample Development'}</h1>
+          <p>{isLogin ? 'Sign in to your account' : 'Create your account'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -118,8 +111,8 @@ const Auth = () => {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-2 bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/50 focus:border-white/30 focus:ring-1 focus:ring-white/20 rounded-lg transition-all duration-200"
                 placeholder="Enter your full name"
+                className="mt-2 bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-lg focus:ring-1 focus:ring-white/40 focus:border-white/50"
                 required
               />
             </div>
@@ -132,8 +125,8 @@ const Auth = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/50 focus:border-white/30 focus:ring-1 focus:ring-white/20 rounded-lg transition-all duration-200"
               placeholder="Enter your email"
+              className="mt-2 bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-lg focus:ring-1 focus:ring-white/40 focus:border-white/50"
               required
             />
           </div>
@@ -145,15 +138,19 @@ const Auth = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/50 focus:border-white/30 focus:ring-1 focus:ring-white/20 rounded-lg transition-all duration-200"
               placeholder="Enter your password"
+              className="mt-2 bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-lg focus:ring-1 focus:ring-white/40 focus:border-white/50"
               required
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 text-white font-medium py-3 rounded-lg transition-all duration-200 hover:border-white/30 hover:shadow-lg"
+            className="w-full bg-white/20 text-white font-semibold py-3 rounded-lg
+              border border-white/30
+              hover:bg-white/30
+              transition duration-300
+              disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={submitting}
           >
             {submitting ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
@@ -162,9 +159,9 @@ const Auth = () => {
 
         <div className="mt-6 text-center">
           <button
+            type="button"
             onClick={() => setIsLogin(!isLogin)}
             className="text-white/70 hover:text-white transition-colors duration-200 text-sm"
-            type="button"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
