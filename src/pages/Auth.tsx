@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { LiquidGlass } from 'liquid-glass-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -101,8 +102,14 @@ const Auth = () => {
   console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      {/* Glass effect container */}
-      <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl before:absolute before:inset-0 before:rounded-2xl before:border before:border-white/20 before:bg-gradient-to-br before:from-white/10 before:to-transparent before:backdrop-blur-xl before:-z-10">
+      <LiquidGlass
+        width={400}
+        height={600}
+        borderRadius={16}
+        glassOpacity={0.1}
+        blur={20}
+        className="p-8 w-full max-w-md"
+      >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Join X-Ample Dev'}
@@ -172,7 +179,7 @@ const Auth = () => {
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
         </div>
-      </div>
+      </LiquidGlass>
     </div>
   );
 };
