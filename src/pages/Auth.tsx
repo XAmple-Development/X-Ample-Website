@@ -108,11 +108,9 @@ const Auth = () => {
           <h1 className="text-3xl font-bold text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Join X-Ample Development'}
           </h1>
-              <LiquidGlass>
           <p className="text-gray-300">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
           </p>
-              </LiquidGlass>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
