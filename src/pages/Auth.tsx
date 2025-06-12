@@ -36,32 +36,29 @@ const Auth = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      let result;
-      if (isLogin) {
-        result = await signIn(email, password);
-      } else {
-        result = await signUp(email, password, fullName);
-      }
+      const result = isLogin
+        ? await signIn(email, password)
+        : await signUp(email, password, fullName);
 
-      if (result.error) {
+      if (result?.error) {
         toast({
-          title: "Error",
+          title: 'Error',
           description: result.error.message,
-          variant: "destructive"
+          variant: 'destructive',
         });
       } else {
         toast({
-          title: "Success",
+          title: 'Success',
           description: isLogin
-            ? "Signed in successfully!"
-            : "Please check your email to confirm your account."
+            ? 'Signed in successfully!'
+            : 'Please check your email to confirm your account.',
         });
       }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'An unexpected error occurred',
+        variant: 'destructive',
       });
     } finally {
       setSubmitting(false);
@@ -100,7 +97,9 @@ const Auth = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
               <div>
-                <Label htmlFor="fullName" className="text-white/90 text-sm font-medium">Full Name</Label>
+                <Label htmlFor="fullName" className="text-white/90 text-sm font-medium">
+                  Full Name
+                </Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -114,7 +113,9 @@ const Auth = () => {
             )}
 
             <div>
-              <Label htmlFor="email" className="text-white/90 text-sm font-medium">Email</Label>
+              <Label htmlFor="email" className="text-white/90 text-sm font-medium">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -127,7 +128,9 @@ const Auth = () => {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-white/90 text-sm font-medium">Password</Label>
+              <Label htmlFor="password" className="text-white/90 text-sm font-medium">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -154,7 +157,7 @@ const Auth = () => {
               className="text-white/70 hover:text-white transition-colors duration-200 text-sm"
               type="button"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
           </div>
         </div>
