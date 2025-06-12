@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import LiquidGlass from 'liquid-glass-react'
-
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -106,7 +104,7 @@ const Auth = () => {
       <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Join X-Ample Development'}
+            {isLogin ? 'Welcome Back' : 'Join X-Ample Dev'}
           </h1>
           <p className="text-gray-300">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
