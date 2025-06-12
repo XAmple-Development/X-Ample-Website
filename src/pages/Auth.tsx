@@ -102,14 +102,7 @@ const Auth = () => {
   console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <LiquidGlass
-        width={400}
-        height={600}
-        borderRadius={16}
-        glassOpacity={0.1}
-        blur={20}
-        className="p-8 w-full max-w-md"
-      >
+      <LiquidGlass className="p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Join X-Ample Dev'}
