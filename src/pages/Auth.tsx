@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -102,7 +101,8 @@ const Auth = () => {
   console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 w-full max-w-md border border-white/20">
+      {/* Glass effect container */}
+      <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl before:absolute before:inset-0 before:rounded-2xl before:border before:border-white/20 before:bg-gradient-to-br before:from-white/10 before:to-transparent before:backdrop-blur-xl before:-z-10">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Join X-Ample Dev'}
@@ -115,13 +115,13 @@ const Auth = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
             <div>
-              <Label htmlFor="fullName" className="text-white">Full Name</Label>
+              <Label htmlFor="fullName" className="text-white/90 text-sm font-medium">Full Name</Label>
               <Input
                 id="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                className="mt-2 bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/50 focus:border-white/30 focus:ring-1 focus:ring-white/20 rounded-lg transition-all duration-200"
                 placeholder="Enter your full name"
                 required
               />
@@ -129,26 +129,26 @@ const Auth = () => {
           )}
 
           <div>
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-white/90 text-sm font-medium">Email</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              className="mt-2 bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/50 focus:border-white/30 focus:ring-1 focus:ring-white/20 rounded-lg transition-all duration-200"
               placeholder="Enter your email"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-white/90 text-sm font-medium">Password</Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              className="mt-2 bg-white/5 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/50 focus:border-white/30 focus:ring-1 focus:ring-white/20 rounded-lg transition-all duration-200"
               placeholder="Enter your password"
               required
             />
@@ -156,7 +156,7 @@ const Auth = () => {
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
+            className="w-full bg-white/10 backdrop-blur-sm hover:bg-white/20 border border-white/20 text-white font-medium py-3 rounded-lg transition-all duration-200 hover:border-white/30 hover:shadow-lg"
             disabled={submitting}
           >
             {submitting ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
@@ -166,7 +166,7 @@ const Auth = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-purple-400 hover:text-purple-300 transition-colors"
+            className="text-white/70 hover:text-white transition-colors duration-200 text-sm"
             type="button"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
