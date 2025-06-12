@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import LiquidGlass from 'liquid-glass-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -102,7 +101,7 @@ const Auth = () => {
   console.log('Auth page: Rendering auth form');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <LiquidGlass className="p-8 w-full max-w-md">
+      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             {isLogin ? 'Welcome Back' : 'Join X-Ample Dev'}
@@ -172,7 +171,7 @@ const Auth = () => {
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
         </div>
-      </LiquidGlass>
+      </div>
     </div>
   );
 };
