@@ -14,7 +14,7 @@ const skills = [
 
 const Hero = () => {
     return (
-        <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 pt-16">
+        <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
             {/* Animated background elements with parallax */}
             <motion.div 
                 className="absolute inset-0 opacity-10"
