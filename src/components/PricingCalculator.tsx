@@ -13,10 +13,10 @@ const PricingCalculator = () => {
   const [selectedService, setSelectedService] = useState("fivem");
 
   const services = {
-    fivem: { name: "FiveM Scripts", base: 150, icon: <Gamepad2 className="w-5 h-5" /> },
-    roblox: { name: "Roblox Servers", base: 200, icon: <Code className="w-5 h-5" /> },
-    web: { name: "Web Development", base: 300, icon: <Globe className="w-5 h-5" /> },
-    discord: { name: "Discord Bots", base: 100, icon: <MessageSquare className="w-5 h-5" /> }
+    fivem: { name: "FiveM Scripts", base: 85, icon: <Gamepad2 className="w-5 h-5" /> },
+    roblox: { name: "Roblox Servers", base: 125, icon: <Code className="w-5 h-5" /> },
+    web: { name: "Web Development", base: 125, icon: <Globe className="w-5 h-5" /> },
+    discord: { name: "Discord Bots", base: 75, icon: <MessageSquare className="w-5 h-5" /> }
   };
 
   const calculatePrice = () => {
@@ -63,7 +63,7 @@ const PricingCalculator = () => {
                         key={key}
                         variant={selectedService === key ? "default" : "outline"}
                         onClick={() => setSelectedService(key)}
-                        className={`p-3 ${
+                        className={`p-3 £{
                           selectedService === key
                             ? "bg-gradient-to-r from-cyan-500 to-teal-500"
                             : "border-white/20 text-white hover:bg-white/10"
@@ -145,7 +145,7 @@ const PricingCalculator = () => {
               <CardContent className="space-y-6">
                 <div className="text-center">
                   <div className="text-5xl font-bold text-cyan-400 mb-2">
-                    ${calculatePrice()}
+                    £{calculatePrice()}
                   </div>
                   <p className="text-gray-300">Starting price estimate</p>
                 </div>
@@ -153,7 +153,7 @@ const PricingCalculator = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span>Base Price ({services[selectedService as keyof typeof services].name}):</span>
-                    <span>${services[selectedService as keyof typeof services].base}</span>
+                    <span>£{services[selectedService as keyof typeof services].base}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Complexity Adjustment:</span>
