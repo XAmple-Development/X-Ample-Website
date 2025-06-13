@@ -1,3 +1,5 @@
+
+import { motion } from "framer-motion";
 import { Code, Gamepad2, Globe, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -13,69 +15,193 @@ const skills = [
 const Hero = () => {
     return (
         <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 pt-16">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-                <div className="absolute top-40 right-20 w-72 h-72 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-                <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-cyan-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-2000"></div>
-            </div>
+            {/* Animated background elements with parallax */}
+            <motion.div 
+                className="absolute inset-0 opacity-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.1 }}
+                transition={{ duration: 2 }}
+            >
+                <motion.div 
+                    className="absolute top-20 left-20 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl"
+                    animate={{ 
+                        y: [0, -20, 0],
+                        x: [0, 10, 0],
+                        scale: [1, 1.1, 1]
+                    }}
+                    transition={{ 
+                        duration: 8,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                />
+                <motion.div 
+                    className="absolute top-40 right-20 w-72 h-72 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl"
+                    animate={{ 
+                        y: [0, 30, 0],
+                        x: [0, -15, 0],
+                        scale: [1, 0.9, 1]
+                    }}
+                    transition={{ 
+                        duration: 10,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                    }}
+                />
+                <motion.div 
+                    className="absolute bottom-20 left-1/2 w-72 h-72 bg-cyan-400 rounded-full mix-blend-multiply filter blur-xl"
+                    animate={{ 
+                        y: [0, -40, 0],
+                        x: [0, 20, 0],
+                        scale: [1, 1.2, 1]
+                    }}
+                    transition={{ 
+                        duration: 12,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 2
+                    }}
+                />
+            </motion.div>
 
             <div className="container mx-auto px-6 text-center relative z-10">
-                <div className="animate-fade-in">
-                    <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+                <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 0.2 }}
+                >
+                    <motion.h1 
+                        className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.5 }}
+                    >
                         X-Ample
-                        <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+                        <motion.span 
+                            className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent"
+                            animate={{ 
+                                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] 
+                            }}
+                            transition={{ 
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                        >
                             {" "}
                             Development
-                        </span>
-                    </h1>
+                        </motion.span>
+                    </motion.h1>
 
-                    <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                    <motion.p 
+                        className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.8 }}
+                    >
                         Creating exceptional digital experiences across FiveM, Roblox, Web, and Discord platforms
-                    </p>
+                    </motion.p>
 
-                    <div className="flex flex-wrap justify-center gap-4 mb-12">
+                    <motion.div 
+                        className="flex flex-wrap justify-center gap-4 mb-12"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 1 }}
+                    >
                         {skills.map(({ icon, label }, i) => (
-                            <Card
+                            <motion.div
                                 key={i}
-                                className="bg-white/10 backdrop-blur-sm px-6 py-3 border border-white/20 flex items-center space-x-2 max-w-max"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5, delay: 1.2 + i * 0.1 }}
+                                whileHover={{ 
+                                    scale: 1.05,
+                                    y: -5,
+                                    transition: { duration: 0.2 }
+                                }}
                             >
-                                <CardContent className="p-0 flex items-center space-x-2 text-white">
-                                    {icon}
-                                    <span>{label}</span>
-                                </CardContent>
-                            </Card>
+                                <Card className="bg-white/10 backdrop-blur-sm px-6 py-3 border border-white/20 flex items-center space-x-2 max-w-max hover:bg-white/20 transition-all duration-300">
+                                    <CardContent className="p-0 flex items-center space-x-2 text-white">
+                                        <motion.div
+                                            animate={{ rotate: [0, 5, -5, 0] }}
+                                            transition={{ 
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                delay: i * 0.5 
+                                            }}
+                                        >
+                                            {icon}
+                                        </motion.div>
+                                        <span>{label}</span>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <motion.div 
+                        className="flex flex-col sm:flex-row gap-4 justify-center"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 1.5 }}
+                    >
                         <Link to="/portfolio">
-                            <Button
-                                size="lg"
-                                className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300 transform hover:scale-105"
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                             >
-                                View Our Work
-                            </Button>
+                                <Button
+                                    size="lg"
+                                    className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300"
+                                >
+                                    View Our Work
+                                </Button>
+                            </motion.div>
                         </Link>
                         <Link to="/contact">
-                            <Button
-                                size="lg"
-                                variant="outline"
-                                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300"
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                             >
-                                Get Quote
-                            </Button>
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300"
+                                >
+                                    Get Quote
+                                </Button>
+                            </motion.div>
                         </Link>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </div>
 
-            {/* Scroll indicator */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-                    <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-pulse"></div>
-                </div>
-            </div>
+            {/* Enhanced scroll indicator */}
+            <motion.div 
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                }}
+            >
+                <motion.div 
+                    className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
+                    whileHover={{ scale: 1.1 }}
+                >
+                    <motion.div 
+                        className="w-1 h-3 bg-white/60 rounded-full mt-2"
+                        animate={{ opacity: [0.3, 1, 0.3] }}
+                        transition={{ 
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                        }}
+                    />
+                </motion.div>
+            </motion.div>
         </section>
     );
 };
