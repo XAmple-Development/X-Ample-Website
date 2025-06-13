@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,9 +17,11 @@ import {
 } from '@/components/ui/glass/card';
 import AdminHeader from '@/components/AdminHeader';
 import AdminStats from '@/components/AdminStats';
+import AdminSystemInfo from '@/components/AdminSystemInfo';
 import ProjectsTable from '@/components/ProjectsTable';
 import ProjectDialog from '@/components/ProjectDialog';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import DiscordIntegration from '@/components/DiscordIntegration';
 
 interface Project {
     id: string;
@@ -128,7 +131,7 @@ const AdminDashboard = () => {
                 <AdminHeader onSignOut={signOut} />
 
                 <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+                    <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
                         <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
                             Overview
                         </TabsTrigger>
@@ -137,6 +140,12 @@ const AdminDashboard = () => {
                         </TabsTrigger>
                         <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
                             Analytics
+                        </TabsTrigger>
+                        <TabsTrigger value="system" className="text-white data-[state=active]:bg-white/20">
+                            System
+                        </TabsTrigger>
+                        <TabsTrigger value="integrations" className="text-white data-[state=active]:bg-white/20">
+                            Integrations
                         </TabsTrigger>
                     </TabsList>
 
@@ -180,6 +189,21 @@ const AdminDashboard = () => {
                             </CardHeader>
                             <CardContent>
                                 <AnalyticsDashboard />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="system">
+                        <AdminSystemInfo />
+                    </TabsContent>
+
+                    <TabsContent value="integrations">
+                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                            <CardHeader>
+                                <CardTitle>Discord Integration</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <DiscordIntegration />
                             </CardContent>
                         </Card>
                     </TabsContent>
