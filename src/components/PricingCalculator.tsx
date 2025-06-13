@@ -177,7 +177,7 @@ const PricingCalculator = () => {
                                   <p className="text-xs text-gray-400 mb-4">
                                       This is an estimate. Final pricing may vary based on specific requirements.
                                   </p>
-                                  <a href="/contact">
+                                  <a href="https://x-ampledevelopment.com/contact">
                                       <Button className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600">
                                           Get Detailed Quote
                                       </Button>
