@@ -15,7 +15,8 @@ const Header = () => {
     { name: "Services", href: "/services" },
     { name: "About", href: "/about" },
     { name: "Portfolio", href: "/portfolio" },
-    { name: "Contact", href: "/contact" },
+      { name: "Contact", href: "/contact" },
+      { name: "Discord", href: "https://discord.gg/bGhguE93Xp" },
   ];
 
   const isActive = (href: string) => {
@@ -25,17 +26,17 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 /95 backdrop-blur-sm border-gray-200">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/lovable-uploads/c54aa9aa-58db-4f2f-87df-5637b62b5f99.png" 
+              src="https://i.imgur.com/4bSGPHi.png" 
               alt="X-Ample Development" 
               className="h-10 w-auto"
             />
-            <span className="text-xl font-bold text-gray-900">X-Ample Development</span>
+            <span className="text-xl font-bold text-white-900">X-Ample Development</span>
           </Link>
 
           {/* Desktop Navigation */}
