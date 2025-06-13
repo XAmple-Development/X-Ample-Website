@@ -10,6 +10,8 @@
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=XAmple-Development.X-Ample-Website)
 
 [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v2/monitor/1qqg1.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/359996fb-2b06-4947-9515-3479b9f89d07/deploy-status)](https://app.netlify.com/projects/polite-rolypoly-3fd117/deploys)
 ---
 
 ## 🌐 Overview
