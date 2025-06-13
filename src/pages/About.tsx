@@ -30,27 +30,6 @@ const About = () => {
     }
   ];
 
-  const team = [
-    {
-      name: "Danny Pilkington",
-      role: "Lead Developer & Founder",
-      image: "https://cdn.discordapp.com/avatars/1059503129672040458/bc398ae06720419eb3600c565b28ba70?size=1024",
-      bio: "Full-stack developer with 8+ years experience in gaming and full stack development."
-    },
-    {
-      name: "zvapor_",
-      role: "Asst Lead Developer",
-      image: "https://cdn.discordapp.com/avatars/501700626690998280/a_cbb7036dc635697ffeb9520970dd8f27?size=1024",
-      bio: "Creative designer passionate about creating intuitive and beautiful user experiences."
-    },
-    {
-      name: "DJKnaeckebrot",
-      role: "Asst Lead Developer",
-      image: "https://cdn.discordapp.com/avatars/424868316398747648/e9f4962349b1a8e1041060087fc0aac6?size=1024",
-      bio: "Specialist in Web development with a focus on immersive touch."
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -143,33 +122,6 @@ const About = () => {
     </div>
     <h3 className="text-2xl font-bold mb-4">{value.title}</h3>
     <p className="text-gray-700 leading-relaxed">{value.description}</p>
-  </CardContent>
-</Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
-            <p className="text-xl text-gray-600">The talented individuals behind X-Ample Development</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {team.map((member, index) => (
-              <Card  key={index}className="bg-white text-gray-900 border border-gray-200 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
->
-  <CardContent className="p-8">
-    <img
-      src={member.image}
-      alt={member.name}
-      className="w-24 h-24 rounded-full mx-auto mb-6 object-cover"
-    />
-    <h3 className="text-xl font-bold mb-2">{member.name}</h3>
-    <p className="text-cyan-600 font-semibold mb-4">{member.role}</p>
-    <p className="text-gray-700">{member.bio}</p>
   </CardContent>
 </Card>
             ))}
