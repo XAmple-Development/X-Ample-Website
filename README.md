@@ -5,6 +5,11 @@
 **Creator:** [Danny](https://github.com/X-AmpleDevelopment)  
 **Company:** X-Ample Development Group (UK)
 
+![GitHub repo stars](https://img.shields.io/github/stars/XAmple-Development/X-Ample-Website?style=social)
+![GitHub last commit](https://img.shields.io/github/last-commit/XAmple-Development/X-Ample-Website)
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=XAmple-Development.X-Ample-Website)
+
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v2/monitor/1qqg1.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
 ---
 
 ## 🌐 Overview
