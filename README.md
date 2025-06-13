@@ -41,4 +41,4 @@ If you are looking to contribute or run this project locally:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-github-username/x-ampledevelopment.git
+   git clone https://github.com/XAmple-Development/X-Ample-Website.git
