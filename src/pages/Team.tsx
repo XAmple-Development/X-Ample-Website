@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import ParticlesBackground from "@/components/ParticlesBackground";
 import { Card, CardContent } from "@/components/ui/glass/card";
-import { Github, Twitter, Linkedin, Mail, Discord } from "lucide-react";
+import { Github, Twitter, Linkedin, Mail } from "lucide-react";
 
 const Team = () => {
   const team = [
@@ -17,7 +17,6 @@ const Team = () => {
       skills: ["FiveM Development", "Web Development", "Project Management", "UI/UX Design"],
       social: {
         github: "https://github.com/X-AmpleDevelopment",
-        discord: "iamxample",
         email: "dan.pilkington@x-ampledevelopment.com"
       }
     },
