@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, AuthContext } from '@/contexts/AuthContext';
 import ClientDashboard from '@/components/ClientDashboard';
 import AdminDashboard from '@/components/AdminDashboard';
 import Auth from '@/pages/Auth';

@@ -45,7 +45,10 @@ export const useDiscordOAuth = () => {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/discord-oauth`, {
+      // Use the hardcoded Supabase URL instead of accessing protected property
+      const supabaseUrl = 'https://dzcezcoivezflchsewhq.supabase.co';
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/discord-oauth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +94,10 @@ export const useDiscordOAuth = () => {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/discord-oauth`, {
+      // Use the hardcoded Supabase URL instead of accessing protected property
+      const supabaseUrl = 'https://dzcezcoivezflchsewhq.supabase.co';
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/discord-oauth`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
