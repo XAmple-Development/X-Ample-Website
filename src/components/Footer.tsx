@@ -78,7 +78,7 @@ const Footer = () => {
           </p>
           <div className="flex items-center space-x-1 text-gray-400 text-sm mt-4 md:mt-0">
             <span>Made with</span>
-            <Heart className="w-4 h-4 text-red-500 fill-current" />
+            <Heart className="w-4 h-4 text-teal-500 fill-current" />
             <span>by X-Ample Development</span>
           </div>
         </div>

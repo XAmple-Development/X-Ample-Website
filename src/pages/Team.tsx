@@ -16,10 +16,8 @@ const Team = () => {
       bio: "Full-stack developer with 8+ years experience in gaming and full stack development. Passionate about creating innovative solutions.",
       skills: ["FiveM Development", "Web Development", "Project Management", "UI/UX Design"],
       social: {
-        github: "#",
-        twitter: "#",
-        linkedin: "#",
-        email: "danny@x-ampledevelopment.com"
+        github: "https://github.com/X-AmpleDevelopment",
+        email: "dan.pilkington@x-ampledevelopment.com"
       }
     },
     {
@@ -29,10 +27,7 @@ const Team = () => {
       bio: "Creative developer passionate about creating intuitive and beautiful user experiences with modern technologies.",
       skills: ["React Development", "TypeScript", "UI/UX", "Mobile Development"],
       social: {
-        github: "#",
-        twitter: "#",
-        linkedin: "#",
-        email: "zvapor@x-ampledevelopment.com"
+        email: "info@x-ampledevelopment.com"
       }
     },
     {
@@ -42,16 +37,13 @@ const Team = () => {
       bio: "Specialist in Web development with a focus on immersive experiences and cutting-edge technology implementation.",
       skills: ["Discord Bots", "API Integration", "Database Design", "DevOps"],
       social: {
-        github: "#",
-        twitter: "#",
-        linkedin: "#",
-        email: "dj@x-ampledevelopment.com"
+        email: "info@x-ampledevelopment.com"
       }
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+    <div className="min-h-screen">"
       <SEO 
         title="Our Team - X-Ample Development"
         description="Meet the talented developers behind X-Ample Development. Expert team specializing in FiveM, Roblox, Web, and Discord development."

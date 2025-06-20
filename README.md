@@ -16,7 +16,7 @@
 
 ## 🌐 Overview
 
-**X-Ample Development** is a UK-based digital development studio specializing in high-quality scripts and assets for **FiveM** servers and other gaming platforms. Our website is the central hub for exploring our latest creations, development tools, community projects, and live service updates.
+**X-Ample Development** is a UK-based development company specialising in high-quality scripts and assets for **FiveM** servers and other gaming platforms. Our website is the central hub for exploring our latest creations, development tools, community projects, and live service updates.
 
 ---
 

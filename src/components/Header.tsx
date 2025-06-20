@@ -23,7 +23,8 @@ const Header = () => {
     if (href === "/" && location.pathname === "/") return true;
     if (href !== "/" && location.pathname.startsWith(href)) return true;
     return false;
-  };
+    };
+
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 /95 backdrop-blur-sm border-gray-200">
