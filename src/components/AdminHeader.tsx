@@ -37,7 +37,7 @@ const AdminHeader = ({ onSignOut }: AdminHeaderProps) => {
 
                 {/* Status Button */}
                 <Button
-                    onClick={() => navigate('https://status.x-ampledevelopment.com')}
+                    onClick={() => window.open('https://status.x-ampledevelopment.com')}
                     variant="outline"
                     className="border-purple-500/20 text-purple-400 hover:bg-purple-500/10"
                 >
