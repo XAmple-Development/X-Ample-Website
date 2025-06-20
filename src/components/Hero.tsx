@@ -16,8 +16,6 @@ const Hero = () => {
     return (
         <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
             {/* Animated background elements with parallax */}
-            
-
             <div className="container mx-auto px-6 text-center relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
