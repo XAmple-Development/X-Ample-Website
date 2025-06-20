@@ -12,7 +12,7 @@ exports.handler = async (event) => {
 
     try {
         const response = await axios.get(
-            `https://panel.YOUR_DOMAIN.com/api/client/servers/83921b2c/resources`,
+            `https://panel.YOUR_DOMAIN.com/api/client/servers/${serverId}/resources`,
             {
                 headers: {
                     Authorization: `Bearer ${process.env.PTERO_API_KEY}`,
@@ -26,9 +26,18 @@ exports.handler = async (event) => {
             body: JSON.stringify(response.data),
         };
     } catch (error) {
+        console.error('Pterodactyl API request failed:', {
+            status: error.response?.status,
+            message: error.message,
+            data: error.response?.data,
+        });
+
         return {
             statusCode: error.response?.status || 500,
-            body: JSON.stringify({ error: error.message }),
+            body: JSON.stringify({
+                error: 'Failed to fetch from Pterodactyl',
+                details: error.response?.data || error.message,
+            }),
         };
     }
 };
