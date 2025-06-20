@@ -183,17 +183,6 @@ const AdminDashboard = () => {
                             </CardContent>
                         </Card>
                     </TabsContent>
-
-                    <TabsContent value="servers">
-                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                            <CardHeader>
-                                <CardTitle>Server Monitor</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ServerMonitor />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
                 </Tabs>
             </div>
 
