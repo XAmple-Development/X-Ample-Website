@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 const servers = [
     { id: '83921b2c', name: 'X-Ample Ultimate Discord Bot' },
     { id: '42bcdf30', name: 'X-Ample Support Bot' },
+    { id: 'c02dad34', name: 'AdvertHub Bot' },
+    { id: '29d3af00', name: 'X-Ample Dummy Server' },
 ];
 
 // Helper: convert seconds or ms uptime to human-readable format
