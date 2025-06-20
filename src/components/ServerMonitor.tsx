@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 const servers = [
-    { id: 'abc123', name: 'Main Server' },
-    { id: 'def456', name: 'Backup Server' },
+    { id: '83921b2c', name: 'X-Ample Ultimate Discord Bot' },
+    { id: '42bcdf30', name: 'X-Ample Support Bot' },
 ];
 
 const ServerMonitor = () => {
