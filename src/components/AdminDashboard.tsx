@@ -129,18 +129,20 @@ const AdminDashboard = () => {
             <div className="max-w-7xl mx-auto space-y-6">
                 <AdminHeader onSignOut={signOut} />
 
-                <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
-                        <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
-                            Overview
-                        </TabsTrigger>
-                        <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
-                            Projects
-                        </TabsTrigger>
-                        <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
-                            Analytics
-                        </TabsTrigger>
-                    </TabsList>
+                <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+    <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
+        Overview
+    </TabsTrigger>
+    <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
+        Projects
+    </TabsTrigger>
+    <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
+        Analytics
+    </TabsTrigger>
+    <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">
+        Servers
+    </TabsTrigger>
+</TabsList>
 
                     <TabsTrigger value="servers">Servers</TabsTrigger>
 
