@@ -32,6 +32,13 @@ const AdminHeader = ({ onSignOut }: AdminHeaderProps) => {
             className="border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
           >
             Back to Dashboard
+                  </Button>
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="border-blue-500/20 text-blue-400 hover:bg-blue-500/10"
+          >
+            Home
           </Button>
         ) : isOnDashboard ? (
           <Button
