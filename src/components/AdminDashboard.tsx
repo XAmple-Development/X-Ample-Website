@@ -183,6 +183,26 @@ const AdminDashboard = () => {
                             </CardContent>
                         </Card>
                     </TabsContent>
+
+                    <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="projects">Projects</TabsTrigger>
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                        <TabsTrigger value="servers">Servers</TabsTrigger> {/* NEW */}
+                    </TabsList>
+
+                    <TabsContent value="servers">
+                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                            <CardHeader>
+                                <CardTitle>Server Monitor</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ServerMonitor />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+
                 </Tabs>
             </div>
 
