@@ -12,7 +12,7 @@ exports.handler = async (event) => {
 
     try {
         const response = await axios.get(
-            `https://panel.x-ampledevelopment.com/api/client/servers/${serverId}/resources`,
+            `https://panel.YOUR_DOMAIN.com/api/client/servers/83921b2c/resources`,
             {
                 headers: {
                     Authorization: `Bearer ${process.env.PTERO_API_KEY}`,
