@@ -19,6 +19,8 @@ import AdminStats from '@/components/AdminStats';
 import ProjectsTable from '@/components/ProjectsTable';
 import ProjectDialog from '@/components/ProjectDialog';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import ServerMonitor from '@/components/ServerMonitor';
+
 
 interface Project {
     id: string;
@@ -139,6 +141,20 @@ const AdminDashboard = () => {
                             Analytics
                         </TabsTrigger>
                     </TabsList>
+
+                    <TabsTrigger value="servers">Servers</TabsTrigger>
+
+                    <TabsContent value="servers">
+                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                            <CardHeader>
+                                <CardTitle>Server Monitor</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ServerMonitor />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
 
                     <TabsContent value="overview">
                         <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
