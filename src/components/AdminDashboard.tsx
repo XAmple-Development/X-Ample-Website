@@ -21,7 +21,6 @@ import ProjectDialog from '@/components/ProjectDialog';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ServerMonitor from '@/components/ServerMonitor';
 
-
 interface Project {
     id: string;
     title: string;
@@ -51,12 +50,12 @@ const AdminDashboard = () => {
             const { data: projectsData, error: projectsError } = await supabase
                 .from('projects')
                 .select(`
-          *,
-          profiles!projects_client_id_fkey (
-            full_name,
-            email
-          )
-        `)
+                    *,
+                    profiles!projects_client_id_fkey (
+                        full_name,
+                        email
+                    )
+                `)
                 .order('created_at', { ascending: false });
 
             if (projectsError) {
@@ -129,34 +128,21 @@ const AdminDashboard = () => {
             <div className="max-w-7xl mx-auto space-y-6">
                 <AdminHeader onSignOut={signOut} />
 
-                <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
-    <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
-        Overview
-    </TabsTrigger>
-    <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
-        Projects
-    </TabsTrigger>
-    <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
-        Analytics
-    </TabsTrigger>
-    <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">
-        Servers
-    </TabsTrigger>
-</TabsList>
-
-                    <TabsTrigger value="servers">Servers</TabsTrigger>
-
-                    <TabsContent value="servers">
-                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                            <CardHeader>
-                                <CardTitle>Server Monitor</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ServerMonitor />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-
+                <Tabs defaultValue="overview" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+                        <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
+                            Overview
+                        </TabsTrigger>
+                        <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
+                            Projects
+                        </TabsTrigger>
+                        <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
+                            Analytics
+                        </TabsTrigger>
+                        <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">
+                            Servers
+                        </TabsTrigger>
+                    </TabsList>
 
                     <TabsContent value="overview">
                         <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
@@ -198,6 +184,17 @@ const AdminDashboard = () => {
                             </CardHeader>
                             <CardContent>
                                 <AnalyticsDashboard />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    <TabsContent value="servers">
+                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                            <CardHeader>
+                                <CardTitle>Server Monitor</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ServerMonitor />
                             </CardContent>
                         </Card>
                     </TabsContent>
