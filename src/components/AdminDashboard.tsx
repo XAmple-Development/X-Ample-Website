@@ -1,4 +1,4 @@
-// Upgraded AdminDashboard with all enhancements except theme toggle
+// Upgraded AdminDashboard with Recharts integration for Analytics
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,11 +19,23 @@ import AdminHeader from '@/components/AdminHeader';
 import AdminStats from '@/components/AdminStats';
 import ProjectsTable from '@/components/ProjectsTable';
 import ProjectDialog from '@/components/ProjectDialog';
-import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ServerMonitor from '@/components/ServerMonitor';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { motion } from 'framer-motion';
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell,
+    Legend,
+} from 'recharts';
 
 interface Project {
     id: string;
@@ -119,6 +131,13 @@ const AdminDashboard = () => {
         completedProjects: projects.filter((p) => p.status === 'completed').length,
     };
 
+    const pieData = [
+        { name: 'In Progress', value: stats.activeProjects },
+        { name: 'Completed', value: stats.completedProjects },
+    ];
+
+    const COLORS = ['#06b6d4', '#14b8a6'];
+
     return (
         <>
             <ParticlesBackground />
@@ -187,7 +206,29 @@ const AdminDashboard = () => {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                                 <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
                                     <CardHeader><CardTitle>Analytics</CardTitle></CardHeader>
-                                    <CardContent><AnalyticsDashboard /></CardContent>
+                                    <CardContent>
+                                        <div className="w-full h-96">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={pieData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        outerRadius={100}
+                                                        label
+                                                    >
+                                                        {pieData.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </CardContent>
                                 </Card>
                             </motion.div>
                         </TabsContent>
