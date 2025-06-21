@@ -20,6 +20,7 @@ import ProjectsTable from '@/components/ProjectsTable';
 import ProjectDialog from '@/components/ProjectDialog';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ServerMonitor from '@/components/ServerMonitor';
+import ParticlesBackground from '@/components/ParticlesBackground';
 
 interface Project {
     id: string;
@@ -50,12 +51,12 @@ const AdminDashboard = () => {
             const { data: projectsData, error: projectsError } = await supabase
                 .from('projects')
                 .select(`
-                    *,
-                    profiles!projects_client_id_fkey (
-                        full_name,
-                        email
-                    )
-                `)
+          *,
+          profiles!projects_client_id_fkey (
+            full_name,
+            email
+          )
+        `)
                 .order('created_at', { ascending: false });
 
             if (projectsError) {
@@ -124,89 +125,92 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <AdminHeader onSignOut={signOut} />
+        <>
+            <ParticlesBackground />
+            <div className="relative z-10 min-h-screen p-6">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    <AdminHeader onSignOut={signOut} />
 
-                <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
-                        <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
-                            Overview
-                        </TabsTrigger>
-                        <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
-                            Projects
-                        </TabsTrigger>
-                        <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
-                            Analytics
-                        </TabsTrigger>
-                        <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">
-                            Servers
-                        </TabsTrigger>
-                    </TabsList>
+                    <Tabs defaultValue="overview" className="w-full">
+                        <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+                            <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
+                                Projects
+                            </TabsTrigger>
+                            <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
+                                Analytics
+                            </TabsTrigger>
+                            <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">
+                                Servers
+                            </TabsTrigger>
+                        </TabsList>
 
-                    <TabsContent value="overview">
-                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                            <CardHeader>
-                                <CardTitle>Admin Stats</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <AdminStats
-                                    totalProjects={stats.totalProjects}
-                                    totalClients={stats.totalClients}
-                                    activeProjects={stats.activeProjects}
-                                    completedProjects={stats.completedProjects}
-                                />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                        <TabsContent value="overview">
+                            <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                                <CardHeader>
+                                    <CardTitle>Admin Stats</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <AdminStats
+                                        totalProjects={stats.totalProjects}
+                                        totalClients={stats.totalClients}
+                                        activeProjects={stats.activeProjects}
+                                        completedProjects={stats.completedProjects}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                    <TabsContent value="projects">
-                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                            <CardHeader>
-                                <CardTitle>Projects</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ProjectsTable
-                                    projects={projects}
-                                    loading={loading}
-                                    onCreateProject={() => setShowCreateDialog(true)}
-                                    onUpdateProjectStatus={updateProjectStatus}
-                                    onDeleteProject={deleteProject}
-                                />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                        <TabsContent value="projects">
+                            <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                                <CardHeader>
+                                    <CardTitle>Projects</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ProjectsTable
+                                        projects={projects}
+                                        loading={loading}
+                                        onCreateProject={() => setShowCreateDialog(true)}
+                                        onUpdateProjectStatus={updateProjectStatus}
+                                        onDeleteProject={deleteProject}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                    <TabsContent value="analytics">
-                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                            <CardHeader>
-                                <CardTitle>Analytics</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <AnalyticsDashboard />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                        <TabsContent value="analytics">
+                            <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                                <CardHeader>
+                                    <CardTitle>Analytics</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <AnalyticsDashboard />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                    <TabsContent value="servers">
-                        <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                            <CardHeader>
-                                <CardTitle>Server Monitor</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ServerMonitor />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+                        <TabsContent value="servers">
+                            <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                                <CardHeader>
+                                    <CardTitle>Server Monitor</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ServerMonitor />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+
+                <ProjectDialog
+                    open={showCreateDialog}
+                    onOpenChange={setShowCreateDialog}
+                    onProjectCreated={fetchData}
+                />
             </div>
-
-            <ProjectDialog
-                open={showCreateDialog}
-                onOpenChange={setShowCreateDialog}
-                onProjectCreated={fetchData}
-            />
-        </div>
+        </>
     );
 };
 
