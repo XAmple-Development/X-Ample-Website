@@ -1,217 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/glass/card';
-import AdminHeader from '@/components/AdminHeader';
-import AdminStats from '@/components/AdminStats';
-import ProjectsTable from '@/components/ProjectsTable';
-import ProjectDialog from '@/components/ProjectDialog';
-import AnalyticsDashboard from '@/components/AnalyticsDashboard';
-import ServerMonitor from '@/components/ServerMonitor';
-import ParticlesBackground from '@/components/ParticlesBackground';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  status: string;
-  created_at: string;
-  profiles: {
-    full_name: string;
-    email: string;
-  };
-}
+const Header = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const { user, profile } = useAuth();
 
-const AdminDashboard = () => {
-  const { profile, signOut } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { toast } = useToast();
+  const navigation = [
+    { name: "Home", href: "/" },
+    { name: "Services", href: "/services" },
+    { name: "About", href: "/about" },
+    { name: "Team", href: "/team" },
+    { name: "Portfolio", href: "/portfolio" },
+    { name: "Contact", href: "/contact" },
+    { name: "Discord", href: "https://discord.gg/bGhguE93Xp" },
+  ];
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const isActive = (href: string) => {
+    if (href === "/" && location.pathname === "/") return true;
+    if (href !== "/" && location.pathname.startsWith(href)) return true;
+    return false;
+    };
 
-  const fetchData = async () => {
-    try {
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          profiles!projects_client_id_fkey (
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (projectsError) {
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch projects',
-          variant: 'destructive',
-        });
-      } else {
-        setProjects(projectsData || []);
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch data',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProjectStatus = async (projectId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ status })
-        .eq('id', projectId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (error) {
-      console.error('Error updating project:', error);
-    }
-  };
-
-  const deleteProject = async (projectId: string) => {
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', projectId);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Project deleted successfully!',
-      });
-
-      fetchData();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete project',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const stats = {
-    totalProjects: projects.length,
-    totalClients: 0,
-    activeProjects: projects.filter((p) => p.status === 'in_progress').length,
-    completedProjects: projects.filter((p) => p.status === 'completed').length,
-  };
 
   return (
-    <>
-      <ParticlesBackground />
-      <div className="relative z-10 min-h-screen p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <AdminHeader onSignOut={signOut} />
+    <header className="fixed top-0 left-0 right-0 z-50 /95 backdrop-blur-sm border-gray-200">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3">
+            <img 
+              src="https://i.imgur.com/4bSGPHi.png" 
+              alt="X-Ample Development" 
+              className="h-10 w-auto"
+            />
+            <span className="text-xl font-bold text-white-900">X-Ample Development</span>
+          </Link>
 
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
-              <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">
-                Projects
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">
-                Servers
-              </TabsTrigger>
-            </TabsList>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`transition-colors duration-300 ${
+                  isActive(item.href)
+                    ? "text-cyan-500 font-semibold"
+                    : "text-gray-600 hover:text-cyan-500"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
 
-            <TabsContent value="overview">
-              <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                <CardHeader>
-                  <CardTitle>Admin Stats</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AdminStats
-                    totalProjects={stats.totalProjects}
-                    totalClients={stats.totalClients}
-                    activeProjects={stats.activeProjects}
-                    completedProjects={stats.completedProjects}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
+          {/* Auth Button & Mobile Menu */}
+          <div className="flex items-center space-x-4">
+            {/* Auth Button */}
+            {user && profile ? (
+              <Link to="/dashboard">
+                <Button className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth">
+                <Button className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
 
-            <TabsContent value="projects">
-              <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                <CardHeader>
-                  <CardTitle>Projects</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProjectsTable
-                    projects={projects}
-                    loading={loading}
-                    onCreateProject={() => setShowCreateDialog(true)}
-                    onUpdateProjectStatus={updateProjectStatus}
-                    onDeleteProject={deleteProject}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="analytics">
-              <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                <CardHeader>
-                  <CardTitle>Analytics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AnalyticsDashboard />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="servers">
-              <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                <CardHeader>
-                  <CardTitle>Server Monitor</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ServerMonitor />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-gray-600 hover:text-cyan-500"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
-        <ProjectDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
-          onProjectCreated={fetchData}
-        />
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <nav className="md:hidden py-4 border-t border-gray-200">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={() => setIsMenuOpen(false)}
+                className={`block py-2 transition-colors duration-300 ${
+                  isActive(item.href)
+                    ? "text-cyan-500 font-semibold"
+                    : "text-gray-600 hover:text-cyan-500"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
-    </>
+    </header>
   );
 };
 
-export default AdminDashboard;
+export default Header;
