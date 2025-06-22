@@ -17,8 +17,8 @@ export const handler = async () => {
         const [pageRes, monitorsRes, incidentsRes, maintenanceRes] = await Promise.all([
             fetchFromAPI(`/status-pages/${PAGE_ID}`),
             fetchFromAPI('/monitors'),
-            fetchFromAPI(`/status-pages/${PAGE_ID}/incidents`),
-            fetchFromAPI(`/status-pages/${PAGE_ID}/scheduled-maintenances`),
+            fetchFromAPI('/incidents'),
+            fetchFromAPI('/scheduled-maintenances'),
         ]);
 
         const data = {
