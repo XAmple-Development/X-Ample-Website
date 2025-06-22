@@ -38,7 +38,9 @@ const StatusPage = () => {
                     key={monitor.id}
                     className="bg-white/5 p-4 rounded-xl border border-white/10 text-white"
                 >
-                    <h3 className="text-xl font-semibold">{monitor.attributes.name}</h3>
+                    <h3 className="text-xl font-semibold">
+                        {monitor.attributes.pronounceable_name}
+                    </h3>
                     <p className="text-sm text-gray-300">
                         Status:{' '}
                         <span
@@ -48,7 +50,18 @@ const StatusPage = () => {
                                     : 'text-red-400'
                             }
                         >
-                            {monitor.attributes.status}
+                            {monitor.attributes.status.charAt(0).toUpperCase() +
+                                monitor.attributes.status.slice(1)}
+                        </span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                        Last Checked:{' '}
+                        {new Date(monitor.attributes.last_checked_at).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                        URL:{' '}
+                        <span className="underline break-all">
+                            {monitor.attributes.url}
                         </span>
                     </p>
                 </div>
@@ -56,6 +69,7 @@ const StatusPage = () => {
         ) : (
             <p className="text-white/70">No monitors found.</p>
         );
+
 
     const renderIncidents = () =>
         data?.incidents?.length ? (
