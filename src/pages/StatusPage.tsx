@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
+import ParticlesBackground from '@/components/ParticlesBackground';  // <-- Import ParticlesBackground
 
 const StatusPage = () => {
     const [tab, setTab] = useState('uptime');
@@ -100,9 +101,13 @@ const StatusPage = () => {
 
     return (
         <>
-            <Header /> {/* ✅ Correct placement */}
+            <Header /> {/* Header at the top */}
+
+            {/* Particles Background behind content */}
+            <ParticlesBackground />
+
             <motion.div
-                className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 pt-24"
+                className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 pt-24 relative z-10"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
