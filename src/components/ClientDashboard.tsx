@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, LogOut, User, Folder } from 'lucide-react';
+import { Plus, LogOut, User, Folder, Pencil } from 'lucide-react';
 import SecureProjectDialog from '@/components/SecureProjectDialog';
 import {
     Card,
@@ -13,6 +13,9 @@ import {
 } from '@/components/ui/glass/card';
 import { motion } from 'framer-motion';
 import ParticlesBackground from '@/components/ParticlesBackground';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface Project {
     id: string;
@@ -29,6 +32,7 @@ const ClientDashboard = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showProjectDialog, setShowProjectDialog] = useState(false);
+    const [editProject, setEditProject] = useState<Project | null>(null);
 
     useEffect(() => {
         if (user) fetchProjects();
@@ -56,6 +60,20 @@ const ClientDashboard = () => {
         }
     };
 
+    const updateProject = async () => {
+        if (!editProject) return;
+
+        const { id, title, description, category, status } = editProject;
+
+        const { error } = await supabase.from('projects').update({ title, description, category, status }).eq('id', id);
+        if (error) {
+            console.error('Error updating project:', error);
+        } else {
+            setEditProject(null);
+            fetchProjects();
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'completed': return 'bg-green-500';
@@ -71,7 +89,6 @@ const ClientDashboard = () => {
             <ParticlesBackground />
             <div className="relative z-10 min-h-screen bg-black/50 p-6">
                 <div className="max-w-7xl mx-auto">
-                    {/* Header */}
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h1 className="text-3xl font-bold text-white mb-2">
@@ -98,7 +115,6 @@ const ClientDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Stats */}
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white shadow-lg rounded-2xl">
@@ -139,7 +155,6 @@ const ClientDashboard = () => {
                         </div>
                     </motion.div>
 
-                    {/* Projects Section */}
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
                         <div className="mb-8">
                             <h2 className="text-2xl font-bold text-white mb-6">Your Projects</h2>
@@ -167,9 +182,19 @@ const ClientDashboard = () => {
                                             <CardContent className="p-6">
                                                 <div className="flex justify-between items-start mb-4">
                                                     <h3 className="text-xl font-semibold text-white">{project.title}</h3>
-                                                    <Badge className={`${getStatusColor(project.status)} text-white`}>
-                                                        {project.status.replace('_', ' ')}
-                                                    </Badge>
+                                                    <div className="flex gap-2">
+                                                        <Badge className={`${getStatusColor(project.status)} text-white`}>
+                                                            {project.status.replace('_', ' ')}
+                                                        </Badge>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="text-white hover:text-cyan-400"
+                                                            onClick={() => setEditProject(project)}
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                                 <p className="text-gray-300 mb-4">{project.description}</p>
                                                 <div className="flex justify-between items-center">
@@ -194,6 +219,52 @@ const ClientDashboard = () => {
                     onOpenChange={setShowProjectDialog}
                     onProjectCreated={fetchProjects}
                 />
+
+                {/* Edit Project Dialog */}
+                {editProject && (
+                    <Dialog open={!!editProject} onOpenChange={() => setEditProject(null)}>
+                        <DialogContent className="bg-white/10 backdrop-blur-lg border border-white/20">
+                            <div className="space-y-4">
+                                <h2 className="text-white text-lg font-semibold">Edit Project</h2>
+                                <Input
+                                    className="text-white bg-white/5 border-white/20"
+                                    value={editProject.title}
+                                    onChange={(e) => setEditProject({ ...editProject, title: e.target.value })}
+                                    placeholder="Project Title"
+                                />
+                                <Input
+                                    className="text-white bg-white/5 border-white/20"
+                                    value={editProject.description}
+                                    onChange={(e) => setEditProject({ ...editProject, description: e.target.value })}
+                                    placeholder="Project Description"
+                                />
+                                <Input
+                                    className="text-white bg-white/5 border-white/20"
+                                    value={editProject.category}
+                                    onChange={(e) => setEditProject({ ...editProject, category: e.target.value })}
+                                    placeholder="Category"
+                                />
+                                <Select
+                                    value={editProject.status}
+                                    onValueChange={(value) => setEditProject({ ...editProject, status: value })}
+                                >
+                                    <SelectTrigger className="text-white bg-white/5 border-white/20">
+                                        <SelectValue placeholder="Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="in_progress">In Progress</SelectItem>
+                                        <SelectItem value="completed">Completed</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Button onClick={updateProject} className="bg-cyan-600 text-white w-full">
+                                    Save Changes
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
         </>
     );
