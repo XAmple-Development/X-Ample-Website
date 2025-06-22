@@ -1,6 +1,4 @@
-import { Handler } from '@netlify/functions';
-
-const handler: Handler = async (event) => {
+export const handler = async (event) => {
     const pageId = '206174';
     const apiKey = process.env.BETTERSTACK_API_KEY;
 
@@ -11,21 +9,29 @@ const handler: Handler = async (event) => {
             },
         });
 
+        if (!res.ok) {
+            throw new Error(`BetterStack API responded with status ${res.status}`);
+        }
+
         const data = await res.json();
 
         return {
             statusCode: 200,
             body: JSON.stringify(data),
             headers: {
-                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Origin': '*', // or your domain
+                'Content-Type': 'application/json',
             },
         };
-    } catch (err: any) {
+    } catch (err) {
+        console.error('Error fetching BetterStack data:', err);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Failed to fetch from BetterStack', details: err.message }),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            },
         };
     }
 };
-
-export { handler };

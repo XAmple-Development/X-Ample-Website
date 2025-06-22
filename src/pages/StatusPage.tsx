@@ -9,29 +9,36 @@ const StatusPage = () => {
     const [tab, setTab] = useState('uptime');
     const [loading, setLoading] = useState(true);
     const [statusData, setStatusData] = useState<any>(null);
-
-    const API_KEY = process.env.BETTERSTACK_API_KEY;
-    const PAGE_ID = '206174';
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         const fetchStatus = async () => {
             setLoading(true);
+            setError(null);
             try {
-                const res = await fetch(`https://betteruptime.com/api/v2/status-pages/${PAGE_ID}`, {
-                    headers: {
-                        Authorization: `Bearer ${API_KEY}`,
-                    },
-                });
+                const res = await fetch('/.netlify/functions/getstatus');
+                if (!res.ok) throw new Error(`HTTP error ${res.status}`);
                 const json = await res.json();
-                setStatusData(json);
-            } catch (err) {
-                console.error('Error fetching BetterStack status:', err);
+                if (isMounted) setStatusData(json);
+            } catch (err: any) {
+                console.error('Error fetching status:', err);
+                if (isMounted) setError('Failed to load status data. Please try again later.');
             } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         };
 
         fetchStatus();
+
+        // Auto-refresh every 5 minutes
+        const interval = setInterval(fetchStatus, 5 * 60 * 1000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     const renderUptime = () => (
@@ -40,7 +47,7 @@ const StatusPage = () => {
                 <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10">
                     <h3 className="text-xl font-bold text-white">{service.name}</h3>
                     <p className="text-sm text-gray-300">
-                        Status:{" "}
+                        Status:{' '}
                         <span className={service.status === 'operational' ? 'text-green-400' : 'text-red-400'}>
                             {service.status}
                         </span>
@@ -54,9 +61,15 @@ const StatusPage = () => {
         <div className="space-y-4">
             {statusData?.incidents?.length > 0 ? (
                 statusData.incidents.map((incident: any, idx: number) => (
-                    <div key={idx} className="bg-red-900/30 p-4 rounded-xl border border-red-700/30 text-white">
+                    <div
+                        key={idx}
+                        className="bg-red-900/30 p-4 rounded-xl border border-red-700/30 text-white"
+                    >
                         <h3 className="font-semibold">{incident.name}</h3>
-                        <p>{incident.resolved_at ? 'Resolved' : 'Ongoing'} — {new Date(incident.started_at).toLocaleString()}</p>
+                        <p>
+                            {incident.resolved_at ? 'Resolved' : 'Ongoing'} —{' '}
+                            {new Date(incident.started_at).toLocaleString()}
+                        </p>
                     </div>
                 ))
             ) : (
@@ -69,7 +82,10 @@ const StatusPage = () => {
         <div className="space-y-4">
             {statusData?.scheduled_maintenances?.length > 0 ? (
                 statusData.scheduled_maintenances.map((event: any, idx: number) => (
-                    <div key={idx} className="bg-yellow-800/30 p-4 rounded-xl border border-yellow-600/30 text-white">
+                    <div
+                        key={idx}
+                        className="bg-yellow-800/30 p-4 rounded-xl border border-yellow-600/30 text-white"
+                    >
                         <h3 className="font-semibold">{event.name}</h3>
                         <p>{new Date(event.scheduled_for).toLocaleString()}</p>
                     </div>
@@ -95,9 +111,15 @@ const StatusPage = () => {
 
                 <Tabs defaultValue="uptime" value={tab} onValueChange={setTab}>
                     <TabsList className="grid grid-cols-3 bg-white/10 text-white rounded-xl mb-6">
-                        <TabsTrigger value="uptime" className="data-[state=active]:bg-white/20">Uptime</TabsTrigger>
-                        <TabsTrigger value="incidents" className="data-[state=active]:bg-white/20">Incidents</TabsTrigger>
-                        <TabsTrigger value="maintenance" className="data-[state=active]:bg-white/20">Maintenance</TabsTrigger>
+                        <TabsTrigger value="uptime" className="data-[state=active]:bg-white/20">
+                            Uptime
+                        </TabsTrigger>
+                        <TabsTrigger value="incidents" className="data-[state=active]:bg-white/20">
+                            Incidents
+                        </TabsTrigger>
+                        <TabsTrigger value="maintenance" className="data-[state=active]:bg-white/20">
+                            Maintenance
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="uptime">
@@ -105,7 +127,11 @@ const StatusPage = () => {
                             <div className="flex justify-center items-center py-10">
                                 <Loader2 className="animate-spin w-6 h-6 text-white" />
                             </div>
-                        ) : renderUptime()}
+                        ) : error ? (
+                            <p className="text-red-500 text-center">{error}</p>
+                        ) : (
+                            renderUptime()
+                        )}
                     </TabsContent>
 
                     <TabsContent value="incidents">
@@ -113,7 +139,11 @@ const StatusPage = () => {
                             <div className="flex justify-center items-center py-10">
                                 <Loader2 className="animate-spin w-6 h-6 text-white" />
                             </div>
-                        ) : renderIncidents()}
+                        ) : error ? (
+                            <p className="text-red-500 text-center">{error}</p>
+                        ) : (
+                            renderIncidents()
+                        )}
                     </TabsContent>
 
                     <TabsContent value="maintenance">
@@ -121,12 +151,17 @@ const StatusPage = () => {
                             <div className="flex justify-center items-center py-10">
                                 <Loader2 className="animate-spin w-6 h-6 text-white" />
                             </div>
-                        ) : renderMaintenance()}
+                        ) : error ? (
+                            <p className="text-red-500 text-center">{error}</p>
+                        ) : (
+                            renderMaintenance()
+                        )}
                     </TabsContent>
                 </Tabs>
 
                 <div className="mt-10 text-center text-white/50 text-sm">
-                    Powered by <span className="text-purple-400 font-medium">BetterStack</span> — Styled by <span className="text-blue-400 font-medium">X-Ample Development</span>
+                    Powered by <span className="text-purple-400 font-medium">BetterStack</span> — Styled by{' '}
+                    <span className="text-blue-400 font-medium">X-Ample Development</span>
                 </div>
             </div>
         </motion.div>
