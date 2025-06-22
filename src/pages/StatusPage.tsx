@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
-import Header from "@/components/Header";
-
-    <Header />
+import Header from '@/components/Header';
 
 const StatusPage = () => {
     const [tab, setTab] = useState('uptime');
@@ -67,7 +65,6 @@ const StatusPage = () => {
             <p className="text-white/70">No monitors found.</p>
         );
 
-
     const renderIncidents = () =>
         data?.incidents?.length ? (
             data.incidents.map((incident: any) => (
@@ -77,7 +74,7 @@ const StatusPage = () => {
                 >
                     <h3 className="font-semibold">{incident.attributes.name}</h3>
                     <p>
-                        {incident.attributes.resolved_at ? 'Resolved' : 'Ongoing'} �{' '}
+                        {incident.attributes.resolved_at ? 'Resolved' : 'Ongoing'} —{' '}
                         {new Date(incident.attributes.started_at).toLocaleString()}
                     </p>
                 </div>
@@ -102,75 +99,78 @@ const StatusPage = () => {
         );
 
     return (
-        <motion.div
-            className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-        >
-            <div className="max-w-6xl mx-auto space-y-6">
-                <div className="text-center">
-                    <h1 className="text-4xl font-bold text-white">X-Ample System Status</h1>
-                    <p className="text-gray-400 text-sm">
-                        Live uptime and incident tracking for all X-Ample services.
-                    </p>
+        <>
+            <Header /> {/* ✅ Correct placement */}
+            <motion.div
+                className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 pt-24"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+            >
+                <div className="max-w-6xl mx-auto space-y-6">
+                    <div className="text-center">
+                        <h1 className="text-4xl font-bold text-white">X-Ample System Status</h1>
+                        <p className="text-gray-400 text-sm">
+                            Live uptime and incident tracking for all X-Ample services.
+                        </p>
+                    </div>
+
+                    <Tabs defaultValue="uptime" value={tab} onValueChange={setTab}>
+                        <TabsList className="grid grid-cols-3 bg-white/10 text-white rounded-xl mb-6">
+                            <TabsTrigger value="uptime" className="data-[state=active]:bg-white/20">
+                                Uptime
+                            </TabsTrigger>
+                            <TabsTrigger value="incidents" className="data-[state=active]:bg-white/20">
+                                Incidents
+                            </TabsTrigger>
+                            <TabsTrigger value="maintenance" className="data-[state=active]:bg-white/20">
+                                Maintenance
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="uptime">
+                            {loading ? (
+                                <div className="flex justify-center py-10">
+                                    <Loader2 className="animate-spin w-6 h-6 text-white" />
+                                </div>
+                            ) : error ? (
+                                <p className="text-red-500 text-center">{error}</p>
+                            ) : (
+                                renderMonitors()
+                            )}
+                        </TabsContent>
+
+                        <TabsContent value="incidents">
+                            {loading ? (
+                                <div className="flex justify-center py-10">
+                                    <Loader2 className="animate-spin w-6 h-6 text-white" />
+                                </div>
+                            ) : error ? (
+                                <p className="text-red-500 text-center">{error}</p>
+                            ) : (
+                                renderIncidents()
+                            )}
+                        </TabsContent>
+
+                        <TabsContent value="maintenance">
+                            {loading ? (
+                                <div className="flex justify-center py-10">
+                                    <Loader2 className="animate-spin w-6 h-6 text-white" />
+                                </div>
+                            ) : error ? (
+                                <p className="text-red-500 text-center">{error}</p>
+                            ) : (
+                                renderMaintenance()
+                            )}
+                        </TabsContent>
+                    </Tabs>
+
+                    <div className="mt-10 text-center text-white/50 text-sm">
+                        Powered by <span className="text-purple-400 font-medium">X-Ample Development</span>
+                    </div>
                 </div>
-
-                <Tabs defaultValue="uptime" value={tab} onValueChange={setTab}>
-                    <TabsList className="grid grid-cols-3 bg-white/10 text-white rounded-xl mb-6">
-                        <TabsTrigger value="uptime" className="data-[state=active]:bg-white/20">
-                            Uptime
-                        </TabsTrigger>
-                        <TabsTrigger value="incidents" className="data-[state=active]:bg-white/20">
-                            Incidents
-                        </TabsTrigger>
-                        <TabsTrigger value="maintenance" className="data-[state=active]:bg-white/20">
-                            Maintenance
-                        </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="uptime">
-                        {loading ? (
-                            <div className="flex justify-center py-10">
-                                <Loader2 className="animate-spin w-6 h-6 text-white" />
-                            </div>
-                        ) : error ? (
-                            <p className="text-red-500 text-center">{error}</p>
-                        ) : (
-                            renderMonitors()
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="incidents">
-                        {loading ? (
-                            <div className="flex justify-center py-10">
-                                <Loader2 className="animate-spin w-6 h-6 text-white" />
-                            </div>
-                        ) : error ? (
-                            <p className="text-red-500 text-center">{error}</p>
-                        ) : (
-                            renderIncidents()
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="maintenance">
-                        {loading ? (
-                            <div className="flex justify-center py-10">
-                                <Loader2 className="animate-spin w-6 h-6 text-white" />
-                            </div>
-                        ) : error ? (
-                            <p className="text-red-500 text-center">{error}</p>
-                        ) : (
-                            renderMaintenance()
-                        )}
-                    </TabsContent>
-                </Tabs>
-
-                <div className="mt-10 text-center text-white/50 text-sm">
-                    Powered by <span className="text-purple-400 font-medium">X-Ample Development</span>
-                </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </>
     );
 };
 
