@@ -31,31 +31,32 @@ const StatusPage = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const renderMonitors = () =>
-        data?.monitors?.length ? (
-            data.monitors.map((monitor: any) => (
+    const renderUptime = () => (
+        <div className="space-y-4">
+            {statusData?.monitors?.map((monitor: any, idx: number) => (
                 <div
-                    key={monitor.id}
-                    className="bg-white/5 p-4 rounded-xl border border-white/10 text-white"
+                    key={idx}
+                    className="bg-white/5 p-4 rounded-xl border border-white/10"
                 >
-                    <h3 className="text-xl font-semibold">{monitor.attributes.name}</h3>
+                    <h3 className="text-xl font-bold text-white">
+                        {monitor.attributes.name}
+                    </h3>
                     <p className="text-sm text-gray-300">
                         Status:{' '}
                         <span
                             className={
-                                monitor.attributes.status === 'up'
+                                monitor.attributes.state === 'up'
                                     ? 'text-green-400'
                                     : 'text-red-400'
                             }
                         >
-                            {monitor.attributes.status}
+                            {monitor.attributes.state === 'up' ? 'Up' : 'Down'}
                         </span>
                     </p>
                 </div>
-            ))
-        ) : (
-            <p className="text-white/70">No monitors found.</p>
-        );
+            ))}
+        </div>
+    );
 
     const renderIncidents = () =>
         data?.incidents?.length ? (
