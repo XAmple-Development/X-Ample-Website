@@ -58,12 +58,6 @@ const StatusPage = () => {
                         Last Checked:{' '}
                         {new Date(monitor.attributes.last_checked_at).toLocaleString()}
                     </p>
-                    <p className="text-xs text-gray-400">
-                        URL:{' '}
-                        <span className="underline break-all">
-                            {monitor.attributes.url}
-                        </span>
-                    </p>
                 </div>
             ))
         ) : (
@@ -170,8 +164,7 @@ const StatusPage = () => {
                 </Tabs>
 
                 <div className="mt-10 text-center text-white/50 text-sm">
-                    Powered by <span className="text-purple-400 font-medium">BetterStack</span> — Styled by{' '}
-                    <span className="text-blue-400 font-medium">X-Ample Development</span>
+                    Powered by <span className="text-purple-400 font-medium">X-Ample Development</span>
                 </div>
             </div>
         </motion.div>
