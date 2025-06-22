@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import XAmpleLogo from "@/assets/logo/xample-logo.svg"; // Replace with your logo path
+import XAmpleLogo from "@/assets/logo/xample-logo.png"; // Replace with your logo path
 
 const TABS = [
     { label: "Uptime", value: "" },
