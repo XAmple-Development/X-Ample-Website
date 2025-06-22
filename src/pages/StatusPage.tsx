@@ -10,7 +10,7 @@ const StatusPage = () => {
     const [loading, setLoading] = useState(true);
     const [statusData, setStatusData] = useState<any>(null);
 
-    const apiKey = process.env.BETTERSTACK_API_KEY;
+    const API_KEY = process.env.BETTERSTACK_API_KEY;
     const PAGE_ID = '206174';
 
     useEffect(() => {
