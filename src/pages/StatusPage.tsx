@@ -31,7 +31,7 @@ const StatusPage = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const renderUptime = () => (
+    const renderMonitors = () => (
         <div className="space-y-4">
             {statusData?.monitors?.map((monitor: any, idx: number) => (
                 <div
@@ -57,6 +57,7 @@ const StatusPage = () => {
             ))}
         </div>
     );
+
 
     const renderIncidents = () =>
         data?.incidents?.length ? (
