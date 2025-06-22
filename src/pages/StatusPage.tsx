@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
+import Header from "@/components/Header";
+
+<div className="relative z-10">
+    <Header />
 
 const StatusPage = () => {
     const [tab, setTab] = useState('uptime');
