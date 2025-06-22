@@ -114,9 +114,9 @@ const StatusPage = () => {
             >
                 <div className="max-w-6xl mx-auto space-y-6">
                     <div className="text-center">
-                        <h1 className="text-4xl font-bold text-white">X-Ample System Status</h1>
+                        <h1 className="text-4xl font-bold text-white">Live System Status</h1>
                         <p className="text-gray-400 text-sm">
-                            Live uptime and incident tracking for all X-Ample services.
+                            Live uptime and incident tracking for all of X-Ample Development services.
                         </p>
                     </div>
 
