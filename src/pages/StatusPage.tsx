@@ -43,12 +43,12 @@ const StatusPage = () => {
                         Status:{' '}
                         <span
                             className={
-                                monitor.attributes.status === 'up'
+                                monitor.attributes.state === 'up'
                                     ? 'text-green-400'
                                     : 'text-red-400'
                             }
                         >
-                            {monitor.attributes.status}
+                            {monitor.attributes.state === 'up' ? 'Up' : 'Down'}
                         </span>
                     </p>
                 </div>
