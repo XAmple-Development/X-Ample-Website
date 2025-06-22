@@ -1,51 +1,31 @@
+import fetch from 'node-fetch';
+
 export const handler = async () => {
-    const pageId = '206174';
-    const apiKey = process.env.BETTERSTACK_API_KEY;
-    const baseUrl = 'https://betteruptime.com/api/v2/status-pages';
+    const STATUS_JSON_URL = 'https://status.x-ampledevelopment.com/status.json';
 
     try {
-           const endpoints = [
-            { name: 'page', url: `${baseUrl}/${pageId}` },
-            { name: 'monitors', url: `https://betteruptime.com/api/v2/monitors` },
-            { name: 'incidents', url: `${baseUrl}/${pageId}/incidents` },
-            { name: 'maintenance', url: `${baseUrl}/${pageId}/scheduled-maintenances` },
-        ];
+        const response = await fetch(STATUS_JSON_URL);
 
-        const results = {};
-
-        for (const endpoint of endpoints) {
-            const res = await fetch(endpoint.url, {
-                headers: { Authorization: `Bearer ${apiKey}` },
-            });
-
-            if (!res.ok) {
-                console.error(`Failed to fetch ${endpoint.name} - Status: ${res.status}`);
-                throw new Error(`Failed to fetch ${endpoint.name} - Status: ${res.status}`);
-            }
-
-            results[endpoint.name] = await res.json();
+        if (!response.ok) {
+            throw new Error(`Failed to fetch public status JSON - Status: ${response.status}`);
         }
 
-        const combined = {
-            page: results.page.data.attributes,
-            summary: results.monitors.data,              
-            incidents: results.incidents.data,
-            scheduled_maintenances: results.maintenance.data,
-        };
+        const data = await response.json();
 
         return {
             statusCode: 200,
-            body: JSON.stringify(combined),
+            body: JSON.stringify(data),
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'application/json',
             },
         };
-    } catch (err) {
-        console.error('Error in BetterStack fetch:', err);
+    } catch (error) {
+        console.error('Error fetching status JSON:', error);
+
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: err.message }),
+            body: JSON.stringify({ error: error.message }),
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'application/json',

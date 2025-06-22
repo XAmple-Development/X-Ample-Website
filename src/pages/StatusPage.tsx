@@ -43,7 +43,7 @@ const StatusPage = () => {
 
     const renderUptime = () => (
         <div className="space-y-4">
-            {statusData?.summary?.map((service: any, idx: number) => (
+            {(statusData?.components || []).map((service: any, idx: number) => (
                 <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10">
                     <h3 className="text-xl font-bold text-white">{service.name}</h3>
                     <p className="text-sm text-gray-300">
