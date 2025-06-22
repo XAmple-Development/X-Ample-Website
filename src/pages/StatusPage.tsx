@@ -10,7 +10,7 @@ const StatusPage = () => {
     const [loading, setLoading] = useState(true);
     const [statusData, setStatusData] = useState<any>(null);
 
-    const API_KEY = 'BhbDBnWNTLn1zqnfSs4qwwSp'; // move to env or Netlify function in production
+    const apiKey = process.env.BETTERSTACK_API_KEY;
     const PAGE_ID = '206174';
 
     useEffect(() => {
