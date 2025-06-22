@@ -1,44 +1,58 @@
 import fetch from 'node-fetch';
 
 const API_KEY = process.env.BETTERSTACK_API_KEY;
-const PAGE_ID = '206174';
 const BASE_URL = 'https://betteruptime.com/api/v2';
 
 async function fetchFromAPI(path) {
     const res = await fetch(`${BASE_URL}${path}`, {
         headers: { Authorization: `Bearer ${API_KEY}` },
     });
-    if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
+
+    if (!res.ok) {
+        throw new Error(`Failed to fetch ${path}: ${res.status}`);
+    }
+
     return res.json();
 }
 
 export const handler = async () => {
     try {
-        const [pageRes, monitorsRes, incidentsRes, maintenanceRes] = await Promise.all([
-            fetchFromAPI(`/status-pages/${PAGE_ID}`),
+        const [monitorsRes, incidentsRes, maintenanceRes] = await Promise.allSettled([
             fetchFromAPI('/monitors'),
             fetchFromAPI('/incidents'),
             fetchFromAPI('/scheduled-maintenances'),
         ]);
 
-        const data = {
-            page: pageRes.data.attributes,
-            monitors: monitorsRes.data,
-            incidents: incidentsRes.data,
-            scheduled_maintenances: maintenanceRes.data,
+        const monitors =
+            monitorsRes.status === 'fulfilled' ? monitorsRes.value.data : [];
+        const incidents =
+            incidentsRes.status === 'fulfilled' ? incidentsRes.value.data : [];
+        const maintenances =
+            maintenanceRes.status === 'fulfilled' ? maintenanceRes.value.data : [];
+
+        const response = {
+            monitors,
+            incidents,
+            scheduled_maintenances: maintenances,
         };
 
         return {
             statusCode: 200,
-            body: JSON.stringify(data),
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            body: JSON.stringify(response),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            },
         };
     } catch (error) {
-        console.error(error);
+        console.error('Netlify function error:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: error.message }),
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            },
         };
     }
 };
