@@ -17,6 +17,9 @@ import Dashboard from "./pages/Dashboard";
 import UserManagement from "./pages/UserManagement";
 import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
+import StatusPage from '@/pages/LiveStatus';
+
+
 
 const queryClient = new QueryClient();
 
@@ -38,7 +41,8 @@ const App = () => (
                 <Route path="/team" element={<Team />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/users" element={<UserManagement />} />
+                                <Route path="/users" element={<UserManagement />} />
+                                <Route path="/status" element={<StatusPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
