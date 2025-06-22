@@ -1,75 +1,135 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import XAmpleLogo from "@/assets/logo/xample-logo.png"; // Replace with your logo path
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Loader2 } from 'lucide-react';
 
-const TABS = [
-    { label: "Uptime", value: "" },
-    { label: "Maintenance", value: "maintenance" },
-    { label: "Incidents", value: "incidents" },
-];
+const tabs = ['uptime', 'incidents', 'maintenance'];
 
 const StatusPage = () => {
-    const [activeTab, setActiveTab] = useState("");
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [tab, setTab] = useState('uptime');
+    const [loading, setLoading] = useState(true);
+    const [statusData, setStatusData] = useState<any>(null);
 
-    const iframeUrl = `https://status.x-ampledevelopment.com/${activeTab}`;
+    const API_KEY = 'BhbDBnWNTLn1zqnfSs4qwwSp'; // move to env or Netlify function in production
+    const PAGE_ID = '206174';
 
-    return (
-        <section className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-900 to-slate-900 flex flex-col items-center justify-center px-4 py-12">
-            <div className="w-full max-w-6xl space-y-6">
-                <div className="text-center">
-                    <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
-                        System Status
-                    </h1>
-                    <p className="text-slate-300 text-lg">
-                        Live uptime, response time & incident history
+    useEffect(() => {
+        const fetchStatus = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch(`https://betteruptime.com/api/v2/status-pages/${PAGE_ID}`, {
+                    headers: {
+                        Authorization: `Bearer ${API_KEY}`,
+                    },
+                });
+                const json = await res.json();
+                setStatusData(json);
+            } catch (err) {
+                console.error('Error fetching BetterStack status:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStatus();
+    }, []);
+
+    const renderUptime = () => (
+        <div className="space-y-4">
+            {statusData?.summary?.map((service: any, idx: number) => (
+                <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10">
+                    <h3 className="text-xl font-bold text-white">{service.name}</h3>
+                    <p className="text-sm text-gray-300">
+                        Status:{" "}
+                        <span className={service.status === 'operational' ? 'text-green-400' : 'text-red-400'}>
+                            {service.status}
+                        </span>
                     </p>
                 </div>
+            ))}
+        </div>
+    );
 
-                <div className="flex justify-center gap-4 mb-4">
-                    {TABS.map((tab) => (
-                        <button
-                            key={tab.value}
-                            onClick={() => {
-                                setActiveTab(tab.value);
-                                setIsLoaded(false);
-                            }}
-                            className={`px-4 py-2 rounded-full border text-white text-sm transition-all backdrop-blur-md
-                ${activeTab === tab.value
-                                    ? "bg-white/20 border-white/30"
-                                    : "bg-white/5 border-white/10 hover:bg-white/10"}`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+    const renderIncidents = () => (
+        <div className="space-y-4">
+            {statusData?.incidents?.length > 0 ? (
+                statusData.incidents.map((incident: any, idx: number) => (
+                    <div key={idx} className="bg-red-900/30 p-4 rounded-xl border border-red-700/30 text-white">
+                        <h3 className="font-semibold">{incident.name}</h3>
+                        <p>{incident.resolved_at ? 'Resolved' : 'Ongoing'} — {new Date(incident.started_at).toLocaleString()}</p>
+                    </div>
+                ))
+            ) : (
+                <p className="text-white/70">No incidents reported.</p>
+            )}
+        </div>
+    );
+
+    const renderMaintenance = () => (
+        <div className="space-y-4">
+            {statusData?.scheduled_maintenances?.length > 0 ? (
+                statusData.scheduled_maintenances.map((event: any, idx: number) => (
+                    <div key={idx} className="bg-yellow-800/30 p-4 rounded-xl border border-yellow-600/30 text-white">
+                        <h3 className="font-semibold">{event.name}</h3>
+                        <p>{new Date(event.scheduled_for).toLocaleString()}</p>
+                    </div>
+                ))
+            ) : (
+                <p className="text-white/70">No upcoming maintenance events.</p>
+            )}
+        </div>
+    );
+
+    return (
+        <motion.div
+            className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+        >
+            <div className="max-w-6xl mx-auto space-y-6">
+                <div className="text-center">
+                    <h1 className="text-4xl font-bold text-white">X-Ample System Status</h1>
+                    <p className="text-gray-400 text-sm">Live uptime and incident tracking for all X-Ample services.</p>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-white/5 relative">
-                    {!isLoaded && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50 text-white">
-                            <span className="animate-pulse">Loading status page...</span>
-                        </div>
-                    )}
+                <Tabs defaultValue="uptime" value={tab} onValueChange={setTab}>
+                    <TabsList className="grid grid-cols-3 bg-white/10 text-white rounded-xl mb-6">
+                        <TabsTrigger value="uptime" className="data-[state=active]:bg-white/20">Uptime</TabsTrigger>
+                        <TabsTrigger value="incidents" className="data-[state=active]:bg-white/20">Incidents</TabsTrigger>
+                        <TabsTrigger value="maintenance" className="data-[state=active]:bg-white/20">Maintenance</TabsTrigger>
+                    </TabsList>
 
-                    <motion.iframe
-                        key={iframeUrl}
-                        src={iframeUrl}
-                        title="BetterStack Status Page"
-                        className="w-full h-[80vh] rounded-2xl border-none"
-                        loading="lazy"
-                        onLoad={() => setIsLoaded(true)}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: isLoaded ? 1 : 0 }}
-                        transition={{ duration: 0.6 }}
-                    />
-                </div>
+                    <TabsContent value="uptime">
+                        {loading ? (
+                            <div className="flex justify-center items-center py-10">
+                                <Loader2 className="animate-spin w-6 h-6 text-white" />
+                            </div>
+                        ) : renderUptime()}
+                    </TabsContent>
 
-                <div className="text-center mt-4">
-                    <img src={XAmpleLogo} alt="X-Ample Development" className="w-8 h-8 mx-auto mb-1" />
-                    <p className="text-xs text-slate-400">Status monitoring by X-Ample Development</p>
+                    <TabsContent value="incidents">
+                        {loading ? (
+                            <div className="flex justify-center items-center py-10">
+                                <Loader2 className="animate-spin w-6 h-6 text-white" />
+                            </div>
+                        ) : renderIncidents()}
+                    </TabsContent>
+
+                    <TabsContent value="maintenance">
+                        {loading ? (
+                            <div className="flex justify-center items-center py-10">
+                                <Loader2 className="animate-spin w-6 h-6 text-white" />
+                            </div>
+                        ) : renderMaintenance()}
+                    </TabsContent>
+                </Tabs>
+
+                <div className="mt-10 text-center text-white/50 text-sm">
+                    Powered by <span className="text-purple-400 font-medium">BetterStack</span> — Styled by <span className="text-blue-400 font-medium">X-Ample Development</span>
                 </div>
             </div>
-        </section>
+        </motion.div>
     );
 };
 
