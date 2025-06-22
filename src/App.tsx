@@ -17,7 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import UserManagement from "./pages/UserManagement";
 import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
-import StatusPage from "./pages/LiveStatus";
+import StatusPage from "./pages/StatusPage";
 
 
 
