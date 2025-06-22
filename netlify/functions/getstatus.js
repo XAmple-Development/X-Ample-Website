@@ -6,7 +6,7 @@ export const handler = async () => {
     try {
         const endpoints = [
             { name: 'page', url: `${baseUrl}/${pageId}` },
-            { name: 'components', url: `${baseUrl}/${pageId}/components` },
+            { name: 'monitors', url: `${baseUrl}/${pageId}/monitors` },
             { name: 'incidents', url: `${baseUrl}/${pageId}/incidents` },
             { name: 'maintenance', url: `${baseUrl}/${pageId}/scheduled-maintenances` },
         ];
@@ -28,7 +28,7 @@ export const handler = async () => {
 
         const combined = {
             page: results.page.data.attributes,
-            summary: results.components.data,
+            summary: results.monitors.data,              
             incidents: results.incidents.data,
             scheduled_maintenances: results.maintenance.data,
         };
