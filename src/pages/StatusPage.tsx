@@ -1,4 +1,24 @@
-import React from 'react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
+const Header = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const location = useLocation();
+    const { user, profile } = useAuth();
+
+    const navigation = [
+        { name: "Home", href: "/" },
+        { name: "Services", href: "/services" },
+        { name: "About", href: "/about" },
+        { name: "Team", href: "/team" },
+        { name: "Portfolio", href: "/portfolio" },
+        { name: "Contact", href: "/contact" },
+        { name: "Status", href: "/status" },
+        { name: "Discord", href: "https://discord.gg/bGhguE93Xp" },
+    ];
 
 const StatusPage = () => {
     return (
