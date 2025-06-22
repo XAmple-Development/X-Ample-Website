@@ -4,28 +4,33 @@ export const handler = async () => {
     const baseUrl = 'https://betteruptime.com/api/v2/status-pages';
 
     try {
-        const [pageRes, componentsRes, incidentsRes, maintenanceRes] = await Promise.all([
-            fetch(`${baseUrl}/${pageId}`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-            fetch(`${baseUrl}/${pageId}/components`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-            fetch(`${baseUrl}/${pageId}/incidents`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-            fetch(`${baseUrl}/${pageId}/scheduled-maintenances`, { headers: { Authorization: `Bearer ${apiKey}` } }),
-        ]);
+        const endpoints = [
+            { name: 'page', url: `${baseUrl}/${pageId}` },
+            { name: 'components', url: `${baseUrl}/${pageId}/components` },
+            { name: 'incidents', url: `${baseUrl}/${pageId}/incidents` },
+            { name: 'maintenance', url: `${baseUrl}/${pageId}/scheduled-maintenances` },
+        ];
 
-        if (![pageRes, componentsRes, incidentsRes, maintenanceRes].every(r => r.ok)) {
-            throw new Error('One or more BetterStack API calls failed');
+        const results = {};
+
+        for (const endpoint of endpoints) {
+            const res = await fetch(endpoint.url, {
+                headers: { Authorization: `Bearer ${apiKey}` },
+            });
+
+            if (!res.ok) {
+                console.error(`Failed to fetch ${endpoint.name} - Status: ${res.status}`);
+                throw new Error(`Failed to fetch ${endpoint.name} - Status: ${res.status}`);
+            }
+
+            results[endpoint.name] = await res.json();
         }
 
-        const pageData = await pageRes.json();
-        const componentsData = await componentsRes.json();
-        const incidentsData = await incidentsRes.json();
-        const maintenanceData = await maintenanceRes.json();
-
-        // Combine into one object your frontend expects
         const combined = {
-            page: pageData.data.attributes,
-            summary: componentsData.data,               // array of components/monitors
-            incidents: incidentsData.data,              // array of incidents
-            scheduled_maintenances: maintenanceData.data,  // array of maintenance events
+            page: results.page.data.attributes,
+            summary: results.components.data,
+            incidents: results.incidents.data,
+            scheduled_maintenances: results.maintenance.data,
         };
 
         return {
@@ -37,7 +42,7 @@ export const handler = async () => {
             },
         };
     } catch (err) {
-        console.error(err);
+        console.error('Error in BetterStack fetch:', err);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: err.message }),
