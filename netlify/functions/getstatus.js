@@ -1,35 +1,44 @@
 import fetch from 'node-fetch';
 
+const API_KEY = process.env.BETTERSTACK_API_KEY;
+const PAGE_ID = '206174';
+const BASE_URL = 'https://betteruptime.com/api/v2';
+
+async function fetchFromAPI(path) {
+    const res = await fetch(`${BASE_URL}${path}`, {
+        headers: { Authorization: `Bearer ${API_KEY}` },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
+    return res.json();
+}
+
 export const handler = async () => {
-    const STATUS_JSON_URL = 'https://status.x-ampledevelopment.com/status.json';
-
     try {
-        const response = await fetch(STATUS_JSON_URL);
+        const [pageRes, monitorsRes, incidentsRes, maintenanceRes] = await Promise.all([
+            fetchFromAPI(`/status-pages/${PAGE_ID}`),
+            fetchFromAPI('/monitors'),
+            fetchFromAPI(`/status-pages/${PAGE_ID}/incidents`),
+            fetchFromAPI(`/status-pages/${PAGE_ID}/scheduled-maintenances`),
+        ]);
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch public status JSON - Status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = {
+            page: pageRes.data.attributes,
+            monitors: monitorsRes.data,
+            incidents: incidentsRes.data,
+            scheduled_maintenances: maintenanceRes.data,
+        };
 
         return {
             statusCode: 200,
             body: JSON.stringify(data),
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Access-Control-Allow-Origin': '*' },
         };
     } catch (error) {
-        console.error('Error fetching status JSON:', error);
-
+        console.error(error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: error.message }),
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Access-Control-Allow-Origin': '*' },
         };
     }
 };

@@ -3,12 +3,15 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 
-const tabs = ['uptime', 'incidents', 'maintenance'];
-
 const StatusPage = () => {
     const [tab, setTab] = useState('uptime');
     const [loading, setLoading] = useState(true);
-    const [statusData, setStatusData] = useState<any>(null);
+    const [statusData, setStatusData] = useState<{
+        page?: any;
+        monitors?: any[];
+        incidents?: any[];
+        scheduled_maintenances?: any[];
+    } | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -41,60 +44,77 @@ const StatusPage = () => {
         };
     }, []);
 
-    const renderUptime = () => (
-        <div className="space-y-4">
-            {(statusData?.components || []).map((service: any, idx: number) => (
-                <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10">
-                    <h3 className="text-xl font-bold text-white">{service.name}</h3>
-                    <p className="text-sm text-gray-300">
-                        Status:{' '}
-                        <span className={service.status === 'operational' ? 'text-green-400' : 'text-red-400'}>
-                            {service.status}
-                        </span>
-                    </p>
-                </div>
-            ))}
-        </div>
-    );
+    const renderUptime = () => {
+        if (!statusData?.monitors || statusData.monitors.length === 0) {
+            return <p className="text-white/70">No monitors found.</p>;
+        }
 
-    const renderIncidents = () => (
-        <div className="space-y-4">
-            {statusData?.incidents?.length > 0 ? (
-                statusData.incidents.map((incident: any, idx: number) => (
+        return (
+            <div className="space-y-4">
+                {statusData.monitors.map((service, idx) => (
+                    <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10">
+                        <h3 className="text-xl font-bold text-white">{service.attributes.name}</h3>
+                        <p className="text-sm text-gray-300">
+                            Status:{' '}
+                            <span
+                                className={
+                                    service.attributes.status === 'operational' ? 'text-green-400' : 'text-red-400'
+                                }
+                            >
+                                {service.attributes.status}
+                            </span>
+                        </p>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const renderIncidents = () => {
+        if (!statusData?.incidents || statusData.incidents.length === 0) {
+            return <p className="text-white/70">No incidents reported.</p>;
+        }
+
+        return (
+            <div className="space-y-4">
+                {statusData.incidents.map((incident, idx) => (
                     <div
                         key={idx}
                         className="bg-red-900/30 p-4 rounded-xl border border-red-700/30 text-white"
                     >
-                        <h3 className="font-semibold">{incident.name}</h3>
+                        <h3 className="font-semibold">{incident.attributes.name}</h3>
                         <p>
-                            {incident.resolved_at ? 'Resolved' : 'Ongoing'} —{' '}
-                            {new Date(incident.started_at).toLocaleString()}
+                            {incident.attributes.resolved_at ? 'Resolved' : 'Ongoing'} —{' '}
+                            {new Date(incident.attributes.started_at).toLocaleString()}
                         </p>
                     </div>
-                ))
-            ) : (
-                <p className="text-white/70">No incidents reported.</p>
-            )}
-        </div>
-    );
+                ))}
+            </div>
+        );
+    };
 
-    const renderMaintenance = () => (
-        <div className="space-y-4">
-            {statusData?.scheduled_maintenances?.length > 0 ? (
-                statusData.scheduled_maintenances.map((event: any, idx: number) => (
+    const renderMaintenance = () => {
+        if (
+            !statusData?.scheduled_maintenances ||
+            statusData.scheduled_maintenances.length === 0
+        ) {
+            return <p className="text-white/70">No upcoming maintenance events.</p>;
+        }
+
+        return (
+            <div className="space-y-4">
+                {statusData.scheduled_maintenances.map((event, idx) => (
                     <div
                         key={idx}
                         className="bg-yellow-800/30 p-4 rounded-xl border border-yellow-600/30 text-white"
                     >
-                        <h3 className="font-semibold">{event.name}</h3>
-                        <p>{new Date(event.scheduled_for).toLocaleString()}</p>
+                        <h3 className="font-semibold">{event.attributes.name}</h3>
+                        <p>{new Date(event.attributes.scheduled_for).toLocaleString()}</p>
                     </div>
-                ))
-            ) : (
-                <p className="text-white/70">No upcoming maintenance events.</p>
-            )}
-        </div>
-    );
+                ))}
+            </div>
+        );
+    };
 
     return (
         <motion.div
@@ -106,7 +126,9 @@ const StatusPage = () => {
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-white">X-Ample System Status</h1>
-                    <p className="text-gray-400 text-sm">Live uptime and incident tracking for all X-Ample services.</p>
+                    <p className="text-gray-400 text-sm">
+                        Live uptime and incident tracking for all X-Ample services.
+                    </p>
                 </div>
 
                 <Tabs defaultValue="uptime" value={tab} onValueChange={setTab}>
