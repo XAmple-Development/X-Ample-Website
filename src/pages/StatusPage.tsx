@@ -1,43 +1,75 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import XAmpleLogo from "@/assets/logo/xample-logo.svg"; // Replace with your logo path
 
-const Header = () => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const location = useLocation();
-    const { user, profile } = useAuth();
-
-    const navigation = [
-        { name: "Home", href: "/" },
-        { name: "Services", href: "/services" },
-        { name: "About", href: "/about" },
-        { name: "Team", href: "/team" },
-        { name: "Portfolio", href: "/portfolio" },
-        { name: "Contact", href: "/contact" },
-        { name: "Status", href: "/status" },
-        { name: "Discord", href: "https://discord.gg/bGhguE93Xp" },
-    ];
+const TABS = [
+    { label: "Uptime", value: "" },
+    { label: "Maintenance", value: "maintenance" },
+    { label: "Incidents", value: "incidents" },
+];
 
 const StatusPage = () => {
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg p-6">
-                    <h1 className="text-3xl font-bold mb-2">System Status</h1>
-                    <p className="text-gray-300 mb-4">Live uptime and incident information</p>
+    const [activeTab, setActiveTab] = useState("");
+    const [isLoaded, setIsLoaded] = useState(false);
 
-                    <div className="rounded-xl overflow-hidden border border-white/10 shadow-lg">
-                        <iframe
-                            src="https://status.x-ampledevelopment.com"
-                            title="XD Status Page"
-                            className="w-full h-[80vh] bg-white"
-                        />
-                    </div>
+    const iframeUrl = `https://status.x-ampledevelopment.com/${activeTab}`;
+
+    return (
+        <section className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-900 to-slate-900 flex flex-col items-center justify-center px-4 py-12">
+            <div className="w-full max-w-6xl space-y-6">
+                <div className="text-center">
+                    <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">
+                        System Status
+                    </h1>
+                    <p className="text-slate-300 text-lg">
+                        Live uptime, response time & incident history
+                    </p>
+                </div>
+
+                <div className="flex justify-center gap-4 mb-4">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.value}
+                            onClick={() => {
+                                setActiveTab(tab.value);
+                                setIsLoaded(false);
+                            }}
+                            className={`px-4 py-2 rounded-full border text-white text-sm transition-all backdrop-blur-md
+                ${activeTab === tab.value
+                                    ? "bg-white/20 border-white/30"
+                                    : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md bg-white/5 relative">
+                    {!isLoaded && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50 text-white">
+                            <span className="animate-pulse">Loading status page...</span>
+                        </div>
+                    )}
+
+                    <motion.iframe
+                        key={iframeUrl}
+                        src={iframeUrl}
+                        title="BetterStack Status Page"
+                        className="w-full h-[80vh] rounded-2xl border-none"
+                        loading="lazy"
+                        onLoad={() => setIsLoaded(true)}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isLoaded ? 1 : 0 }}
+                        transition={{ duration: 0.6 }}
+                    />
+                </div>
+
+                <div className="text-center mt-4">
+                    <img src={XAmpleLogo} alt="X-Ample Development" className="w-8 h-8 mx-auto mb-1" />
+                    <p className="text-xs text-slate-400">Status monitoring by X-Ample Development</p>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
