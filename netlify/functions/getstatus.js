@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 const API_KEY = process.env.BETTERSTACK_API_KEY;
 const BASE_URL = 'https://betteruptime.com/api/v2';
@@ -8,14 +8,11 @@ async function fetchFromAPI(path) {
         headers: { Authorization: `Bearer ${API_KEY}` },
     });
 
-    if (!res.ok) {
-        throw new Error(`Failed to fetch ${path}: ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
     return res.json();
 }
 
-export const handler = async () => {
+exports.handler = async () => {
     try {
         const [monitorsRes, incidentsRes, maintenanceRes] = await Promise.allSettled([
             fetchFromAPI('/monitors'),
@@ -30,22 +27,20 @@ export const handler = async () => {
         const maintenances =
             maintenanceRes.status === 'fulfilled' ? maintenanceRes.value.data : [];
 
-        const response = {
-            monitors,
-            incidents,
-            scheduled_maintenances: maintenances,
-        };
-
         return {
             statusCode: 200,
-            body: JSON.stringify(response),
+            body: JSON.stringify({
+                monitors,
+                incidents,
+                scheduled_maintenances: maintenances,
+            }),
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'application/json',
             },
         };
     } catch (error) {
-        console.error('Netlify function error:', error);
+        console.error('Function error:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: error.message }),
