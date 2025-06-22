@@ -4,9 +4,9 @@ export const handler = async () => {
     const baseUrl = 'https://betteruptime.com/api/v2/status-pages';
 
     try {
-        const endpoints = [
+           const endpoints = [
             { name: 'page', url: `${baseUrl}/${pageId}` },
-            { name: 'monitors', url: `${baseUrl}/${pageId}/monitors` },
+            { name: 'monitors', url: `https://betteruptime.com/api/v2/monitors` },
             { name: 'incidents', url: `${baseUrl}/${pageId}/incidents` },
             { name: 'maintenance', url: `${baseUrl}/${pageId}/scheduled-maintenances` },
         ];
