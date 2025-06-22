@@ -107,7 +107,7 @@ const StatusPage = () => {
             <ParticlesBackground />
 
             <motion.div
-                className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 pt-24 relative z-10"
+                className="min-h-screen p-6 pt-24 relative z-10"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
