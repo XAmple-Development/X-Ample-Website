@@ -10,7 +10,7 @@ import { Github, Twitter, Linkedin, Mail } from "lucide-react";
 const Team = () => {
   const team = [
     {
-      name: "Danny Pilkington",
+      name: "IamXample",
       role: "Lead Developer & Founder",
       image: "https://cdn.discordapp.com/avatars/1059503129672040458/bc398ae06720419eb3600c565b28ba70?size=1024",
       bio: "Full-stack developer with 8+ years experience in gaming and full stack development. Passionate about creating innovative solutions.",
