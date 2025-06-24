@@ -21,7 +21,7 @@ const Team = () => {
       }
     },
     {
-      name: "zvapor_",
+      name: "zvapor__",
       role: "Assistant Lead Developer",
       image: "https://cdn.discordapp.com/avatars/501700626690998280/a_cbb7036dc635697ffeb9520970dd8f27?size=1024",
       bio: "Creative developer passionate about creating intuitive and beautiful user experiences with modern technologies.",
