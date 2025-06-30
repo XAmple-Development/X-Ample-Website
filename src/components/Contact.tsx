@@ -111,7 +111,7 @@ const Contact = () => {
                                     <Mail className="w-6 h-6 text-white" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
-                                <p className="text-gray-900">info@x-ampledevelopment.com</p>
+                                <p className="text-gray-900">info@x-ampledevelopment.co.uk</p>
                             </CardContent>
                         </Card>
 

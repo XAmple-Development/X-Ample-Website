@@ -40,7 +40,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to your company
     const emailResponse = await resend.emails.send({
       from: "X-Ample Development <onboarding@resend.dev>",
-      to: ["info@x-ampledevelopment.com"],
+      to: ["info@x-ampledevelopment.co.uk"],
       subject: `New Contact Form Submission from ${formData.firstName} ${formData.lastName}`,
       html: `
         <h2>New Contact Form Submission</h2>

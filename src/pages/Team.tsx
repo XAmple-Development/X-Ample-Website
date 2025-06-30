@@ -27,7 +27,7 @@ const Team = () => {
       bio: "Creative developer passionate about creating intuitive and beautiful user experiences with modern technologies.",
       skills: ["Discord Bots", "API Integration", "Database Design", "DevOps"],
       social: {
-        email: "info@x-ampledevelopment.com"
+        email: "info@x-ampledevelopment.co.uk"
       }
     },
     {
@@ -38,7 +38,7 @@ const Team = () => {
       skills: ["React Development", "TypeScript", "UI/UX", "Mobile Development"],
 
       social: {
-        email: "info@x-ampledevelopment.com"
+        email: "info@x-ampledevelopment.co.uk"
       }
     }
   ];
