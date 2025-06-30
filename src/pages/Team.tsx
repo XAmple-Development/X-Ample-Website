@@ -17,7 +17,7 @@ const Team = () => {
       skills: ["FiveM Development", "Web Development", "Project Management", "UI/UX Design"],
       social: {
         github: "https://github.com/X-AmpleDevelopment",
-        email: "dan.pilkington@x-ampledevelopment.com"
+        email: "dan.pilkington@x-ampledevelopment.co.uk"
       }
     },
     {
