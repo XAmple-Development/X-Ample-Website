@@ -5,7 +5,6 @@ import {
 
 const servers = [
     { id: '83921b2c', name: 'X-Ample Ultimate Discord Bot' },
-    { id: '42bcdf30', name: 'X-Ample Support Bot' },
     { id: 'c02dad34', name: 'AdvertHub Bot' },
     { id: '7c57eb46', name: 'X-Ample Economy Bot' },
     { id: 'd5b010e1', name: 'X-Ample License Server' },
