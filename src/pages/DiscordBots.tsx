@@ -32,7 +32,7 @@ const DiscordBots = () => {
         title="Discord Bots | X-Ample Development"
         description="Explore our Discord bots and invite them to your server in one click. Moderation, utilities, and more."
         keywords="Discord bots, moderation bot, utility bot, invite Discord bot"
-        url="https://x-ampledevelopment.com/bots"
+        url="https://x-ampledevelopment.co.uk/bots"
         type="website"
       />
       <Header />
