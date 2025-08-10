@@ -7,16 +7,16 @@ import { Sparkles, ShieldCheck, Bot, ArrowRight } from "lucide-react";
 
 const bots = [
   {
-    name: "X-Ample Moderation",
+    name: "X-Ample Ultimate",
     description: "Advanced moderation, automod, logging, and anti-raid tools to keep your community safe.",
-    clientId: "REPLACE_WITH_CLIENT_ID",
+    clientId: "1245861904308764754",
     permissions: "268823622", // Manage roles, messages, webhooks, view audit log, send messages, etc.
     avatar: "https://i.imgur.com/4bSGPHi.png",
   },
   {
-    name: "X-Ample Utility",
+    name: "X-Ample Economy",
     description: "Utility commands, role management, leveling, and powerful server tools in one bot.",
-    clientId: "REPLACE_WITH_CLIENT_ID",
+    clientId: "1245436992280592579",
     permissions: "2147485696", // Slash commands, integrations, etc.
     avatar: "https://i.imgur.com/4bSGPHi.png",
   },
