@@ -18,6 +18,7 @@ import UserManagement from "./pages/UserManagement";
 import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 import StatusPage from "./pages/StatusPage";
+import DiscordBots from "./pages/DiscordBots";
 
 
 
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/users" element={<UserManagement />} />
                 <Route path="/status" element={<StatusPage />} />
+                <Route path="/bots" element={<DiscordBots />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
