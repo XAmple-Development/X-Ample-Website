@@ -19,7 +19,8 @@ import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 import StatusPage from "./pages/StatusPage";
 import DiscordBots from "./pages/DiscordBots";
-
+import Vacancies from "./pages/Vacancies";
+import AdminVacancies from "./pages/AdminVacancies";
 
 
 const queryClient = new QueryClient();
@@ -45,6 +46,8 @@ const App = () => (
                 <Route path="/users" element={<UserManagement />} />
                 <Route path="/status" element={<StatusPage />} />
                 <Route path="/bots" element={<DiscordBots />} />
+                <Route path="/vacancies" element={<Vacancies />} />
+                <Route path="/admin/vacancies" element={<AdminVacancies />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
