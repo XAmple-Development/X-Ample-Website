@@ -41,8 +41,8 @@ const Vacancies = () => {
 
   const fetchVacancies = async () => {
     try {
-      const { data, error } = await supabase
-        .from('vacancies')
+      const { data, error } = await (supabase as any)
+        .from('vacancies' as any)
         .select('*')
         .eq('active', true);
 
@@ -52,7 +52,23 @@ const Vacancies = () => {
       }
 
       if (data) {
-        setVacancies(data);
+        const mapped = (data as any[]).map((d) => ({
+          id: d.id,
+          title: d.title,
+          department: d.department ?? 'General',
+          location: d.location ?? (d.remote ? 'Remote' : 'On-site'),
+          type: d.employment_type,
+          salary_range:
+            d.salary_min != null || d.salary_max != null
+              ? `${d.salary_currency || 'GBP'} ${d.salary_min ?? ''}${d.salary_min && d.salary_max ? ' - ' : ''}${d.salary_max ?? ''}`
+              : undefined,
+          description: d.description ?? '',
+          requirements: Array.isArray(d.requirements) ? d.requirements : [],
+          responsibilities: [],
+          active: d.active,
+          created_at: d.created_at,
+        }));
+        setVacancies(mapped);
       }
     } catch (error) {
       console.error('An unexpected error occurred:', error);

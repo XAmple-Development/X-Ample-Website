@@ -21,6 +21,7 @@ import ProjectsTable from '@/components/ProjectsTable';
 import ProjectDialog from '@/components/ProjectDialog';
 import ServerMonitor from '@/components/ServerMonitor';
 import ParticlesBackground from '@/components/ParticlesBackground';
+import AdminVacanciesPanel from '@/components/AdminVacanciesPanel';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import {
@@ -146,10 +147,11 @@ const AdminDashboard = () => {
                     <AdminHeader onSignOut={signOut} />
 
                     <Tabs value={tab} onValueChange={setTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+                        <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
                             <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">Overview</TabsTrigger>
                             <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">Projects</TabsTrigger>
                             <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">Analytics</TabsTrigger>
+                            <TabsTrigger value="vacancies" className="text-white data-[state=active]:bg-white/20">Vacancies</TabsTrigger>
                             <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">Servers</TabsTrigger>
                         </TabsList>
 
@@ -228,6 +230,17 @@ const AdminDashboard = () => {
                                                 </PieChart>
                                             </ResponsiveContainer>
                                         </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        </TabsContent>
+
+                        <TabsContent value="vacancies">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                                <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                                    <CardHeader><CardTitle>Vacancies</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <AdminVacanciesPanel />
                                     </CardContent>
                                 </Card>
                             </motion.div>
