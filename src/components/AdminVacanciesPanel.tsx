@@ -171,19 +171,19 @@ const AdminVacanciesPanel: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
               <div className="space-y-2">
                 <Label>Employment Type</Label>
-                <Select value={form.employment_type} onValueChange={(val) => setForm((f) => ({ ...f, employment_type: val }))}>
-                  <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="full-time">Full-time</SelectItem>
-                    <SelectItem value="part-time">Part-time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="internship">Internship</SelectItem>
-                    <SelectItem value="temporary">Temporary</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                    <SelectItem value="volunteer">Volunteer</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <Select value={form.employment_type} onValueChange={(val) => setForm((f) => ({ ...f, employment_type: val }))}>
+                      <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        <SelectItem value="full-time">Full-time</SelectItem>
+                        <SelectItem value="part-time">Part-time</SelectItem>
+                        <SelectItem value="contract">Contract</SelectItem>
+                        <SelectItem value="internship">Internship</SelectItem>
+                        <SelectItem value="temporary">Temporary</SelectItem>
+                        <SelectItem value="freelance">Freelance</SelectItem>
+                        <SelectItem value="volunteer">Volunteer</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
               </div>
               <div className="flex items-center justify-between border rounded-md p-3">
                 <div>
@@ -248,7 +248,7 @@ const AdminVacanciesPanel: React.FC = () => {
           <div className="flex items-center gap-2">
             <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="w-[160px]"><SelectValue placeholder="Filter" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white z-50">
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>

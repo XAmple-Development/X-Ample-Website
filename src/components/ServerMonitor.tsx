@@ -2,7 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
     LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/glass/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 const servers = [
     { id: '83921b2c', name: 'X-Ample Ultimate Discord Bot' },
     { id: 'c02dad34', name: 'AdvertHub Bot' },
@@ -137,35 +140,72 @@ const ServerMonitor = () => {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
+    // KPIs
+    const total = data.length;
+    const running = data.filter(d => d.status === 'running' && !d.isSuspended).length;
+    const warnings = data.filter(d => d.status === 'starting' || d.isSuspended).length;
+    const errors = data.filter(d => ['stopped', 'offline', 'error'].includes(d.status)).length;
+    const avgCpu = data.length ? data.reduce((acc, d) => acc + d.cpu, 0) / data.length : 0;
+
     return (
         <div className="p-4 max-w-6xl mx-auto">
             <h1 className="text-white text-3xl mb-4 font-bold">Server Monitor</h1>
 
+            {/* KPI Summary */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 animate-fade-in">
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <p className="text-xs text-white/70">Total</p>
+                  <p className="text-2xl font-bold text-white">{total}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <p className="text-xs text-white/70">Running</p>
+                  <p className="text-2xl font-bold text-green-400">{running}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <p className="text-xs text-white/70">Warnings</p>
+                  <p className="text-2xl font-bold text-yellow-400">{warnings}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <p className="text-xs text-white/70">Errors</p>
+                  <p className="text-2xl font-bold text-red-400">{errors}</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <p className="text-xs text-white/70">Avg CPU</p>
+                  <p className="text-2xl font-bold text-cyan-400">{avgCpu.toFixed(1)}%</p>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Controls */}
-            <div className="flex flex-col md:flex-row md:items-center mb-4 gap-4">
-                <input
-                    type="text"
-                    placeholder="Search servers or status..."
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    className="p-2 rounded bg-gray-700 text-white flex-grow"
-                />
-                <select
-                    value={refreshInterval}
-                    onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                    className="p-2 rounded bg-gray-700 text-white w-48"
-                >
-                    <option value={5000}>Refresh: 5 seconds</option>
-                    <option value={10000}>Refresh: 10 seconds</option>
-                    <option value={30000}>Refresh: 30 seconds</option>
-                    <option value={60000}>Refresh: 1 minute</option>
-                </select>
-                <button
-                    onClick={exportToCSV}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
-                >
-                    Export CSV
-                </button>
+            <div className="flex flex-col md:flex-row md:items-center mb-6 gap-4">
+              <Input
+                type="text"
+                placeholder="Search servers or status..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="flex-grow"
+              />
+              <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder="Refresh interval" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  <SelectItem value="5000">Refresh: 5 seconds</SelectItem>
+                  <SelectItem value="10000">Refresh: 10 seconds</SelectItem>
+                  <SelectItem value="30000">Refresh: 30 seconds</SelectItem>
+                  <SelectItem value="60000">Refresh: 1 minute</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={exportToCSV} className="bg-cyan-600 hover:bg-cyan-700">Export CSV</Button>
             </div>
 
             {loading && <p className="text-white">Loading...</p>}

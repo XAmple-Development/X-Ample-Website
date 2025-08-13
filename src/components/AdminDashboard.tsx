@@ -16,8 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/glass/card';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import AppSidebar from '@/components/AppSidebar';
+// Sidebar removed as requested
 import AdminHeader from '@/components/AdminHeader';
 import AdminStats from '@/components/AdminStats';
 import ProjectsTable from '@/components/ProjectsTable';
@@ -154,138 +153,126 @@ const AdminDashboard = () => {
   const COLORS = ['#06b6d4', '#14b8a6'];
 
   return (
-    <>
+    <> 
       <ParticlesBackground />
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar />
-          <SidebarInset>
-            <header className="h-12 flex items-center border-b px-2">
-              <SidebarTrigger className="ml-1" />
-              <div className="ml-2 text-sm text-muted-foreground">Admin</div>
-            </header>
+      <div className="relative z-10 min-h-screen p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <AdminHeader onSignOut={signOut} />
 
-            <div className="relative z-10 p-6">
-              <div className="max-w-7xl mx-auto space-y-6">
-                <AdminHeader onSignOut={signOut} />
+          <Tabs value={tab} onValueChange={setTab} className="w-full animate-fade-in">
+            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+              <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">Overview</TabsTrigger>
+              <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">Projects</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">Analytics</TabsTrigger>
+              <TabsTrigger value="vacancies" className="text-white data-[state=active]:bg-white/20">Vacancies</TabsTrigger>
+              <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">Servers</TabsTrigger>
+              <TabsTrigger value="activity" className="text-white data-[state=active]:bg-white/20">Activity</TabsTrigger>
+            </TabsList>
 
-                <Tabs value={tab} onValueChange={setTab} className="w-full animate-fade-in">
-                  <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
-                    <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">Overview</TabsTrigger>
-                    <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">Projects</TabsTrigger>
-                    <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">Analytics</TabsTrigger>
-                    <TabsTrigger value="vacancies" className="text-white data-[state=active]:bg-white/20">Vacancies</TabsTrigger>
-                    <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">Servers</TabsTrigger>
-                    <TabsTrigger value="activity" className="text-white data-[state=active]:bg-white/20">Activity</TabsTrigger>
-                  </TabsList>
+            <TabsContent value="overview">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg animate-fade-in">
+                  <CardHeader><CardTitle>Admin Stats</CardTitle></CardHeader>
+                  <CardContent>
+                    <AdminStats {...stats} />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </TabsContent>
 
-                  <TabsContent value="overview">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                      <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg animate-fade-in">
-                        <CardHeader><CardTitle>Admin Stats</CardTitle></CardHeader>
-                        <CardContent>
-                          <AdminStats {...stats} />
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </TabsContent>
+            <TabsContent value="projects">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Projects</CardTitle>
+                    <div className="mt-4">
+                      <Select onValueChange={(val) => setFilterStatus(val)} value={filterStatus}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="in_progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredProjects.length === 0 && !loading ? (
+                      <div className="text-center text-white/70 py-10">
+                        <p className="mb-4">No projects found. Why not start one?</p>
+                        <button onClick={() => setShowCreateDialog(true)} className="px-4 py-2 bg-cyan-600 text-white rounded-md hover-scale">Create Project</button>
+                      </div>
+                    ) : (
+                      <ProjectsTable
+                        projects={filteredProjects}
+                        loading={loading}
+                        onCreateProject={() => setShowCreateDialog(true)}
+                        onUpdateProjectStatus={updateProjectStatus}
+                        onDeleteProject={deleteProject}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </TabsContent>
 
-                  <TabsContent value="projects">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                      <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                        <CardHeader>
-                          <CardTitle>Projects</CardTitle>
-                          <div className="mt-4">
-                            <Select onValueChange={(val) => setFilterStatus(val)} value={filterStatus}>
-                              <SelectTrigger className="w-48">
-                                <SelectValue placeholder="Filter by status" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white z-50">
-                                <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="in_progress">In Progress</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          {filteredProjects.length === 0 && !loading ? (
-                            <div className="text-center text-white/70 py-10">
-                              <p className="mb-4">No projects found. Why not start one?</p>
-                              <button onClick={() => setShowCreateDialog(true)} className="px-4 py-2 bg-cyan-600 text-white rounded-md hover-scale">Create Project</button>
-                            </div>
-                          ) : (
-                            <ProjectsTable
-                              projects={filteredProjects}
-                              loading={loading}
-                              onCreateProject={() => setShowCreateDialog(true)}
-                              onUpdateProjectStatus={updateProjectStatus}
-                              onDeleteProject={deleteProject}
-                            />
-                          )}
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </TabsContent>
+            <TabsContent value="analytics">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                  <CardHeader><CardTitle>Analytics</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="w-full h-96">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </TabsContent>
 
-                  <TabsContent value="analytics">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                      <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                        <CardHeader><CardTitle>Analytics</CardTitle></CardHeader>
-                        <CardContent>
-                          <div className="w-full h-96">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                                  {pieData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                  ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </TabsContent>
+            <TabsContent value="vacancies">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                  <CardHeader><CardTitle>Vacancies</CardTitle></CardHeader>
+                  <CardContent>
+                    <AdminVacanciesPanel />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </TabsContent>
 
-                  <TabsContent value="vacancies">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                      <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                        <CardHeader><CardTitle>Vacancies</CardTitle></CardHeader>
-                        <CardContent>
-                          <AdminVacanciesPanel />
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </TabsContent>
+            <TabsContent value="servers">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
+                  <CardHeader><CardTitle>Server Monitor</CardTitle></CardHeader>
+                  <CardContent><ServerMonitor /></CardContent>
+                </Card>
+              </motion.div>
+            </TabsContent>
 
-                  <TabsContent value="servers">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                      <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
-                        <CardHeader><CardTitle>Server Monitor</CardTitle></CardHeader>
-                        <CardContent><ServerMonitor /></CardContent>
-                      </Card>
-                    </motion.div>
-                  </TabsContent>
-
-                  <TabsContent value="activity">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                      <AdminActivity />
-                    </motion.div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <ProjectDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} onProjectCreated={fetchData} />
-            </div>
-          </SidebarInset>
+            <TabsContent value="activity">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <AdminActivity />
+              </motion.div>
+            </TabsContent>
+          </Tabs>
         </div>
-      </SidebarProvider>
+
+        <ProjectDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} onProjectCreated={fetchData} />
+      </div>
     </>
   );
 };
