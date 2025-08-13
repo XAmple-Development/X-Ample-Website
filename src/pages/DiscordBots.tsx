@@ -1,3 +1,4 @@
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -27,7 +28,7 @@ const buildInviteUrl = (clientId: string, permissions: string) =>
 
 const DiscordBots = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <SEO
         title="Discord Bots | X-Ample Development"
         description="Explore our Discord bots and invite them to your server in one click. Moderation, utilities, and more."
@@ -37,7 +38,7 @@ const DiscordBots = () => {
       />
       <Header />
 
-      <main>
+      <main className="flex-grow">
         {/* Hero */}
         <section className="pt-24 pb-12 bg-gradient-to-br from-cyan-50 to-teal-50">
           <div className="container mx-auto px-6">

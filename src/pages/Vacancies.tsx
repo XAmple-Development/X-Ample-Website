@@ -1,133 +1,163 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import SEO from "@/components/SEO";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Briefcase, Globe2, Mail, ExternalLink, Filter } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { MapPin, Clock, Users, Search, Briefcase } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Vacancy {
   id: string;
   title: string;
-  department: string | null;
-  location: string | null;
-  employment_type: string;
-  remote: boolean;
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: string;
-  description: string | null;
-  requirements: string[] | null;
-  application_url: string | null;
-  application_email: string | null;
+  department: string;
+  location: string;
+  type: string;
+  salary_range?: string;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
   active: boolean;
   created_at: string;
 }
 
 const Vacancies = () => {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
-  const [type, setType] = useState<string>("all");
-  const [remote, setRemote] = useState<string>("all");
+  const [filteredVacancies, setFilteredVacancies] = useState<Vacancy[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState<string>('All');
+  const [locationFilter, setLocationFilter] = useState<string>('All');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const { data, error } = await (supabase as any)
-        .from("vacancies")
-        .select("*")
-        .eq("active", true)
-        .order("created_at", { ascending: false });
-      if (!error && data) setVacancies((data as unknown) as Vacancy[]);
-      setLoading(false);
-    };
-    fetchData();
+    fetchVacancies();
   }, []);
 
-  const filtered = useMemo(() => {
-    return vacancies.filter((v) => {
-      const matchesQ = q
-        ? [v.title, v.department ?? "", v.location ?? "", v.description ?? ""].some((s) => s.toLowerCase().includes(q.toLowerCase()))
-        : true;
-      const matchesType = type === "all" ? true : v.employment_type === type;
-      const matchesRemote = remote === "all" ? true : remote === "remote" ? v.remote : !v.remote;
-      return matchesQ && matchesType && matchesRemote;
-    });
-  }, [vacancies, q, type, remote]);
+  useEffect(() => {
+    applyFilters();
+  }, [vacancies, departmentFilter, locationFilter, searchTerm]);
 
-  const formatSalary = (min: number | null, max: number | null, currency: string) => {
-    if (!min && !max) return "Salary: Competitive";
-    const fmt = (n: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(n);
-    if (min && max) return `${fmt(min)} - ${fmt(max)}`;
-    if (min) return `From ${fmt(min)}`;
-    return `Up to ${fmt(max as number)}`;
+  const fetchVacancies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('vacancies')
+        .select('*')
+        .eq('active', true);
+
+      if (error) {
+        console.error('Error fetching vacancies:', error);
+        return;
+      }
+
+      if (data) {
+        setVacancies(data);
+      }
+    } catch (error) {
+      console.error('An unexpected error occurred:', error);
+    }
   };
 
+  const applyFilters = () => {
+    let filtered = [...vacancies];
+
+    if (departmentFilter !== 'All') {
+      filtered = filtered.filter(vacancy => vacancy.department === departmentFilter);
+    }
+
+    if (locationFilter !== 'All') {
+      filtered = filtered.filter(vacancy => vacancy.location === locationFilter);
+    }
+
+    if (searchTerm) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(vacancy =>
+        vacancy.title.toLowerCase().includes(lowerSearchTerm) ||
+        vacancy.description.toLowerCase().includes(lowerSearchTerm)
+      );
+    }
+
+    setFilteredVacancies(filtered);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setDepartmentFilter(value);
+  };
+
+  const handleLocationChange = (value: string) => {
+    setLocationFilter(value);
+  };
+
+  const uniqueDepartments = ['All', ...Array.from(new Set(vacancies.map(v => v.department)))];
+  const uniqueLocations = ['All', ...Array.from(new Set(vacancies.map(v => v.location)))];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <SEO
-        title="Vacancies | X-Ample Development"
-        description="Open roles at X-Ample Development. Join our team working on Discord, web, and game projects."
-        keywords="jobs, careers, vacancies, hiring, X-Ample Development"
+        title="Careers & Vacancies | X-Ample Development"
+        description="Join our team! Explore current job openings and career opportunities at X-Ample Development."
+        keywords="jobs, careers, vacancies, X-Ample Development, hiring"
         url="https://x-ampledevelopment.co.uk/vacancies"
         type="website"
       />
       <Header />
 
-      <main>
-        {/* Hero */}
-        <section className="pt-24 pb-10 bg-gradient-to-br from-cyan-50 to-teal-50">
-          <div className="container mx-auto px-6 text-center max-w-3xl">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">Careers at X-Ample</h1>
-            <p className="text-lg text-gray-600">We’re building great experiences across Discord, web, and gaming. Explore current openings.</p>
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="pt-24 pb-16 bg-gradient-to-br from-cyan-50 to-teal-50">
+          <div className="container mx-auto px-6">
+            <div className="text-center max-w-4xl mx-auto">
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                Join Our <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">Team</span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Explore exciting career opportunities at X-Ample Development.
+                We are always looking for talented individuals to join our team.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Filters */}
-        <section className="py-6 border-b bg-white">
-          <div className="container mx-auto px-6 max-w-6xl">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="relative w-full md:flex-1">
+        {/* Filters Section */}
+        <section className="py-8 bg-white border-b">
+          <div className="container mx-auto px-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-gray-500" />
                 <Input
-                  placeholder="Search by title, department, location..."
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  aria-label="Search vacancies"
+                  type="text"
+                  placeholder="Search job title or keywords..."
+                  className="w-full md:w-80"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">Type</span>
-                </div>
-                <Select value={type} onValueChange={setType}>
-                  <SelectTrigger className="w-[160px]"><SelectValue placeholder="All" /></SelectTrigger>
+
+              <div className="flex items-center gap-4">
+                <Select onValueChange={handleDepartmentChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="full-time">Full-time</SelectItem>
-                    <SelectItem value="part-time">Part-time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="internship">Internship</SelectItem>
-                    <SelectItem value="temporary">Temporary</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                    <SelectItem value="volunteer">Volunteer</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {uniqueDepartments.map((department) => (
+                      <SelectItem key={department} value={department}>
+                        {department}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <div className="flex items-center gap-2 ml-2">
-                  <span className="text-sm text-gray-600">Work</span>
-                </div>
-                <Select value={remote} onValueChange={setRemote}>
-                  <SelectTrigger className="w-[160px]"><SelectValue placeholder="All" /></SelectTrigger>
+
+                <Select onValueChange={handleLocationChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Location" />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Onsite & Remote</SelectItem>
-                    <SelectItem value="remote">Remote</SelectItem>
-                    <SelectItem value="onsite">Onsite</SelectItem>
+                    {uniqueLocations.map((location) => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -135,65 +165,42 @@ const Vacancies = () => {
           </div>
         </section>
 
-        {/* List */}
-        <section className="py-12">
-          <div className="container mx-auto px-6 max-w-6xl">
-            {loading ? (
-              <p className="text-gray-600">Loading vacancies...</p>
-            ) : filtered.length === 0 ? (
-              <p className="text-gray-600">No vacancies available at the moment. Please check back soon.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {filtered.map((v) => (
-                  <Card key={v.id} className="border-0 bg-white hover:shadow-xl transition-all duration-300">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <CardTitle className="text-2xl text-gray-900">{v.title}</CardTitle>
-                          <CardDescription className="text-gray-600">
-                            {v.department ? `${v.department} · ` : ""}
-                            {v.location ? (
-                              <span className="inline-flex items-center gap-1"><MapPin className="w-4 h-4" /> {v.location}</span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1"><Globe2 className="w-4 h-4" /> Global</span>
-                            )}
-                          </CardDescription>
-                        </div>
-                        <Badge variant="secondary" className="text-gray-800">
-                          <Briefcase className="w-3.5 h-3.5 mr-1" /> {v.employment_type}
-                        </Badge>
-                      </div>
+        {/* Vacancies Grid */}
+        <section className="py-16">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {filteredVacancies.length > 0 ? (
+                filteredVacancies.map((vacancy) => (
+                  <Card key={vacancy.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-white relative overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <Briefcase className="w-5 h-5 text-cyan-600" /> {vacancy.title}
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        {vacancy.description.substring(0, 100)}...
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <p className="text-gray-700 mb-3 line-clamp-3">{v.description ?? ""}</p>
-                      <div className="text-sm text-gray-600 mb-4">{formatSalary(v.salary_min, v.salary_max, v.salary_currency)}</div>
-
-                      <div className="flex flex-wrap gap-3">
-                        {v.application_url && (
-                          <Button
-                            className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-                            onClick={() => window.open(v.application_url as string, "_blank")}
-                            aria-label={`Apply online for ${v.title}`}
-                          >
-                            Apply Online <ExternalLink className="w-4 h-4 ml-2" />
-                          </Button>
-                        )}
-                        {v.application_email && (
-                          <Button
-                            variant="outline"
-                            className="border-gray-300 text-gray-800 hover:bg-gray-50"
-                            onClick={() => window.location.assign(`mailto:${v.application_email}`)}
-                            aria-label={`Email to apply for ${v.title}`}
-                          >
-                            Email HR <Mail className="w-4 h-4 ml-2" />
-                          </Button>
-                        )}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <Badge variant="secondary"><MapPin className="w-3 h-3 mr-1" /> {vacancy.location}</Badge>
+                        <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" /> {vacancy.type}</Badge>
+                        <Badge variant="secondary"><Users className="w-3 h-3 mr-1" /> {vacancy.department}</Badge>
                       </div>
+                      <Button
+                        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                        onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
+                      >
+                        Learn More & Apply
+                      </Button>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
+                ))
+              ) : (
+                <div className="text-center col-span-full">
+                  <p className="text-gray-600">No vacancies match your criteria. Please try again with different filters.</p>
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </main>
