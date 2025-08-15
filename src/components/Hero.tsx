@@ -4,7 +4,7 @@ import { Code, Gamepad2, Globe, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/glass/card";
-import astronautImage from '@/assets/astronaut-cosmic.png';
+import TransparentAstronaut from '@/components/TransparentAstronaut';
 
 const skills = [
     { icon: <Gamepad2 className="w-5 h-5 text-cyan-400" />, label: "FiveM Scripts" },
@@ -87,13 +87,10 @@ const Hero = () => {
                         ease: "easeInOut",
                     }}
                 >
-                    <img 
-                        src={astronautImage} 
-                        alt="Cosmic astronaut holding X-Ample Development sign"
+                    <TransparentAstronaut 
                         className="w-full h-full object-contain"
                         style={{
                             filter: 'drop-shadow(0 0 30px rgba(138, 43, 226, 0.8)) drop-shadow(0 0 60px rgba(0, 191, 255, 0.4))',
-                            mixBlendMode: 'screen',
                         }}
                     />
                 </motion.div>
