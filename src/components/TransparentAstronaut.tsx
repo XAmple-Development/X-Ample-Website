@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import astronautImage from '@/assets/astronaut-cosmic.png';
+import astronautImage from '/lovable-uploads/a6d25c89-5433-4195-82f5-e9dc0e61d2c0.png';
 import { removeBackground, loadImage } from '@/utils/backgroundRemover';
 
 interface TransparentAstronautProps {
