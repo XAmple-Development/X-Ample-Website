@@ -141,13 +141,15 @@ const AstronautBackground = ({ className = "" }: AstronautBackgroundProps) => {
 
       {/* Astronaut floating with sign */}
       <motion.div
-        className="absolute z-20"
+        className="absolute z-50"
         style={{
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
           width: '400px',
           height: '400px',
+          border: '2px solid red', // Debug border
+          backgroundColor: 'rgba(255, 0, 0, 0.1)', // Debug background
         }}
         animate={{
           y: [0, -30, 0],
@@ -166,12 +168,15 @@ const AstronautBackground = ({ className = "" }: AstronautBackgroundProps) => {
           style={{
             filter: 'drop-shadow(0 0 30px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(138, 43, 226, 0.3))',
             opacity: 1,
+            border: '2px solid green', // Debug border for image
           }}
           onError={(e) => {
             console.error('Astronaut image failed to load:', e);
           }}
-          onLoad={() => {
+          onLoad={(e: any) => {
             console.log('Astronaut image loaded successfully');
+            console.log('Image dimensions:', e.target.naturalWidth, 'x', e.target.naturalHeight);
+            console.log('Container position:', e.target.parentElement.getBoundingClientRect());
           }}
         />
       </motion.div>
