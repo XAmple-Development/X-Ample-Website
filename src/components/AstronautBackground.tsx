@@ -141,20 +141,20 @@ const AstronautBackground = ({ className = "" }: AstronautBackgroundProps) => {
 
       {/* Astronaut floating with sign */}
       <motion.div
-        className="absolute"
+        className="absolute z-20"
         style={{
-          left: '15%',
-          top: '20%',
-          width: '300px',
-          height: '300px',
-          zIndex: 10,
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '400px',
+          height: '400px',
         }}
         animate={{
-          y: [0, -20, 0],
-          rotate: [0, 5, -5, 0],
+          y: [0, -30, 0],
+          rotate: [0, 3, -3, 0],
         }}
         transition={{
-          duration: 8,
+          duration: 6,
           repeat: Infinity,
           ease: "easeInOut",
         }}
@@ -162,9 +162,16 @@ const AstronautBackground = ({ className = "" }: AstronautBackgroundProps) => {
         <img 
           src={astronautImage} 
           alt="Astronaut holding X-Ample Development sign"
-          className="w-full h-full object-contain drop-shadow-2xl"
+          className="w-full h-full object-contain"
           style={{
-            filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))'
+            filter: 'drop-shadow(0 0 30px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 60px rgba(138, 43, 226, 0.3))',
+            opacity: 1,
+          }}
+          onError={(e) => {
+            console.error('Astronaut image failed to load:', e);
+          }}
+          onLoad={() => {
+            console.log('Astronaut image loaded successfully');
           }}
         />
       </motion.div>
