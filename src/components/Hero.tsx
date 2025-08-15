@@ -90,7 +90,7 @@ const Hero = () => {
                     <TransparentAstronaut 
                         className="w-full h-full object-contain"
                         style={{
-                            filter: 'drop-shadow(0 0 30px rgba(138, 43, 226, 0.8)) drop-shadow(0 0 60px rgba(0, 191, 255, 0.4))',
+                            filter: 'drop-shadow(0 0 20px rgba(138, 43, 226, 0.9)) drop-shadow(0 0 40px rgba(0, 191, 255, 0.6)) drop-shadow(0 0 60px rgba(255, 20, 147, 0.4))',
                         }}
                     />
                 </motion.div>
