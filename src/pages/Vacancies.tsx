@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { MapPin, Clock, Users, Search, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import VacancyDetailDialog from '@/components/VacancyDetailDialog';
 
 interface Vacancy {
   id: string;
@@ -30,6 +31,8 @@ const Vacancies = () => {
   const [departmentFilter, setDepartmentFilter] = useState<string>('All');
   const [locationFilter, setLocationFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedVacancy, setSelectedVacancy] = useState<Vacancy | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchVacancies();
@@ -204,7 +207,10 @@ const Vacancies = () => {
                       </div>
                       <Button
                         className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-                        onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
+                        onClick={() => {
+                          setSelectedVacancy(vacancy);
+                          setDialogOpen(true);
+                        }}
                       >
                         Learn More & Apply
                       </Button>
@@ -220,6 +226,12 @@ const Vacancies = () => {
           </div>
         </section>
       </main>
+
+      <VacancyDetailDialog
+        vacancy={selectedVacancy}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
 
       <Footer />
     </div>
