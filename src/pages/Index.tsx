@@ -15,7 +15,7 @@ const Index = () => {
   return (
     <div className="min-h-screen relative">
       <SEO />
-      <AstronautBackground className="fixed inset-0 z-0" />
+      
       
       <div className="relative z-10">
         <Header />

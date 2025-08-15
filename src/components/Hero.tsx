@@ -4,6 +4,7 @@ import { Code, Gamepad2, Globe, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/glass/card";
+import astronautImage from '@/assets/astronaut-xample.png';
 
 const skills = [
     { icon: <Gamepad2 className="w-5 h-5 text-cyan-400" />, label: "FiveM Scripts" },
@@ -15,8 +16,100 @@ const skills = [
 const Hero = () => {
     return (
         <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
-            {/* Animated background elements with parallax */}
-            
+            {/* Space-themed background */}
+            <div className="absolute inset-0">
+                {/* Deep space base */}
+                <div 
+                    className="absolute inset-0"
+                    style={{
+                        background: `
+                            radial-gradient(ellipse at top left, #1a1a2e 0%, #16213e 30%, #0f0f23 70%, #000000 100%),
+                            radial-gradient(ellipse at bottom right, #16213e 0%, #1a1a2e 40%, #000000 100%)
+                        `
+                    }}
+                />
+
+                {/* Animated nebula layers */}
+                <motion.div
+                    className="absolute inset-0"
+                    animate={{
+                        background: [
+                            `radial-gradient(ellipse 120% 80% at 20% 30%, rgba(138, 43, 226, 0.15) 0%, rgba(75, 0, 130, 0.1) 50%, transparent 100%)`,
+                            `radial-gradient(ellipse 100% 100% at 80% 70%, rgba(72, 61, 139, 0.12) 0%, rgba(138, 43, 226, 0.08) 50%, transparent 100%)`,
+                            `radial-gradient(ellipse 140% 60% at 50% 50%, rgba(75, 0, 130, 0.1) 0%, rgba(138, 43, 226, 0.06) 50%, transparent 100%)`
+                        ]
+                    }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+                />
+
+                {/* Starfield */}
+                {[...Array(100)].map((_, i) => (
+                    <motion.div
+                        key={`star-${i}`}
+                        className="absolute rounded-full bg-white"
+                        style={{
+                            width: Math.random() * 2 + 0.5,
+                            height: Math.random() * 2 + 0.5,
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            opacity: 0.3 + Math.random() * 0.7,
+                            boxShadow: `0 0 ${2 + Math.random() * 4}px rgba(255, 255, 255, 0.6)`,
+                        }}
+                        animate={{
+                            opacity: [0.3, 1, 0.3],
+                            scale: [1, 1.2, 1],
+                        }}
+                        transition={{
+                            duration: 2 + Math.random() * 4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: Math.random() * 5,
+                        }}
+                    />
+                ))}
+
+                {/* Astronaut floating with sign */}
+                <motion.div
+                    className="absolute z-20"
+                    style={{
+                        right: '10%',
+                        top: '20%',
+                        width: '300px',
+                        height: '300px',
+                    }}
+                    animate={{
+                        y: [0, -20, 0],
+                        rotate: [0, 3, -3, 0],
+                    }}
+                    transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                >
+                    <img 
+                        src={astronautImage} 
+                        alt="Astronaut holding X-Ample Development sign"
+                        className="w-full h-full object-contain"
+                        style={{
+                            filter: 'drop-shadow(0 0 30px rgba(255, 255, 255, 0.5))',
+                        }}
+                    />
+                </motion.div>
+
+                {/* Cosmic rings */}
+                <motion.div
+                    className="absolute inset-0"
+                    style={{
+                        background: `conic-gradient(from 0deg at 25% 75%, 
+                            transparent 0deg, 
+                            rgba(138, 43, 226, 0.08) 20deg,
+                            transparent 40deg)`,
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+                />
+            </div>
 
             <div className="container mx-auto px-6 text-center relative z-10">
                 <motion.div
