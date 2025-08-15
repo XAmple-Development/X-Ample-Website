@@ -8,14 +8,14 @@ import Portfolio from "@/components/Portfolio";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import ModernBackground from "@/components/ModernBackground";
+import SpectacularBackground from "@/components/SpectacularBackground";
 import PricingCalculator from "@/components/PricingCalculator";
 
 const Index = () => {
   return (
     <div className="min-h-screen relative">
       <SEO />
-      <ModernBackground className="fixed inset-0 z-0" />
+      <SpectacularBackground className="fixed inset-0 z-0" />
       
       <div className="relative z-10">
         <Header />
