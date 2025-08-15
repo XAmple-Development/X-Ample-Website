@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 
 interface SpaceBackgroundProps {
@@ -6,20 +6,6 @@ interface SpaceBackgroundProps {
 }
 
 const SpaceBackground = ({ className = "" }: SpaceBackgroundProps) => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100,
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
       {/* Deep space base */}
@@ -59,16 +45,6 @@ const SpaceBackground = ({ className = "" }: SpaceBackgroundProps) => {
         transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Interactive cosmic field */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(400px circle at ${mousePosition.x}% ${mousePosition.y}%, 
-            rgba(138, 43, 226, 0.1) 0%, 
-            rgba(75, 0, 130, 0.05) 40%, 
-            transparent 70%)`
-        }}
-      />
 
       {/* Starfield - Large stars */}
       {[...Array(50)].map((_, i) => (
@@ -205,29 +181,123 @@ const SpaceBackground = ({ className = "" }: SpaceBackgroundProps) => {
         />
       ))}
 
-      {/* Rotating cosmic rings */}
+      {/* Advanced rotating cosmic rings */}
+      {/* Ring Layer 1 - Primary */}
       <motion.div
         className="absolute inset-0"
         style={{
           background: `conic-gradient(from 0deg at 25% 75%, 
             transparent 0deg, 
-            rgba(138, 43, 226, 0.1) 30deg, 
-            transparent 60deg)`,
+            rgba(138, 43, 226, 0.15) 20deg,
+            rgba(75, 0, 130, 0.1) 40deg,
+            transparent 60deg,
+            rgba(138, 43, 226, 0.08) 80deg,
+            transparent 100deg)`,
         }}
         animate={{ rotate: 360 }}
-        transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
       />
 
+      {/* Ring Layer 2 - Secondary */}
       <motion.div
         className="absolute inset-0"
         style={{
           background: `conic-gradient(from 180deg at 75% 25%, 
             transparent 0deg, 
-            rgba(0, 191, 255, 0.08) 45deg, 
-            transparent 90deg)`,
+            rgba(0, 191, 255, 0.12) 30deg,
+            rgba(30, 144, 255, 0.08) 60deg,
+            transparent 90deg,
+            rgba(0, 191, 255, 0.06) 120deg,
+            transparent 150deg)`,
         }}
         animate={{ rotate: -360 }}
-        transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 65, repeat: Infinity, ease: "linear" }}
+      />
+
+      {/* Ring Layer 3 - Tertiary */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: `conic-gradient(from 90deg at 50% 50%, 
+            transparent 0deg,
+            rgba(138, 43, 226, 0.1) 15deg,
+            transparent 30deg,
+            rgba(0, 191, 255, 0.08) 45deg,
+            transparent 60deg,
+            rgba(75, 0, 130, 0.06) 75deg,
+            transparent 90deg)`,
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+      />
+
+      {/* Ring Layer 4 - Fast rotation */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: `conic-gradient(from 270deg at 80% 80%, 
+            transparent 0deg,
+            rgba(138, 43, 226, 0.08) 10deg,
+            transparent 20deg,
+            rgba(0, 191, 255, 0.06) 25deg,
+            transparent 35deg)`,
+        }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      />
+
+      {/* Ring Layer 5 - Outer ring */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: `conic-gradient(from 45deg at 30% 30%, 
+            transparent 0deg,
+            rgba(75, 0, 130, 0.1) 40deg,
+            rgba(138, 43, 226, 0.12) 80deg,
+            transparent 120deg,
+            rgba(30, 144, 255, 0.06) 160deg,
+            transparent 200deg)`,
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 90, repeat: Infinity, ease: "linear" }}
+      />
+
+      {/* Ring Layer 6 - Inner spiral */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: `conic-gradient(from 315deg at 70% 70%, 
+            transparent 0deg,
+            rgba(0, 191, 255, 0.05) 5deg,
+            transparent 10deg,
+            rgba(138, 43, 226, 0.07) 15deg,
+            transparent 20deg,
+            rgba(0, 191, 255, 0.04) 25deg,
+            transparent 30deg)`,
+        }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
+      />
+
+      {/* Ring Layer 7 - Pulsing ring */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: `conic-gradient(from 135deg at 40% 60%, 
+            transparent 0deg,
+            rgba(138, 43, 226, 0.06) 45deg,
+            transparent 90deg,
+            rgba(0, 191, 255, 0.04) 135deg,
+            transparent 180deg)`,
+        }}
+        animate={{ 
+          rotate: 360,
+          opacity: [0.3, 1, 0.3]
+        }}
+        transition={{ 
+          rotate: { duration: 55, repeat: Infinity, ease: "linear" },
+          opacity: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+        }}
       />
 
       {/* Pulsing energy core */}
