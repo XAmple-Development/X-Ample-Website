@@ -14,7 +14,7 @@ import {
   Clock, 
   Users, 
   Briefcase, 
-  DollarSign,
+  PoundSterling,
   CheckCircle,
   Target
 } from 'lucide-react';
@@ -48,7 +48,7 @@ const VacancyDetailDialog: React.FC<VacancyDetailDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-cyan-600" />
@@ -76,7 +76,7 @@ const VacancyDetailDialog: React.FC<VacancyDetailDialogProps> = ({
             </Badge>
             {vacancy.salary_range && (
               <Badge variant="secondary" className="flex items-center gap-1">
-                <DollarSign className="w-3 h-3" />
+                <PoundSterling className="w-3 h-3" />
                 {vacancy.salary_range}
               </Badge>
             )}

@@ -112,7 +112,7 @@ const Vacancies = () => {
   const uniqueLocations = ['All', ...Array.from(new Set(vacancies.map(v => v.location)))];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <SEO
         title="Careers & Vacancies | X-Ample Development"
         description="Join our team! Explore current job openings and career opportunities at X-Ample Development."
