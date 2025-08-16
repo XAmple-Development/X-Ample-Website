@@ -234,7 +234,48 @@ const StatusPage = () => {
         </div>
     );
 
-    
+    const renderMaintenance = () => (
+        <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                <Clock className="w-5 h-5 mr-2 text-yellow-400" />
+                Scheduled Maintenance
+            </h3>
+            {data?.scheduled_maintenances?.length ? (
+                <div className="space-y-4">
+                    {data.scheduled_maintenances.map((event: any, index: number) => (
+                        <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                        >
+                            <Card className="bg-yellow-500/10 backdrop-blur-sm border-yellow-500/20 hover:bg-yellow-500/15 transition-all duration-300">
+                                <CardHeader>
+                                    <CardTitle className="text-white flex items-center">
+                                        <Clock className="w-5 h-5 mr-2 text-yellow-400" />
+                                        {event.attributes.name}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-gray-300">
+                                        Scheduled for: {new Date(event.attributes.scheduled_for).toLocaleString()}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    ))}
+                </div>
+            ) : (
+                <Card className="bg-blue-500/10 backdrop-blur-sm border-blue-500/20">
+                    <CardContent className="p-8 text-center">
+                        <CheckCircle className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+                        <p className="text-white text-lg">No maintenance scheduled</p>
+                        <p className="text-gray-400">No planned maintenance windows</p>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+    );
 
     return (
         <>
