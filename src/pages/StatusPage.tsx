@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Activity, AlertCircle, Clock, Zap, CheckCircle, XCircle, AlertTriangle, TrendingUp, Server, Globe, Wifi } from 'lucide-react';
 import Header from '@/components/Header';
-import PremiumBackground from '@/components/PremiumBackground';
+import SpaceBackground from '@/components/SpaceBackground';
 
 const StatusPage = () => {
     const [tab, setTab] = useState('overview');
@@ -282,7 +282,7 @@ const StatusPage = () => {
             <Header /> {/* Header at the top */}
 
             {/* Premium Background behind content */}
-            <PremiumBackground />
+            <SpaceBackground />
 
             <motion.div
                 className="min-h-screen p-6 pt-24 relative z-10"
