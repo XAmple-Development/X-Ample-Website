@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 
 interface PremiumBackgroundProps {
@@ -6,20 +6,6 @@ interface PremiumBackgroundProps {
 }
 
 const PremiumBackground = ({ className = "" }: PremiumBackgroundProps) => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100,
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
     <div className={`absolute inset-0 overflow-hidden ${className}`}>
       {/* Base gradient */}
@@ -35,11 +21,11 @@ const PremiumBackground = ({ className = "" }: PremiumBackgroundProps) => {
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Interactive gradient following mouse */}
+      {/* Static gradient overlay */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
-          background: `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%, 
+          background: `radial-gradient(600px circle at 50% 50%, 
             hsl(var(--primary) / 0.15) 0%, 
             hsl(var(--accent) / 0.1) 40%, 
             transparent 70%)`
