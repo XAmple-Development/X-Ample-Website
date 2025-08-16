@@ -12,7 +12,7 @@ const Team = () => {
     {
       name: "IamXample",
       role: "Lead Developer & Founder",
-      image: "https://cdn.discordapp.com/avatars/1059503129672040458/bc398ae06720419eb3600c565b28ba70?size=1024",
+      image: "https://cdn.discordapp.com/avatars/1059503129672040458/0c12de4a1b8a95c7fbb07c6af57f7808?size=1024",
       bio: "Full-stack developer with 8+ years experience in gaming and full stack development. Passionate about creating innovative solutions.",
       skills: ["FiveM Development", "Web Development", "Project Management", "UI/UX Design"],
       social: {
