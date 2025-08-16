@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Activity, AlertCircle, Clock, Zap, CheckCircle, XCircle, AlertTriangle, TrendingUp, Server, Globe, Wifi } from 'lucide-react';
 import Header from '@/components/Header';
+import SpaceBackground from '@/components/ParticlesBackground';
 
 const StatusPage = () => {
     const [tab, setTab] = useState('overview');
