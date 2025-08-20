@@ -61,12 +61,12 @@ const PricingCalculator = () => {
                     {Object.entries(services).map(([key, service]) => (
                       <Button
                         key={key}
-                        variant={selectedService === key ? "default" : "outline"}
+                        variant="ghost"
                         onClick={() => setSelectedService(key)}
-                        className={`p-3 £{
+                        className={`p-3 ${
                           selectedService === key
-                            ? "bg-gradient-to-r from-cyan-500 to-teal-500"
-                            : "border-white/20 text-white hover:bg-white/10"
+                            ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-white"
+                            : "border border-white/20 text-white hover:bg-white/10"
                         }`}
                       >
                         {service.icon}
