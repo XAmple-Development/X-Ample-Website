@@ -38,7 +38,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/xample-logo.png" 
+              src="https://files.fm/u/9mabmss46p" 
               alt="X-Ample Development Studios" 
               className="h-10 w-auto"
             />
