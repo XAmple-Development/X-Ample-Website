@@ -297,7 +297,7 @@ const Contact = () => {
                             variant="secondary"
                             className="bg-white text-cyan-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full"
                         >
-                            Get Free Quote
+                            Click to Schedule
                         </Button>
                     </div>
                 </div>
