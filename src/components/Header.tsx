@@ -42,7 +42,7 @@ const Header = () => {
               alt="X-Ample Development Studios" 
               className="h-10 w-auto"
             />
-            <span className="text-xl font-bold text-white-900">X-Ample Development</span>
+            <span className="text-xl font-bold text-white-900">X-Ample Development Studios</span>
           </Link>
 
           {/* Desktop Navigation */}
