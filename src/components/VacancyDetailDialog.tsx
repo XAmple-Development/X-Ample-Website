@@ -134,7 +134,7 @@ const VacancyDetailDialog: React.FC<VacancyDetailDialogProps> = ({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-              onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
+              onClick={() => window.open('https://discord.gg/3mNGT2AwNy', '_blank')}
             >
               Apply Now via Discord
             </Button>
