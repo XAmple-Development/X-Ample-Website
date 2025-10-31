@@ -104,7 +104,7 @@ const Contact = () => {
     {
       icon: <MessageCircle className="w-6 h-6 text-white" />,
       title: "Discord",
-      info: "https://discord.gg/bGhguE93Xp",
+      info: "https://discord.gg/3mNGT2AwNy",
       description: "Join our community"
     }
   ];
@@ -339,7 +339,7 @@ const Contact = () => {
                 size="lg" 
                 variant="outline" 
                 className="flex flex-col sm:flex-row gap-4 justify-center"
-                onClick={() => window.open('https://discord.gg/bGhguE93Xp', '_blank')}
+                onClick={() => window.open('https://discord.gg/3mNGT2AwNy', '_blank')}
               >
                 Schedule Consultation
               </Button>
