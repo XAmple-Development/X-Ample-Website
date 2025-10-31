@@ -39,7 +39,7 @@ const Header = () => {
           <Link to="/" className="flex items-center space-x-3">
             <img 
               src="/src/assets/logo/xample-logo.png" 
-              alt="X-Ample Development" 
+              alt="X-Ample Development Studios" 
               className="h-10 w-auto"
             />
             <span className="text-xl font-bold text-white-900">X-Ample Development</span>
