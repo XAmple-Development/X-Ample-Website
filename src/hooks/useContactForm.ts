@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface ContactFormData {
@@ -22,15 +21,18 @@ export const useContactForm = () => {
     try {
       console.log("Submitting contact form:", formData);
       
-      const { data, error } = await supabase.functions.invoke('send-contact-email', {
-        body: formData
+      const response = await fetch('/.netlify/functions/send-contact-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || 'SMTP function error');
       }
 
-      console.log("Form submitted successfully:", data);
+      console.log("Form submitted successfully");
       
       toast({
         title: "Message sent successfully!",

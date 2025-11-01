@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from "@/integrations/supabase/client";
 import { contactFormSchema, sanitizeInput, checkRateLimit, type ContactFormData } from '@/utils/validation';
 
 export const useSecureContactForm = () => {
@@ -48,16 +47,19 @@ export const useSecureContactForm = () => {
 
       console.log("Submitting contact form:", sanitizedData);
 
-      // Submit to Supabase edge function using the correct method
-      const { data, error } = await supabase.functions.invoke('send-contact-email', {
-        body: sanitizedData
+      // Submit to Netlify function which sends mail via SMTP
+      const response = await fetch('/.netlify/functions/send-contact-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sanitizedData),
       });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`SMTP function error: ${errText}`);
       }
 
-      console.log("Form submitted successfully:", data);
+      console.log("Form submitted successfully");
 
       toast({
         title: "Message sent successfully!",
