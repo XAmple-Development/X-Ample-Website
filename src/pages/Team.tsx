@@ -29,17 +29,6 @@ const Team = () => {
       social: {
         email: "info@x-ampledevelopment.co.uk"
       }
-    },
-    {
-      name: "DJKnaeckebrot",
-      role: "Assistant Lead Developer",
-      image: "https://cdn.discordapp.com/avatars/424868316398747648/e9f4962349b1a8e1041060087fc0aac6?size=1024",
-      bio: "Specialist in Web development with a focus on immersive experiences and cutting-edge technology implementation.",
-      skills: ["React Development", "TypeScript", "UI/UX", "Mobile Development"],
-
-      social: {
-        email: "info@x-ampledevelopment.co.uk"
-      }
     }
   ];
 
