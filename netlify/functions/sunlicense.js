@@ -45,38 +45,38 @@ exports.handler = async (event) => {
     let result;
     switch (action) {
       case 'healthy':
-        result = await doFetch('/api/v2/healthy');
+        result = await doFetch('/api/v1/healthy');
         break;
       case 'ping':
-        result = await doFetch('/api/v2/ping');
+        result = await doFetch('/api/v1/ping');
         break;
       case 'products': {
-        if (params.id) result = await doFetch(`/api/v2/products/${encodeURIComponent(params.id)}`);
-        else result = await doFetch('/api/v2/products');
+        if (params.id) result = await doFetch(`/api/v1/products/${encodeURIComponent(params.id)}`);
+        else result = await doFetch('/api/v1/products');
         break;
       }
       case 'licenseByKey': {
         const key = params.licenseKey;
         if (!key) throw new Error('licenseKey is required');
-        result = await doFetch(`/api/v2/licenses/by-license-key/${encodeURIComponent(key)}`);
+        result = await doFetch(`/api/v1/licenses/by-license-key/${encodeURIComponent(key)}`);
         break;
       }
       case 'licensesByEmail': {
         const email = params.email;
         if (!email) throw new Error('email is required');
-        result = await doFetch(`/api/v2/licenses/by-customer-email/${encodeURIComponent(email)}`);
+        result = await doFetch(`/api/v1/licenses/by-customer-email/${encodeURIComponent(email)}`);
         break;
       }
       case 'licensesByProduct': {
         const productId = params.productId;
         if (!productId) throw new Error('productId is required');
-        result = await doFetch(`/api/v2/licenses/by-product-id/${encodeURIComponent(productId)}`);
+        result = await doFetch(`/api/v1/licenses/by-product-id/${encodeURIComponent(productId)}`);
         break;
       }
       case 'licensesByDiscordId': {
         const discordId = params.discordId;
         if (!discordId) throw new Error('discordId is required');
-        result = await doFetch(`/api/v2/licenses/by-discord-id/${encodeURIComponent(discordId)}`);
+        result = await doFetch(`/api/v1/licenses/by-discord-id/${encodeURIComponent(discordId)}`);
         break;
       }
       default:
