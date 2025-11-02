@@ -26,24 +26,41 @@ const AdminCustomers = () => {
   const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
-    setLoading(true); setError(null);
+    setLoading(true); setError(null); setCustomers([]);
     try {
-      const data = await fetchJson('/.netlify/functions/sunlicense?action=customers');
-      const arr = Array.isArray(data) ? data : [];
-      const trimmed = filter.trim().toLowerCase();
-      const filtered = trimmed ? arr.filter((c: any) =>
-        String(c.email || '').toLowerCase().includes(trimmed) ||
-        String(c.discordId || '').includes(trimmed) ||
-        String(c.discordUsername || '').toLowerCase().includes(trimmed) ||
-        String(c.username || '').toLowerCase().includes(trimmed)
-      ) : arr;
-      setCustomers(filtered);
+      const trimmed = filter.trim();
+      if (!trimmed) {
+        setError('Enter an email or Discord ID to search');
+        setLoading(false);
+        return;
+      }
+      let licenses: any[] = [];
+      if (trimmed.includes('@')) {
+        const data = await fetchJson(`/.netlify/functions/sunlicense?action=licenses&email=${encodeURIComponent(trimmed)}`);
+        licenses = Array.isArray(data) ? data : [];
+      } else {
+        const data = await fetchJson(`/.netlify/functions/sunlicense?action=licenses&discordId=${encodeURIComponent(trimmed)}`);
+        licenses = Array.isArray(data) ? data : [];
+      }
+      if (!licenses.length) {
+        setCustomers([]);
+        return;
+      }
+      // Derive customer record from any license fields
+      const any = licenses[0] || {};
+      const derived: Customer = {
+        id: any.customer?.id || 0,
+        username: any.customer?.username || any.ownerDiscordUsername || null,
+        email: any.customer?.email || null,
+        phoneNumber: any.customer?.phoneNumber || null,
+        discordId: any.ownerDiscordId || null,
+        discordUsername: any.ownerDiscordUsername || null,
+      };
+      setCustomers([derived]);
     } catch (e: any) {
       setError(e.message || 'Failed to load');
     } finally { setLoading(false); }
   };
-
-  useEffect(() => { load(); }, []);
 
   return (
     <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
@@ -53,7 +70,7 @@ const AdminCustomers = () => {
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input placeholder="Filter by email/discord/username" value={filter} onChange={e => setFilter(e.target.value)} />
-          <Button onClick={load} disabled={loading}>Refresh</Button>
+          <Button onClick={load} disabled={loading}>Search</Button>
         </div>
         {error && <div className="text-red-300">{error}</div>}
         <div className="overflow-x-auto">
