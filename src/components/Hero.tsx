@@ -134,7 +134,7 @@ const Hero = () => {
                             }}
                         >
                             {" "}
-                            Development
+                            Studios
                         </motion.span>
                     </motion.h1>
 
