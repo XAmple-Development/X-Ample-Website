@@ -7,7 +7,7 @@ const defaultCorsHeaders = {
 const getBaseUrl = () => process.env.SUNLICENSE_BASE_URL || 'http://25604.mh.sunlicense.hapangama.com';
 const getToken = () => process.env.SUNLICENSE_API_TOKEN;
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = 8000, retries = 2) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = 3000, retries = 1) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -19,7 +19,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 8000, retries = 2
       clearTimeout(timer);
       const isLast = attempt === retries;
       if (isLast) throw err;
-      await new Promise(r => setTimeout(r, 200 * (attempt + 1)));
+      await new Promise(r => setTimeout(r, 150 * (attempt + 1)));
     }
   }
 }
@@ -134,7 +134,7 @@ exports.handler = async (event) => {
   try {
     const params = event.queryStringParameters || {};
     const action = params.action || '';
-    const timeoutMs = params.timeout ? Math.max(2000, Math.min(15000, parseInt(params.timeout))) : undefined;
+    const timeoutMs = params.timeout ? Math.max(1500, Math.min(6000, parseInt(params.timeout))) : undefined;
 
     let result;
     switch (action) {
