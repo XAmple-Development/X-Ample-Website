@@ -44,25 +44,54 @@ const fetchJson = async (url: string) => {
   return contentType.includes('application/json') ? res.json() : { data: await res.text() };
 };
 
+const postJson = async (url: string, body: unknown) => {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body ?? {}),
+  });
+  const contentType = res.headers.get('content-type') || '';
+  if (!res.ok) {
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      const message = data?.error || data?.message || 'Request failed';
+      throw new Error(message);
+    }
+    throw new Error(await res.text());
+  }
+  return contentType.includes('application/json') ? res.json() : { data: await res.text() };
+};
+
 const LicensePage = () => {
   const [licenseKey, setLicenseKey] = useState("");
+  const [validateProductId, setValidateProductId] = useState("");
+  const [ip, setIp] = useState("");
+  const [hwid, setHwid] = useState("");
+  const [macAddress, setMacAddress] = useState("");
   const [email, setEmail] = useState("");
   const [discordId, setDiscordId] = useState("");
   const [productId, setProductId] = useState("");
 
   const [license, setLicense] = useState<License | null>(null);
+  const [validateResult, setValidateResult] = useState<any>(null);
   const [licenses, setLicenses] = useState<License[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCheckByKey = async () => {
-    setLoading(true); setError(null); setLicense(null);
+    setLoading(true); setError(null); setLicense(null); setValidateResult(null);
     try {
-      const data = await fetchJson(`/.netlify/functions/sunlicense?action=licenseByKey&licenseKey=${encodeURIComponent(licenseKey.trim())}`);
-      setLicense(data);
+      // Prefer v1 validate as some instances do not expose v2 license-by-key
+      const payload: Record<string, unknown> = { licenseKey: licenseKey.trim() };
+      if (validateProductId.trim()) payload.productId = Number(validateProductId.trim());
+      if (ip.trim()) payload.ip = ip.trim();
+      if (hwid.trim()) payload.hwid = hwid.trim();
+      if (macAddress.trim()) payload.macAddress = macAddress.trim();
+      const data = await postJson(`/.netlify/functions/sunlicense?action=validate`, payload);
+      setValidateResult(data);
     } catch (e: any) {
-      setError(e.message || "Failed to fetch license");
+      setError(e.message || "Failed to validate license");
     } finally { setLoading(false); }
   };
 
@@ -121,6 +150,12 @@ const LicensePage = () => {
                 <Input placeholder="Enter license key" value={licenseKey} onChange={e => setLicenseKey(e.target.value)} />
                 <Button onClick={handleCheckByKey} disabled={loading || !licenseKey.trim()}>Verify</Button>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <Input placeholder="Product ID (optional)" value={validateProductId} onChange={e => setValidateProductId(e.target.value)} />
+                <Input placeholder="IP (optional)" value={ip} onChange={e => setIp(e.target.value)} />
+                <Input placeholder="HWID (optional)" value={hwid} onChange={e => setHwid(e.target.value)} />
+                <Input placeholder="MAC Address (optional)" value={macAddress} onChange={e => setMacAddress(e.target.value)} />
+              </div>
               {loading && <p className="text-gray-500">Loading...</p>}
               {error && <p className="text-red-500">{error}</p>}
               {license && (
@@ -132,6 +167,11 @@ const LicensePage = () => {
                   <p><strong>Owner:</strong> {license.ownerDiscordUsername || license.ownerDiscordId || 'N/A'}</p>
                   <p><strong>Expiry:</strong> {license.expiryDate || 'N/A'}</p>
                 </div>
+              )}
+              {validateResult && (
+                <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-x-auto">
+{JSON.stringify(validateResult, null, 2)}
+                </pre>
               )}
             </CardContent>
           </Card>
