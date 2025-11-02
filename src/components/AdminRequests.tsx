@@ -26,6 +26,7 @@ const AdminRequests = () => {
   const [rows, setRows] = useState<RequestLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serviceHealthy, setServiceHealthy] = useState<boolean | null>(null);
 
   const load = async () => {
     setLoading(true); setError(null);
@@ -37,7 +38,10 @@ const AdminRequests = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    (async () => { try { const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000'); setServiceHealthy(res.ok); } catch { setServiceHealthy(false); } })();
+    load();
+  }, []);
 
   const exportCsv = () => {
     const header = ['id','licenseKey','productId','ip','hwid','os','requestType','responseType','requestDate'];
@@ -57,13 +61,14 @@ const AdminRequests = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Validation Requests</CardTitle>
-          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!rowsState.length}>Export CSV</Button>
+          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!rowsState.length || serviceHealthy === false}>Export CSV</Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
-          <Button onClick={load} disabled={loading}>Refresh</Button>
+          <Button onClick={load} disabled={loading || serviceHealthy === false}>Refresh</Button>
         </div>
+        {serviceHealthy === false && <div className="text-yellow-300 text-sm">Licensing service offline. Actions disabled.</div>}
         {error && <div className="text-red-300">{error}</div>}
         <div className="overflow-x-auto">
           <Table>

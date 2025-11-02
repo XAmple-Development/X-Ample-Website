@@ -35,6 +35,7 @@ const AdminBlacklist = () => {
   const [reason, setReason] = useState('');
   const [productId, setProductId] = useState('');
   const [allProducts, setAllProducts] = useState(true);
+  const [serviceHealthy, setServiceHealthy] = useState<boolean | null>(null);
 
   const load = async () => {
     setLoading(true); setError(null);
@@ -46,7 +47,10 @@ const AdminBlacklist = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    (async () => { try { const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000'); setServiceHealthy(res.ok); } catch { setServiceHealthy(false); } })();
+    load();
+  }, []);
 
   const add = async () => {
     if (!data.trim()) return;
@@ -92,9 +96,10 @@ const AdminBlacklist = () => {
           <Input placeholder="Reason (optional)" value={reason} onChange={e => setReason(e.target.value)} />
         </div>
         <div className="flex gap-2">
-          <Button onClick={add} disabled={loading || !data.trim()}>Add to Blacklist</Button>
-          <Button variant="secondary" onClick={load} disabled={loading}>Refresh</Button>
+          <Button onClick={add} disabled={loading || !data.trim() || serviceHealthy === false}>Add to Blacklist</Button>
+          <Button variant="secondary" onClick={load} disabled={loading || serviceHealthy === false}>Refresh</Button>
         </div>
+        {serviceHealthy === false && <div className="text-yellow-300 text-sm">Licensing service offline. Actions disabled.</div>}
         {error && <div className="text-red-300">{error}</div>}
 
         <div className="overflow-x-auto">
@@ -120,7 +125,7 @@ const AdminBlacklist = () => {
                   <TableCell>{e.productId ?? '—'}</TableCell>
                   <TableCell>{e.reason ?? '—'}</TableCell>
                   <TableCell>
-                    <Button size="sm" variant="destructive" onClick={() => remove(e.id)}>Delete</Button>
+                    <Button size="sm" variant="destructive" onClick={() => remove(e.id)} disabled={serviceHealthy === false}>Delete</Button>
                   </TableCell>
                 </TableRow>
               ))}

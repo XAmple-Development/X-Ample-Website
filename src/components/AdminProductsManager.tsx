@@ -23,6 +23,7 @@ const AdminProductsManager = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serviceHealthy, setServiceHealthy] = useState<boolean | null>(null);
 
   const load = async () => {
     setLoading(true); setError(null); setProducts([]);
@@ -35,7 +36,12 @@ const AdminProductsManager = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    (async () => {
+      try { const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000'); setServiceHealthy(res.ok); } catch { setServiceHealthy(false); }
+    })();
+    load();
+  }, []);
 
   return (
     <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
@@ -45,8 +51,9 @@ const AdminProductsManager = () => {
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input placeholder="Optional Product ID" value={productId} onChange={e => setProductId(e.target.value)} />
-          <Button onClick={load} disabled={loading}>Load</Button>
+          <Button onClick={load} disabled={loading || serviceHealthy === false}>Load</Button>
         </div>
+        {serviceHealthy === false && <div className="text-yellow-300 text-sm">Licensing service offline. Loading disabled.</div>}
         {error && <div className="text-red-300">{error}</div>}
         <div className="overflow-x-auto">
           <Table>

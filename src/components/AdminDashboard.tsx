@@ -64,9 +64,25 @@ const AdminDashboard = () => {
   const initialTab = (location.hash?.replace('#', '') || localStorage.getItem('admin-tab') || 'overview') as string;
   const [tab, setTab] = useState<string>(initialTab);
   const { toast } = useToast();
+  const [licenseHealthy, setLicenseHealthy] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000');
+        if (!cancelled) setLicenseHealthy(res.ok);
+      } catch {
+        if (!cancelled) setLicenseHealthy(false);
+      }
+    };
+    check();
+    const id = setInterval(check, 30000);
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   useEffect(() => {
@@ -174,6 +190,23 @@ const AdminDashboard = () => {
       <div className="relative z-10 min-h-screen p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <AdminHeader onSignOut={signOut} />
+
+          {licenseHealthy === false && (
+            <div className="rounded-xl border border-yellow-400/40 bg-yellow-500/10 text-yellow-200 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <p>Licensing service offline. Admin license actions are temporarily disabled.</p>
+                <button
+                  className="px-3 py-1 rounded-md bg-yellow-500/20 hover:bg-yellow-500/30"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000');
+                      setLicenseHealthy(res.ok);
+                    } catch { setLicenseHealthy(false); }
+                  }}
+                >Retry</button>
+              </div>
+            </div>
+          )}
 
           <Tabs value={tab} onValueChange={setTab} className="w-full animate-fade-in">
             <TabsList className="grid w-full grid-cols-11 md:grid-cols-11 lg:grid-cols-11 bg-white/10 backdrop-blur-sm rounded-xl mb-6 overflow-x-auto">

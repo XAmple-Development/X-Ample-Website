@@ -43,6 +43,16 @@ const AdminLicenses = () => {
   const [validateMsg, setValidateMsg] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [updateMsg, setUpdateMsg] = useState<string | null>(null);
+  const [serviceHealthy, setServiceHealthy] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try { const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000'); if (!cancelled) setServiceHealthy(res.ok); }
+      catch { if (!cancelled) setServiceHealthy(false); }
+    };
+    check();
+  }, []);
 
   const loadByEmail = async () => {
     setLoading(true); setError(null); setLicenses([]);
@@ -116,18 +126,21 @@ const AdminLicenses = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Licenses</CardTitle>
-          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!licenses.length}>Export CSV</Button>
+          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!licenses.length || serviceHealthy === false}>Export CSV</Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {serviceHealthy === false && (
+          <div className="text-yellow-300 text-sm">Licensing service offline. Actions are disabled.</div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex gap-2">
             <Input placeholder="Search by email" value={email} onChange={e => setEmail(e.target.value)} />
-            <Button onClick={loadByEmail} disabled={loading || !email.trim()}>Search</Button>
+            <Button onClick={loadByEmail} disabled={loading || !email.trim() || serviceHealthy === false}>Search</Button>
           </div>
           <div className="flex gap-2">
             <Input placeholder="Search by Discord ID" value={discordId} onChange={e => setDiscordId(e.target.value)} />
-            <Button onClick={loadByDiscord} disabled={loading || !discordId.trim()}>Search</Button>
+            <Button onClick={loadByDiscord} disabled={loading || !discordId.trim() || serviceHealthy === false}>Search</Button>
           </div>
         </div>
 
@@ -156,14 +169,14 @@ const AdminLicenses = () => {
                   <TableCell>{l.ownerDiscordUsername || l.ownerDiscordId || '—'}</TableCell>
                   <TableCell>{l.expiryDate || '—'}</TableCell>
                   <TableCell className="space-x-2">
-                    <Button size="sm" variant="secondary" onClick={() => validate(l.licenseKey, l.productId)} disabled={validatingKey === l.licenseKey}>
+                    <Button size="sm" variant="secondary" onClick={() => validate(l.licenseKey, l.productId)} disabled={validatingKey === l.licenseKey || serviceHealthy === false}>
                       {validatingKey === l.licenseKey ? 'Validating…' : 'Validate'}
                     </Button>
                     {l.id && (
                       l.licenseStatus === 'ACTIVE' ? (
-                        <Button size="sm" variant="destructive" onClick={() => setStatus(l.id!, 'DEACTIVATED')} disabled={updatingId === l.id}> {updatingId === l.id ? 'Updating…' : 'Deactivate'} </Button>
+                        <Button size="sm" variant="destructive" onClick={() => setStatus(l.id!, 'DEACTIVATED')} disabled={updatingId === l.id || serviceHealthy === false}> {updatingId === l.id ? 'Updating…' : 'Deactivate'} </Button>
                       ) : (
-                        <Button size="sm" onClick={() => setStatus(l.id!, 'ACTIVE')} disabled={updatingId === l.id}> {updatingId === l.id ? 'Updating…' : 'Activate'} </Button>
+                        <Button size="sm" onClick={() => setStatus(l.id!, 'ACTIVE')} disabled={updatingId === l.id || serviceHealthy === false}> {updatingId === l.id ? 'Updating…' : 'Activate'} </Button>
                       )
                     )}
                   </TableCell>

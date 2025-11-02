@@ -24,6 +24,7 @@ const AdminCustomers = () => {
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serviceHealthy, setServiceHealthy] = useState<boolean | null>(null);
 
   const load = async () => {
     setLoading(true); setError(null); setCustomers([]);
@@ -62,6 +63,10 @@ const AdminCustomers = () => {
     } finally { setLoading(false); }
   };
 
+  useEffect(() => {
+    (async () => { try { const res = await fetch('/.netlify/functions/sunlicense?action=ping&timeout=2000'); setServiceHealthy(res.ok); } catch { setServiceHealthy(false); } })();
+  }, []);
+
   return (
     <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
       <CardHeader>
@@ -70,8 +75,9 @@ const AdminCustomers = () => {
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input placeholder="Filter by email/discord/username" value={filter} onChange={e => setFilter(e.target.value)} />
-          <Button onClick={load} disabled={loading}>Search</Button>
+          <Button onClick={load} disabled={loading || serviceHealthy === false}>Search</Button>
         </div>
+        {serviceHealthy === false && <div className="text-yellow-300 text-sm">Licensing service offline. Search disabled.</div>}
         {error && <div className="text-red-300">{error}</div>}
         <div className="overflow-x-auto">
           <Table>
