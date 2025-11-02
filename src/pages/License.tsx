@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,8 @@ const LicensePage = () => {
 
   const [license, setLicense] = useState<License | null>(null);
   const [validateResult, setValidateResult] = useState<any>(null);
+  const [validatedProductName, setValidatedProductName] = useState<string | null>(null);
+  const [validatedOwner, setValidatedOwner] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +106,44 @@ const LicensePage = () => {
       setError(e.message || "Failed to fetch products");
     } finally { setLoading(false); }
   };
+
+  // When a validate result arrives, derive productName and owner details if present
+  useEffect(() => {
+    const deriveOwner = (res: any): string | null => {
+      if (!res) return null;
+      // Common fields we might get back from validate
+      const discordUser = res.ownerDiscordUsername || res.discordUsername || res.customerDiscordUsername;
+      const discordId = res.ownerDiscordId || res.discordId || res.customerDiscordId;
+      const email = res.customerEmail || res.email;
+      if (discordUser && discordId) return `${discordUser} (${discordId})`;
+      if (discordUser) return String(discordUser);
+      if (discordId) return String(discordId);
+      if (email) return String(email);
+      return null;
+    };
+
+    setValidatedOwner(deriveOwner(validateResult));
+
+    async function fetchProductName(productId: any) {
+      try {
+        const id = Number(productId);
+        if (!id || Number.isNaN(id)) {
+          setValidatedProductName(null);
+          return;
+        }
+        const data = await fetchJson(`/.netlify/functions/sunlicense?action=products&id=${encodeURIComponent(String(id))}`);
+        setValidatedProductName(data?.name || null);
+      } catch {
+        setValidatedProductName(null);
+      }
+    }
+
+    if (validateResult?.productId != null) {
+      fetchProductName(validateResult.productId);
+    } else {
+      setValidatedProductName(null);
+    }
+  }, [validateResult]);
 
   return (
     <div className="min-h-screen bg-gray-10">
@@ -146,8 +186,21 @@ const LicensePage = () => {
                 </div>
               )}
               {validateResult && (
-                <div className={`text-sm rounded p-3 border ${validateResult?.status === 200 ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-                  {validateResult?.message || (validateResult?.status === 200 ? 'License validated' : 'Request failed')}
+                <div className={`text-sm rounded p-3 border space-y-1 ${validateResult?.status === 200 ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                  <div>{validateResult?.message || (validateResult?.status === 200 ? 'License validated' : 'Request failed')}</div>
+                  {validateResult?.status === 200 && (
+                    <div className="text-gray-700">
+                      {validatedProductName && (
+                        <div><strong>Product:</strong> {validatedProductName} {validateResult?.productId ? `(ID: ${validateResult.productId})` : ''}</div>
+                      )}
+                      {!validatedProductName && validateResult?.productId != null && (
+                        <div><strong>Product ID:</strong> {validateResult.productId}</div>
+                      )}
+                      {validatedOwner && (
+                        <div><strong>Customer:</strong> {validatedOwner}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
