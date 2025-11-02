@@ -68,13 +68,10 @@ const LicensePage = () => {
   const [ip, setIp] = useState("");
   const [hwid, setHwid] = useState("");
   const [macAddress, setMacAddress] = useState("");
-  const [email, setEmail] = useState("");
-  const [discordId, setDiscordId] = useState("");
   const [productId, setProductId] = useState("");
 
   const [license, setLicense] = useState<License | null>(null);
   const [validateResult, setValidateResult] = useState<any>(null);
-  const [licenses, setLicenses] = useState<License[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,26 +89,6 @@ const LicensePage = () => {
       setValidateResult(data);
     } catch (e: any) {
       setError(e.message || "Failed to validate license");
-    } finally { setLoading(false); }
-  };
-
-  const handleListByEmail = async () => {
-    setLoading(true); setError(null); setLicenses([]);
-    try {
-      const data = await fetchJson(`/.netlify/functions/sunlicense?action=licensesByEmail&email=${encodeURIComponent(email.trim())}`);
-      setLicenses(Array.isArray(data) ? data : []);
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch licenses");
-    } finally { setLoading(false); }
-  };
-
-  const handleListByDiscord = async () => {
-    setLoading(true); setError(null); setLicenses([]);
-    try {
-      const data = await fetchJson(`/.netlify/functions/sunlicense?action=licensesByDiscordId&discordId=${encodeURIComponent(discordId.trim())}`);
-      setLicenses(Array.isArray(data) ? data : []);
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch licenses");
     } finally { setLoading(false); }
   };
 
@@ -140,7 +117,7 @@ const LicensePage = () => {
       </section>
 
       <section className="py-10">
-        <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="container mx-auto px-6 grid grid-cols-1 gap-8">
           <Card className="bg-white border border-gray-200">
             <CardHeader>
               <CardTitle>Verify License by Key</CardTitle>
@@ -169,51 +146,8 @@ const LicensePage = () => {
                 </div>
               )}
               {validateResult && (
-                <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-x-auto">
-{JSON.stringify(validateResult, null, 2)}
-                </pre>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200">
-            <CardHeader>
-              <CardTitle>Find Licenses</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input placeholder="Customer email" value={email} onChange={e => setEmail(e.target.value)} />
-                <Button onClick={handleListByEmail} disabled={loading || !email.trim()}>Search</Button>
-              </div>
-              <div className="flex gap-2">
-                <Input placeholder="Discord ID" value={discordId} onChange={e => setDiscordId(e.target.value)} />
-                <Button onClick={handleListByDiscord} disabled={loading || !discordId.trim()}>Search</Button>
-              </div>
-
-              {!!licenses.length && (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>License Key</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Expiry</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {licenses.map((l) => (
-                        <TableRow key={l.id || l.licenseKey}>
-                          <TableCell className="font-mono text-xs">{l.licenseKey}</TableCell>
-                          <TableCell>{l.licenseStatus}</TableCell>
-                          <TableCell>{l.licenseType}</TableCell>
-                          <TableCell>{l.productId}</TableCell>
-                          <TableCell>{l.expiryDate || '—'}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className={`text-sm rounded p-3 border ${validateResult?.status === 200 ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                  {validateResult?.message || (validateResult?.status === 200 ? 'License validated' : 'Request failed')}
                 </div>
               )}
             </CardContent>

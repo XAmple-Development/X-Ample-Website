@@ -91,6 +91,16 @@ exports.handler = async (event) => {
         const payload = event.body ? JSON.parse(event.body) : {};
         // SunLicense bots use v1 validate endpoint
         result = await doPost('/api/v1/validate', payload);
+        const format = (event.queryStringParameters?.format || '').toLowerCase();
+        if (format === 'text') {
+          const statusCode = result.status || 200;
+          const message = (result.body && (result.body.message || result.body.error)) || (statusCode === 200 ? 'License validated' : 'Request failed');
+          return {
+            statusCode,
+            headers: { ...defaultCorsHeaders, 'Content-Type': 'text/plain; charset=utf-8' },
+            body: String(message),
+          };
+        }
         break;
       }
       case 'products': {
