@@ -69,6 +69,32 @@ async function doPost(path, payload) {
   return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
 }
 
+async function doDelete(path) {
+  const base = getBaseUrl();
+  const url = `${base}${path}`;
+  const headers = { 'Accept': 'application/json' };
+  const token = getToken();
+  if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
+  headers['TOKEN'] = token;
+  const res = await fetch(url, { method: 'DELETE', headers, redirect: 'follow' });
+  const contentType = res.headers.get('content-type') || '';
+  let body;
+  try {
+    if (contentType.includes('application/json')) {
+      body = await res.json();
+    } else {
+      body = await res.text();
+    }
+  } catch {
+    try { body = await res.text(); } catch { body = ''; }
+  }
+  if (res.status === 404 && !contentType.includes('application/json')) {
+    body = { error: 'Not found', target: url };
+    return { status: 404, headers: { 'content-type': 'application/json' }, body };
+  }
+  return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: defaultCorsHeaders };
 
@@ -108,10 +134,46 @@ exports.handler = async (event) => {
         else result = await doFetch('/api/v2/products');
         break;
       }
+      case 'licenses': {
+        if (params.email) {
+          result = await doFetch(`/api/v2/licenses/by-customer-email/${encodeURIComponent(params.email)}`);
+        } else if (params.discordId) {
+          result = await doFetch(`/api/v2/licenses/by-discord-id/${encodeURIComponent(params.discordId)}`);
+        } else if (params.productId) {
+          result = await doFetch(`/api/v2/licenses/by-product-id/${encodeURIComponent(params.productId)}`);
+        } else {
+          result = await doFetch('/api/v2/licenses');
+        }
+        break;
+      }
       case 'licenseByKey': {
         const key = params.licenseKey;
         if (!key) throw new Error('licenseKey is required');
         result = await doFetch(`/api/v2/licenses/by-license-key/${encodeURIComponent(key)}`);
+        break;
+      }
+      case 'customers': {
+        if (params.id) result = await doFetch(`/api/v2/customers/${encodeURIComponent(params.id)}`);
+        else result = await doFetch('/api/v2/customers');
+        break;
+      }
+      case 'blacklists': {
+        result = await doFetch('/api/v2/blacklists');
+        break;
+      }
+      case 'blacklistAdd': {
+        if (event.httpMethod !== 'POST') return { statusCode: 405, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'Use POST for blacklistAdd' }) };
+        const payload = event.body ? JSON.parse(event.body) : {};
+        result = await doPost('/api/v2/blacklists', payload);
+        break;
+      }
+      case 'blacklistDelete': {
+        if (!params.id) return { statusCode: 400, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'id required' }) };
+        result = await doDelete(`/api/v2/blacklists/${encodeURIComponent(params.id)}`);
+        break;
+      }
+      case 'requests': {
+        result = await doFetch('/api/v2/requests');
         break;
       }
       case 'licensesByEmail': {
@@ -136,7 +198,7 @@ exports.handler = async (event) => {
         return {
           statusCode: 400,
           headers: defaultCorsHeaders,
-          body: JSON.stringify({ error: 'Unknown action', actions: ['healthy','ping','products','licenseByKey','licensesByEmail','licensesByProduct','licensesByDiscordId','validate'] }),
+          body: JSON.stringify({ error: 'Unknown action', actions: ['healthy','ping','products','licenses','licenseByKey','customers','blacklists','blacklistAdd','blacklistDelete','requests','validate'] }),
         };
     }
 

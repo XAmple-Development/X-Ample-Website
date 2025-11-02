@@ -25,6 +25,11 @@ import ServerMonitor from '@/components/ServerMonitor';
 import ParticlesBackground from '@/components/ParticlesBackground';
 import AdminVacanciesPanel from '@/components/AdminVacanciesPanel';
 import AdminActivity from '@/components/AdminActivity';
+import AdminLicenses from '@/components/AdminLicenses';
+import AdminProductsManager from '@/components/AdminProductsManager';
+import AdminBlacklist from '@/components/AdminBlacklist';
+import AdminCustomers from '@/components/AdminCustomers';
+import AdminRequests from '@/components/AdminRequests';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import {
@@ -160,13 +165,18 @@ const AdminDashboard = () => {
           <AdminHeader onSignOut={signOut} />
 
           <Tabs value={tab} onValueChange={setTab} className="w-full animate-fade-in">
-            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm rounded-xl mb-6">
+            <TabsList className="grid w-full grid-cols-11 md:grid-cols-11 lg:grid-cols-11 bg-white/10 backdrop-blur-sm rounded-xl mb-6 overflow-x-auto">
               <TabsTrigger value="overview" className="text-white data-[state=active]:bg-white/20">Overview</TabsTrigger>
               <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/20">Projects</TabsTrigger>
               <TabsTrigger value="analytics" className="text-white data-[state=active]:bg-white/20">Analytics</TabsTrigger>
               <TabsTrigger value="vacancies" className="text-white data-[state=active]:bg-white/20">Vacancies</TabsTrigger>
               <TabsTrigger value="servers" className="text-white data-[state=active]:bg-white/20">Servers</TabsTrigger>
               <TabsTrigger value="activity" className="text-white data-[state=active]:bg-white/20">Activity</TabsTrigger>
+              <TabsTrigger value="licenses" className="text-white data-[state=active]:bg-white/20">Licenses</TabsTrigger>
+              <TabsTrigger value="products" className="text-white data-[state=active]:bg-white/20">Products</TabsTrigger>
+              <TabsTrigger value="customers" className="text-white data-[state=active]:bg-white/20">Customers</TabsTrigger>
+              <TabsTrigger value="blacklist" className="text-white data-[state=active]:bg-white/20">Blacklist</TabsTrigger>
+              <TabsTrigger value="requests" className="text-white data-[state=active]:bg-white/20">Requests</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -266,6 +276,36 @@ const AdminDashboard = () => {
             <TabsContent value="activity">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                 <AdminActivity />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="licenses">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <AdminLicenses />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="products">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <AdminProductsManager />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="customers">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <AdminCustomers />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="blacklist">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <AdminBlacklist />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="requests">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                <AdminRequests />
               </motion.div>
             </TabsContent>
           </Tabs>
