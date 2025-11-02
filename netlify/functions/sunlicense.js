@@ -20,9 +20,14 @@ async function doFetch(path) {
   const contentType = res.headers.get('content-type') || '';
   let body;
   try {
-    body = contentType.includes('application/json') ? await res.json() : await res.text();
+    if (contentType.includes('application/json')) {
+      body = await res.json();
+    } else {
+      body = await res.text();
+    }
   } catch {
-    body = null;
+    // Fallback to text to avoid nulls when upstream mislabels content-type
+    try { body = await res.text(); } catch { body = ''; }
   }
   // Normalize HTML errors (e.g., upstream 404 HTML pages) into simple JSON, include target URL for debugging
   if (res.status === 404 && !contentType.includes('application/json')) {
@@ -49,9 +54,13 @@ async function doPost(path, payload) {
   const contentType = res.headers.get('content-type') || '';
   let body;
   try {
-    body = contentType.includes('application/json') ? await res.json() : await res.text();
+    if (contentType.includes('application/json')) {
+      body = await res.json();
+    } else {
+      body = await res.text();
+    }
   } catch {
-    body = null;
+    try { body = await res.text(); } catch { body = ''; }
   }
   if (res.status === 404 && !contentType.includes('application/json')) {
     body = { error: 'Not found', target: url };
