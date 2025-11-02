@@ -39,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to your company
     const emailResponse = await resend.emails.send({
-      from: "X-Ample Development",
+      from: "X-Ample Development Studios",
       to: ["info@x-ampledevelopment.co.uk"],
       subject: `New Contact Form Submission from ${formData.firstName} ${formData.lastName}`,
       html: `
@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p>${formData.message.replace(/\n/g, '<br>')}</p>
         
         <hr>
-        <p><em>This message was sent from the X-Ample Development contact form.</em></p>
+        <p><em>This message was sent from the X-Ample Development Studios contact form.</em></p>
       `,
     });
 
@@ -60,9 +60,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the customer
     await resend.emails.send({
-      from: "X-Ample Development",
+      from: "X-Ample Development Studios",
       to: [formData.email],
-      subject: "Thank you for contacting X-Ample Development!",
+      subject: "Thank you for contacting X-Ample Development Studios!",
       html: `
         <h2>Thank you for your message, ${formData.firstName}!</h2>
         <p>We have received your inquiry about <strong>${formData.projectType}</strong> and will get back to you within 24 hours.</p>
@@ -73,7 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>Message:</strong> ${formData.message}</p>
         
         <p>Best regards,<br>
-        The X-Ample Development Team</p>
+        The X-Ample Development Studios Team</p>
         
         <hr>
         <p><em>If you didn't submit this form, please ignore this email.</em></p>
