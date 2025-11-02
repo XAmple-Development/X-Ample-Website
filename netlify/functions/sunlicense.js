@@ -95,6 +95,22 @@ async function doDelete(path) {
   return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
 }
 
+async function doPut(path, payload) {
+  const base = getBaseUrl();
+  const url = `${base}${path}`;
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+  const token = getToken();
+  if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
+  headers['TOKEN'] = token;
+  const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(payload ?? {}), redirect: 'follow' });
+  const contentType = res.headers.get('content-type') || '';
+  let body;
+  try {
+    if (contentType.includes('application/json')) body = await res.json(); else body = await res.text();
+  } catch { try { body = await res.text(); } catch { body = ''; } }
+  return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: defaultCorsHeaders };
 
@@ -146,11 +162,36 @@ exports.handler = async (event) => {
         }
         break;
       }
+      case 'licenseGet': {
+        if (!params.id) return { statusCode: 400, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'id required' }) };
+        result = await doFetch(`/api/v2/licenses/${encodeURIComponent(params.id)}`);
+        break;
+      }
       case 'licenseByKey': {
         const key = params.licenseKey;
         if (!key) throw new Error('licenseKey is required');
         result = await doFetch(`/api/v2/licenses/by-license-key/${encodeURIComponent(key)}`);
         break;
+      }
+      case 'licenseSetStatus': {
+        if (event.httpMethod !== 'POST') return { statusCode: 405, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'Use POST for licenseSetStatus' }) };
+        const payload = event.body ? JSON.parse(event.body) : {};
+        const id = payload.id;
+        const newStatus = payload.status;
+        if (!id || !newStatus) return { statusCode: 400, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'id and status required' }) };
+        // GET current license
+        const current = await doFetch(`/api/v2/licenses/${encodeURIComponent(String(id))}`);
+        if (current.status !== 200 || !current.body) {
+          return { statusCode: current.status || 500, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'Failed to fetch license before update' }) };
+        }
+        const full = current.body;
+        // Update status per API rules (send all fields back)
+        const updated = { ...full, licenseStatus: newStatus };
+        const putRes = await doPut(`/api/v2/licenses/${encodeURIComponent(String(id))}`, updated);
+        const code = putRes.status || 200;
+        const outIsJson = (putRes.headers['content-type'] || '').includes('application/json');
+        const outBody = outIsJson ? JSON.stringify(putRes.body) : JSON.stringify({ data: putRes.body });
+        return { statusCode: code, headers: { ...defaultCorsHeaders, 'Content-Type': 'application/json' }, body: outBody };
       }
       case 'customers': {
         if (params.id) result = await doFetch(`/api/v2/customers/${encodeURIComponent(params.id)}`);

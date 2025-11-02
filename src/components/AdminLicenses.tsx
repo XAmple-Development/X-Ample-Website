@@ -41,6 +41,8 @@ const AdminLicenses = () => {
   const [error, setError] = useState<string | null>(null);
   const [validatingKey, setValidatingKey] = useState<string | null>(null);
   const [validateMsg, setValidateMsg] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [updateMsg, setUpdateMsg] = useState<string | null>(null);
 
   const loadByEmail = async () => {
     setLoading(true); setError(null); setLicenses([]);
@@ -73,6 +75,20 @@ const AdminLicenses = () => {
     } catch (e: any) {
       setValidateMsg(e.message || 'Validation failed');
     } finally { setValidatingKey(null); }
+  };
+
+  const setStatus = async (id?: number, status?: string) => {
+    if (!id || !status) return;
+    setUpdatingId(id); setUpdateMsg(null);
+    try {
+      const res = await postJson('/.netlify/functions/sunlicense?action=licenseSetStatus', { id, status });
+      setUpdateMsg('Status updated');
+      // Refresh current list quickly by re-triggering whichever filter we used last
+      if (email.trim()) await loadByEmail();
+      else if (discordId.trim()) await loadByDiscord();
+    } catch (e: any) {
+      setUpdateMsg(e.message || 'Update failed');
+    } finally { setUpdatingId(null); }
   };
 
   const exportCsv = () => {
@@ -139,10 +155,17 @@ const AdminLicenses = () => {
                   <TableCell>{l.productId}</TableCell>
                   <TableCell>{l.ownerDiscordUsername || l.ownerDiscordId || '—'}</TableCell>
                   <TableCell>{l.expiryDate || '—'}</TableCell>
-                  <TableCell>
+                  <TableCell className="space-x-2">
                     <Button size="sm" variant="secondary" onClick={() => validate(l.licenseKey, l.productId)} disabled={validatingKey === l.licenseKey}>
                       {validatingKey === l.licenseKey ? 'Validating…' : 'Validate'}
                     </Button>
+                    {l.id && (
+                      l.licenseStatus === 'ACTIVE' ? (
+                        <Button size="sm" variant="destructive" onClick={() => setStatus(l.id!, 'DEACTIVATED')} disabled={updatingId === l.id}> {updatingId === l.id ? 'Updating…' : 'Deactivate'} </Button>
+                      ) : (
+                        <Button size="sm" onClick={() => setStatus(l.id!, 'ACTIVE')} disabled={updatingId === l.id}> {updatingId === l.id ? 'Updating…' : 'Activate'} </Button>
+                      )
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -152,6 +175,9 @@ const AdminLicenses = () => {
 
         {validateMsg && (
           <div className="text-sm text-cyan-200">{validateMsg}</div>
+        )}
+        {updateMsg && (
+          <div className="text-sm text-cyan-200">{updateMsg}</div>
         )}
       </CardContent>
     </Card>
