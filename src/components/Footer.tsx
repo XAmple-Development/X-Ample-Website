@@ -11,10 +11,10 @@ const Footer = () => {
             <div className="flex items-center space-x-3 mb-4">
               <img 
                 src="/lovable-uploads/c54aa9aa-58db-4f2f-87df-5637b62b5f99.png" 
-                alt="X-Ample Development" 
+                alt="X-Ample Development Studios" 
                 className="h-8 w-auto"
               />
-              <span className="text-2xl font-bold">X-Ample Development</span>
+              <span className="text-2xl font-bold">X-Ample Development Studios</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
               Creating exceptional digital experiences across FiveM, Roblox, Web, and Discord platforms. 
