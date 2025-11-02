@@ -7,6 +7,23 @@ const defaultCorsHeaders = {
 const getBaseUrl = () => process.env.SUNLICENSE_BASE_URL || 'http://25604.mh.sunlicense.hapangama.com';
 const getToken = () => process.env.SUNLICENSE_API_TOKEN;
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000, retries = 1) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      const isLast = attempt === retries;
+      if (isLast) throw err;
+      await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
+    }
+  }
+}
+
 async function doFetch(path) {
   const base = getBaseUrl();
   const url = `${base}${path}`;
@@ -16,7 +33,7 @@ async function doFetch(path) {
     if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
     headers['TOKEN'] = token;
   }
-  const res = await fetch(url, { headers, redirect: 'follow' });
+  const res = await fetchWithTimeout(url, { headers, redirect: 'follow' }, 12000, 1);
   const contentType = res.headers.get('content-type') || '';
   let body;
   try {
@@ -45,12 +62,12 @@ async function doPost(path, payload) {
   const token = getToken();
   if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
   headers['TOKEN'] = token;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers,
     body: typeof payload === 'string' ? payload : JSON.stringify(payload),
     redirect: 'follow',
-  });
+  }, 12000, 1);
   const contentType = res.headers.get('content-type') || '';
   let body;
   try {
@@ -76,7 +93,7 @@ async function doDelete(path) {
   const token = getToken();
   if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
   headers['TOKEN'] = token;
-  const res = await fetch(url, { method: 'DELETE', headers, redirect: 'follow' });
+  const res = await fetchWithTimeout(url, { method: 'DELETE', headers, redirect: 'follow' }, 12000, 1);
   const contentType = res.headers.get('content-type') || '';
   let body;
   try {
@@ -102,7 +119,7 @@ async function doPut(path, payload) {
   const token = getToken();
   if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
   headers['TOKEN'] = token;
-  const res = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(payload ?? {}), redirect: 'follow' });
+  const res = await fetchWithTimeout(url, { method: 'PUT', headers, body: JSON.stringify(payload ?? {}), redirect: 'follow' }, 12000, 1);
   const contentType = res.headers.get('content-type') || '';
   let body;
   try {
