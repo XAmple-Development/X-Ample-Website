@@ -11,11 +11,11 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "X-Ample Development - FiveM, Roblox, Web & Discord Development",
+  title = "X-Ample Development Studios - FiveM, Roblox, Web & Discord Development",
   description = "Professional development services for FiveM scripts, Roblox servers, websites, and Discord bots. Custom solutions for gaming and web platforms.",
   keywords = "FiveM development, Roblox servers, web development, Discord bots, gaming scripts, custom development",
   image = "https://lovable.dev/opengraph-image-p98pqg.png",
-  url = "https://x-ampledevelopment.com",
+  url = "https://x-ampledevelopment.co.uk",
   type = "website"
 }: SEOProps) => {
   return (
@@ -31,7 +31,7 @@ const SEO = ({
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
-      <meta property="og:site_name" content="X-Ample Development" />
+      <meta property="og:site_name" content="X-Ample Development Studios" />
       
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -50,7 +50,7 @@ const SEO = ({
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "X-Ample Development",
+          "name": "X-Ample Development Studios",
           "url": url,
           "logo": "https://i.imgur.com/4bSGPHi.png",
           "description": description,
