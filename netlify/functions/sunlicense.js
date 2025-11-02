@@ -3,12 +3,11 @@ const defaultCorsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const getBaseUrl = () => process.env.SUNLICENSE_BASE_URL;
+const getBaseUrl = () => 'http://25604.mh.sunlicense.hapangama.com';
 const getToken = () => process.env.SUNLICENSE_API_TOKEN;
 
 async function doFetch(path) {
   const base = getBaseUrl();
-  if (!base) throw new Error('SUNLICENSE_BASE_URL not configured');
   const url = `${base}${path}`;
   const headers = {};
   if (!path.includes('/healthy')) {
