@@ -55,7 +55,7 @@ interface Project {
 }
 
 const AdminDashboard = () => {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, loading: authLoading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -159,6 +159,17 @@ const AdminDashboard = () => {
 
   return (
     <> 
+      {(!authLoading && profile?.role !== 'admin') && (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center text-white/80">
+            <p className="text-xl mb-2">You do not have access to the Admin Dashboard.</p>
+            <a href="/" className="underline">Return to home</a>
+          </div>
+        </div>
+      )}
+      {profile?.role !== 'admin' && authLoading && null}
+      {profile?.role === 'admin' && (
+      <>
       <ParticlesBackground />
       <div className="relative z-10 min-h-screen p-6">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -313,6 +324,8 @@ const AdminDashboard = () => {
 
         <ProjectDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} onProjectCreated={fetchData} />
       </div>
+      </>
+      )}
     </>
   );
 };

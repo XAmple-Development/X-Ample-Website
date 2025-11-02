@@ -39,10 +39,26 @@ const AdminRequests = () => {
 
   useEffect(() => { load(); }, []);
 
+  const exportCsv = () => {
+    const header = ['id','licenseKey','productId','ip','hwid','os','requestType','responseType','requestDate'];
+    const rows = rowsState.map(r => [
+      String(r.id), r.licenseKey || '', String(r.productId ?? ''), r.ip || '', r.hwid || '', r.operatingSystem || '', r.requestType || '', r.responseType || '', r.requestDate || ''
+    ]);
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'requests.csv'; a.click(); URL.revokeObjectURL(url);
+  };
+
+  const rowsState = rows;
+
   return (
     <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
       <CardHeader>
-        <CardTitle>Validation Requests</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Validation Requests</CardTitle>
+          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!rowsState.length}>Export CSV</Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">

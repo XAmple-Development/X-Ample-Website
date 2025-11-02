@@ -75,10 +75,33 @@ const AdminLicenses = () => {
     } finally { setValidatingKey(null); }
   };
 
+  const exportCsv = () => {
+    const header = ['licenseKey','licenseStatus','licenseType','productId','owner','expiryDate'];
+    const rows = licenses.map(l => [
+      l.licenseKey || '',
+      l.licenseStatus || '',
+      l.licenseType || '',
+      String(l.productId ?? ''),
+      l.ownerDiscordUsername || l.ownerDiscordId || '',
+      l.expiryDate || ''
+    ]);
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'licenses.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Card className="bg-white/5 border border-white/10 backdrop-blur-md text-white rounded-2xl shadow-lg">
       <CardHeader>
-        <CardTitle>Licenses</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Licenses</CardTitle>
+          <Button size="sm" variant="secondary" onClick={exportCsv} disabled={!licenses.length}>Export CSV</Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
