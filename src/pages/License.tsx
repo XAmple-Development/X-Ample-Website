@@ -146,29 +146,26 @@ const LicensePage = () => {
   }, [validateResult]);
 
   return (
-    <div className="min-h-screen bg-gray-10">
+    <div className="min-h-screen bg-gray-950 text-gray-100">
       <Header />
 
-      <section className="pt-24 pb-10 bg-gradient-to-br from-cyan-50 to-teal-50">
+      <section className="pt-24 pb-10 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="container mx-auto px-6 text-center">
-          <h1 className="text-5xl font-bold text-gray-900">License Center</h1>
-          <p className="text-gray-600 mt-3">Check and verify your licenses and view product details.</p>
+          <h1 className="text-5xl font-bold text-white">License Center</h1>
+          <p className="text-gray-300 mt-3">Check and verify your licenses and view product details.</p>
         </div>
       </section>
 
       <section className="py-10">
         <div className="container mx-auto px-6 grid grid-cols-1 gap-8">
-          <Card className="bg-white border border-gray-200">
+          <Card className="bg-gray-900 text-gray-100 border border-gray-800">
             <CardHeader>
-              <CardTitle>Verify License by Key</CardTitle>
+              <CardTitle className="text-gray-100">Verify License by Key</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Input placeholder="Enter license key" value={licenseKey} onChange={e => setLicenseKey(e.target.value)} />
-                <Button onClick={handleCheckByKey} disabled={loading || !licenseKey.trim()}>Verify</Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <Input placeholder="Product ID (optional)" value={validateProductId} onChange={e => setValidateProductId(e.target.value)} />
+                <Input placeholder="Enter license key" value={licenseKey} onChange={e => setLicenseKey(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
+                <Button onClick={handleCheckByKey} disabled={loading || !licenseKey.trim()} className="bg-cyan-600 hover:bg-cyan-500">Verify</Button>
               </div>
               {loading && <p className="text-gray-500">Loading...</p>}
               {error && <p className="text-red-500">{error}</p>}
