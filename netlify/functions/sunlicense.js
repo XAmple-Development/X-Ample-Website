@@ -10,7 +10,7 @@ const getToken = () => process.env.SUNLICENSE_API_TOKEN;
 async function doFetch(path) {
   const base = getBaseUrl();
   const url = `${base}${path}`;
-  const headers = {};
+  const headers = { 'Accept': 'application/json' };
   if (!path.includes('/healthy')) {
     const token = getToken();
     if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
@@ -36,7 +36,7 @@ async function doFetch(path) {
 async function doPost(path, payload) {
   const base = getBaseUrl();
   const url = `${base}${path}`;
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
   const token = getToken();
   if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
   headers['TOKEN'] = token;
