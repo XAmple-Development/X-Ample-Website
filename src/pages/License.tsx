@@ -167,10 +167,16 @@ const LicensePage = () => {
                 <Input placeholder="Enter license key" value={licenseKey} onChange={e => setLicenseKey(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
                 <Button onClick={handleCheckByKey} disabled={loading || !licenseKey.trim()} className="bg-cyan-600 hover:bg-cyan-500">Verify</Button>
               </div>
-              {loading && <p className="text-gray-500">Loading...</p>}
-              {error && <p className="text-red-500">{error}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <Input placeholder="Product ID (optional)" value={validateProductId} onChange={e => setValidateProductId(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
+                <Input placeholder="IP (optional)" value={ip} onChange={e => setIp(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
+                <Input placeholder="HWID (optional)" value={hwid} onChange={e => setHwid(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
+                <Input placeholder="MAC Address (optional)" value={macAddress} onChange={e => setMacAddress(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
+              </div>
+              {loading && <p className="text-gray-400">Loading...</p>}
+              {error && <p className="text-red-400">{error}</p>}
               {license && (
-                <div className="text-sm text-gray-800 space-y-1">
+                <div className="text-sm text-gray-200 space-y-1">
                   <p><strong>Key:</strong> {license.licenseKey}</p>
                   <p><strong>Status:</strong> {license.licenseStatus}</p>
                   <p><strong>Type:</strong> {license.licenseType}</p>
@@ -180,10 +186,10 @@ const LicensePage = () => {
                 </div>
               )}
               {validateResult && (
-                <div className={`text-sm rounded p-3 border space-y-1 ${validateResult?.status === 200 ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                <div className={`text-sm rounded p-3 border space-y-1 ${validateResult?.status === 200 ? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-red-900/30 border-red-700 text-red-300'}`}>
                   <div>{validateResult?.message || (validateResult?.status === 200 ? 'License validated' : 'Request failed')}</div>
                   {validateResult?.status === 200 && (
-                    <div className="text-gray-700">
+                    <div className="text-gray-300">
                       {validatedProductName && (
                         <div><strong>Product:</strong> {validatedProductName} {validateResult?.productId ? `(ID: ${validateResult.productId})` : ''}</div>
                       )}
@@ -200,33 +206,33 @@ const LicensePage = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 lg:col-span-2">
+          <Card className="bg-gray-900 text-gray-100 border border-gray-800">
             <CardHeader>
-              <CardTitle>Products</CardTitle>
+              <CardTitle className="text-gray-100">Products</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Input placeholder="Optional Product ID" value={productId} onChange={e => setProductId(e.target.value)} />
-                <Button onClick={handleProducts} disabled={loading}>Load</Button>
+                <Input placeholder="Optional Product ID" value={productId} onChange={e => setProductId(e.target.value)} className="bg-gray-800 text-gray-100 placeholder-gray-400 border-gray-700 focus:border-cyan-500" />
+                <Button onClick={handleProducts} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500">Load</Button>
               </div>
               {!!products.length && (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto text-gray-100">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Description</TableHead>
+                        <TableHead className="text-gray-300">ID</TableHead>
+                        <TableHead className="text-gray-300">Name</TableHead>
+                        <TableHead className="text-gray-300">Type</TableHead>
+                        <TableHead className="text-gray-300">Description</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {products.map((p) => (
                         <TableRow key={p.id}>
-                          <TableCell>{p.id}</TableCell>
-                          <TableCell>{p.name}</TableCell>
-                          <TableCell>{p.productType}</TableCell>
-                          <TableCell className="max-w-xl whitespace-pre-wrap">{p.description}</TableCell>
+                          <TableCell className="text-gray-200">{p.id}</TableCell>
+                          <TableCell className="text-gray-200">{p.name}</TableCell>
+                          <TableCell className="text-gray-200">{p.productType}</TableCell>
+                          <TableCell className="max-w-xl whitespace-pre-wrap text-gray-200">{p.description}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
