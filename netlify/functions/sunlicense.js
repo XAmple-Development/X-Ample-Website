@@ -22,6 +22,12 @@ async function doFetch(path) {
   } catch {
     body = null;
   }
+  // Normalize HTML errors (e.g., upstream 404 HTML pages) into simple JSON
+  if (res.status === 404 && !contentType.includes('application/json')) {
+    body = { error: 'Not found' };
+    return { status: 404, headers: { 'content-type': 'application/json' }, body };
+  }
+
   return { status: res.status, headers: { 'content-type': contentType }, body };
 }
 

@@ -30,8 +30,18 @@ type Product = {
 
 const fetchJson = async (url: string) => {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  const contentType = res.headers.get('content-type') || '';
+  if (!res.ok) {
+    if (contentType.includes('application/json')) {
+      const data = await res.json();
+      const message = data?.error || data?.message || 'Request failed';
+      throw new Error(message);
+    }
+    const text = await res.text();
+    if (/Not Found/i.test(text)) throw new Error('Not found');
+    throw new Error(text || 'Request failed');
+  }
+  return contentType.includes('application/json') ? res.json() : { data: await res.text() };
 };
 
 const LicensePage = () => {
