@@ -169,9 +169,6 @@ const LicensePage = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <Input placeholder="Product ID (optional)" value={validateProductId} onChange={e => setValidateProductId(e.target.value)} />
-                <Input placeholder="IP (optional)" value={ip} onChange={e => setIp(e.target.value)} />
-                <Input placeholder="HWID (optional)" value={hwid} onChange={e => setHwid(e.target.value)} />
-                <Input placeholder="MAC Address (optional)" value={macAddress} onChange={e => setMacAddress(e.target.value)} />
               </div>
               {loading && <p className="text-gray-500">Loading...</p>}
               {error && <p className="text-red-500">{error}</p>}
