@@ -1,6 +1,7 @@
 const defaultCorsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
 };
 
 const getBaseUrl = () => process.env.SUNLICENSE_BASE_URL || 'http://25604.mh.sunlicense.hapangama.com';
@@ -32,11 +33,35 @@ async function doFetch(path) {
   return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
 }
 
+async function doPost(path, payload) {
+  const base = getBaseUrl();
+  const url = `${base}${path}`;
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (!token) throw new Error('SUNLICENSE_API_TOKEN not configured');
+  headers['TOKEN'] = token;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: typeof payload === 'string' ? payload : JSON.stringify(payload),
+    redirect: 'follow',
+  });
+  const contentType = res.headers.get('content-type') || '';
+  let body;
+  try {
+    body = contentType.includes('application/json') ? await res.json() : await res.text();
+  } catch {
+    body = null;
+  }
+  if (res.status === 404 && !contentType.includes('application/json')) {
+    body = { error: 'Not found', target: url };
+    return { status: 404, headers: { 'content-type': 'application/json' }, body };
+  }
+  return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: defaultCorsHeaders };
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'Method not allowed' }) };
-  }
 
   try {
     const params = event.queryStringParameters || {};
@@ -50,6 +75,15 @@ exports.handler = async (event) => {
       case 'ping':
         result = await doFetch('/api/v2/ping');
         break;
+      case 'validate': {
+        if (event.httpMethod !== 'POST') {
+          return { statusCode: 405, headers: defaultCorsHeaders, body: JSON.stringify({ error: 'Use POST for validate' }) };
+        }
+        const payload = event.body ? JSON.parse(event.body) : {};
+        // SunLicense bots use v1 validate endpoint
+        result = await doPost('/api/v1/validate', payload);
+        break;
+      }
       case 'products': {
         if (params.id) result = await doFetch(`/api/v2/products/${encodeURIComponent(params.id)}`);
         else result = await doFetch('/api/v2/products');
@@ -83,7 +117,7 @@ exports.handler = async (event) => {
         return {
           statusCode: 400,
           headers: defaultCorsHeaders,
-          body: JSON.stringify({ error: 'Unknown action', actions: ['healthy','ping','products','licenseByKey','licensesByEmail','licensesByProduct','licensesByDiscordId'] }),
+          body: JSON.stringify({ error: 'Unknown action', actions: ['healthy','ping','products','licenseByKey','licensesByEmail','licensesByProduct','licensesByDiscordId','validate'] }),
         };
     }
 
