@@ -3,11 +3,13 @@ const defaultCorsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const getBaseUrl = () => process.env.SUNLICENSE_BASE_URL || 'https://sunlicense.hapangama.com';
+const getBaseUrl = () => process.env.SUNLICENSE_BASE_URL;
 const getToken = () => process.env.SUNLICENSE_API_TOKEN;
 
 async function doFetch(path) {
-  const url = `${getBaseUrl()}${path}`;
+  const base = getBaseUrl();
+  if (!base) throw new Error('SUNLICENSE_BASE_URL not configured');
+  const url = `${base}${path}`;
   const headers = {};
   if (!path.includes('/healthy')) {
     const token = getToken();
@@ -22,13 +24,13 @@ async function doFetch(path) {
   } catch {
     body = null;
   }
-  // Normalize HTML errors (e.g., upstream 404 HTML pages) into simple JSON
+  // Normalize HTML errors (e.g., upstream 404 HTML pages) into simple JSON, include target URL for debugging
   if (res.status === 404 && !contentType.includes('application/json')) {
-    body = { error: 'Not found' };
+    body = { error: 'Not found', target: url };
     return { status: 404, headers: { 'content-type': 'application/json' }, body };
   }
 
-  return { status: res.status, headers: { 'content-type': contentType }, body };
+  return { status: res.status, headers: { 'content-type': contentType }, body, target: url };
 }
 
 exports.handler = async (event) => {
@@ -88,7 +90,7 @@ exports.handler = async (event) => {
 
     const statusCode = result.status || 200;
     const isJson = (result.headers['content-type'] || '').includes('application/json');
-    const body = isJson ? JSON.stringify(result.body) : JSON.stringify({ data: result.body });
+    const body = isJson ? JSON.stringify(result.body) : JSON.stringify({ data: result.body, target: result.target });
     return { statusCode, headers: { ...defaultCorsHeaders, 'Content-Type': 'application/json' }, body };
   } catch (err) {
     console.error('sunlicense proxy error', err);
