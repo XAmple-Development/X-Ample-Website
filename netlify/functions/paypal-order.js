@@ -66,7 +66,7 @@ const mapProduct = (pkg, fallbackCurrency) => {
   };
 };
 
-const fetchTebexProduct = async (productId) => {
+const fetchTebexProducts = async () => {
   const accountToken = process.env.TEBEX_ACCOUNT_TOKEN;
   const tebexBase = (process.env.TEBEX_HEADLESS_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, '');
 
@@ -88,11 +88,14 @@ const fetchTebexProduct = async (productId) => {
   const fallbackCurrency =
     payload?.currency?.iso_4217 ?? payload?.currency ?? payload?.price?.currency;
 
-  const normalized = (Array.isArray(packages) ? packages : [])
+  return (Array.isArray(packages) ? packages : [])
     .map((pkg) => mapProduct(pkg, fallbackCurrency))
     .filter((item) => item.id != null);
+};
 
-  return normalized.find((item) => String(item.id) === String(productId));
+const fetchTebexProduct = async (productId) => {
+  const products = await fetchTebexProducts();
+  return products.find((item) => String(item.id) === String(productId));
 };
 
 const getPayPalAccessToken = async () => {
@@ -123,18 +126,56 @@ const getPayPalAccessToken = async () => {
   return data?.access_token;
 };
 
-const createOrder = async (productId, customerEmail, returnUrl, cancelUrl) => {
-  const product = await fetchTebexProduct(productId);
+const createOrder = async (productId, items, customerEmail, returnUrl, cancelUrl) => {
+  let lineItems = [];
+  let currency = 'USD';
 
-  if (!product) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: 'Product not found in Tebex' }),
-    };
+  if (Array.isArray(items) && items.length > 0) {
+    const products = await fetchTebexProducts();
+    const productMap = new Map(products.map((item) => [String(item.id), item]));
+    lineItems = items.map((item) => {
+      const product = productMap.get(String(item.productId));
+      if (!product) {
+        throw new Error(`Product not found in Tebex: ${item.productId}`);
+      }
+      const unitPrice = product.salePrice ?? product.price;
+      if (lineItems.length === 0) currency = product.currency || currency;
+      if ((product.currency || currency) !== currency) {
+        throw new Error('Mixed currencies in cart are not supported.');
+      }
+      return {
+        name: product.name,
+        unit_amount: {
+          currency_code: currency,
+          value: unitPrice.toFixed(2),
+        },
+        quantity: String(item.quantity || 1),
+        sku: String(product.id),
+      };
+    });
+  } else {
+    const product = await fetchTebexProduct(productId);
+    if (!product) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'Product not found in Tebex' }),
+      };
+    }
+    const unitPrice = product.salePrice ?? product.price;
+    currency = product.currency || 'USD';
+    lineItems = [
+      {
+        name: product.name,
+        unit_amount: { currency_code: currency, value: unitPrice.toFixed(2) },
+        quantity: '1',
+        sku: String(product.id),
+      },
+    ];
   }
 
-  const price = product.salePrice ?? product.price;
-  const currency = product.currency || 'USD';
+  const total = lineItems.reduce((sum, item) => {
+    return sum + Number(item.unit_amount.value) * Number(item.quantity);
+  }, 0);
 
   const accessToken = await getPayPalAccessToken();
 
@@ -142,13 +183,18 @@ const createOrder = async (productId, customerEmail, returnUrl, cancelUrl) => {
     intent: 'CAPTURE',
     purchase_units: [
       {
-        reference_id: String(product.id),
-        description: product.name,
-        custom_id: `${product.id}`,
+        description: 'X-Ample Studios Order',
         amount: {
           currency_code: currency,
-          value: price.toFixed(2),
+          value: total.toFixed(2),
+          breakdown: {
+            item_total: {
+              currency_code: currency,
+              value: total.toFixed(2),
+            },
+          },
         },
+        items: lineItems,
       },
     ],
     application_context: {
@@ -294,13 +340,13 @@ exports.handler = async (event) => {
     const body = event.body ? JSON.parse(event.body) : {};
 
     if (action === 'create') {
-      const { productId, customerEmail, returnUrl, cancelUrl } = body;
+      const { productId, items, customerEmail, returnUrl, cancelUrl } = body;
 
-      if (!productId) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'productId is required' }) };
+      if (!productId && (!Array.isArray(items) || items.length === 0)) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'productId or items are required' }) };
       }
 
-      return await createOrder(productId, customerEmail, returnUrl, cancelUrl);
+      return await createOrder(productId, items, customerEmail, returnUrl, cancelUrl);
     }
 
     if (action === 'capture') {

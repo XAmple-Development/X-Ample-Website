@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
-import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet } from "lucide-react";
+import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet, Minus, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const fetchProducts = async (): Promise<TebexProduct[]> => {
@@ -35,6 +35,8 @@ const Store = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<Array<{ productId: string; quantity: number }>>([]);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -61,6 +63,7 @@ const Store = () => {
           throw new Error(payload?.error || "Unable to capture PayPal order.");
         }
         toast({ title: "Payment complete", description: "Your order is being processed." });
+        setCartItems([]);
       } catch (err: any) {
         toast({ title: "Payment error", description: err?.message || "Please contact support." });
       } finally {
@@ -71,6 +74,22 @@ const Store = () => {
 
     capture();
   }, [toast]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("storeCart");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setCartItems(parsed);
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("storeCart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const categories = useMemo(() => {
     if (!products?.length) return ["All"];
@@ -94,14 +113,18 @@ const Store = () => {
     });
   }, [products, activeCategory, searchTerm]);
 
-  const handleCheckout = async (product: TebexProduct) => {
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      toast({ title: "Cart is empty", description: "Add products before checkout." });
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await fetch("/.netlify/functions/paypal-order?action=create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productId: product.id,
+          items: cartItems,
           returnUrl: `${window.location.origin}/store`,
           cancelUrl: `${window.location.origin}/store?cancelled=1`,
         }),
@@ -121,6 +144,62 @@ const Store = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const cartDetailed = useMemo(() => {
+    if (!products) return [];
+    const map = new Map(products.map((p) => [String(p.id), p]));
+    return cartItems
+      .map((item) => {
+        const product = map.get(String(item.productId));
+        if (!product) return null;
+        const unitPrice = product.salePrice ?? product.price;
+        return {
+          product,
+          quantity: item.quantity,
+          lineTotal: unitPrice * item.quantity,
+        };
+      })
+      .filter(Boolean) as Array<{
+      product: TebexProduct;
+      quantity: number;
+      lineTotal: number;
+    }>;
+  }, [cartItems, products]);
+
+  const cartTotal = useMemo(() => {
+    return cartDetailed.reduce((sum, item) => sum + item.lineTotal, 0);
+  }, [cartDetailed]);
+
+  const addToCart = (product: TebexProduct) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => String(item.productId) === String(product.id));
+      if (existing) {
+        return prev.map((item) =>
+          String(item.productId) === String(product.id)
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { productId: String(product.id), quantity: 1 }];
+    });
+    setCartOpen(true);
+  };
+
+  const updateQuantity = (productId: string, delta: number) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) =>
+          String(item.productId) === String(productId)
+            ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCartItems((prev) => prev.filter((item) => String(item.productId) !== String(productId)));
   };
 
   return (
@@ -306,13 +385,21 @@ const Store = () => {
                             />
                           </div>
                         )}
-                        <Button
-                          className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-                          onClick={() => handleCheckout(product)}
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? "Starting..." : "Pay with PayPal"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1 border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100"
+                            onClick={() => addToCart(product)}
+                          >
+                            Add to Basket
+                          </Button>
+                          <Button
+                            className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                            onClick={() => addToCart(product)}
+                          >
+                            Buy Now
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
@@ -322,6 +409,61 @@ const Store = () => {
           </div>
         </section>
       </main>
+
+      {cartOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+          <div className="bg-slate-950 border border-white/10 rounded-lg w-full max-w-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Basket</h2>
+              <Button variant="ghost" onClick={() => setCartOpen(false)}>
+                Close
+              </Button>
+            </div>
+            {cartDetailed.length === 0 ? (
+              <p className="text-slate-300">Your basket is empty.</p>
+            ) : (
+              <div className="space-y-4">
+                {cartDetailed.map(({ product, quantity, lineTotal }) => (
+                  <div key={product.id} className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium">{product.name}</p>
+                      <p className="text-sm text-slate-400">
+                        {formatPrice(product.salePrice ?? product.price, product.currency)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" onClick={() => updateQuantity(String(product.id), -1)}>
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      <span className="w-6 text-center">{quantity}</span>
+                      <Button variant="outline" onClick={() => updateQuantity(String(product.id), 1)}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" onClick={() => removeFromCart(String(product.id))}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="text-right">
+                      {formatPrice(lineTotal, product.currency)}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                  <span className="font-semibold">Total</span>
+                  <span className="font-semibold">{formatPrice(cartTotal, cartDetailed[0]?.product.currency)}</span>
+                </div>
+                <Button
+                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                  onClick={handleCheckout}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Starting..." : "Checkout with PayPal"}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
