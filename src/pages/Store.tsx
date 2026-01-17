@@ -1,3 +1,6 @@
+/** @jsxRuntime classic */
+/** @jsx React.createElement */
+import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -15,17 +18,12 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
 import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet } from "lucide-react";
+import Tebex from "@tebexio/tebex.js";
 import { cn } from "@/lib/utils";
 
 declare global {
-  interface Window {
-    TebexCheckout?: {
-      openCheckout: (options: { account: string; package_id: string }) => void;
-    };
-  }
+  interface Window {}
 }
-
-const TEBEX_SCRIPT_SRC = "https://js.tebex.io/v/1.js";
 
 const formatPrice = (price: number, currency?: string) => {
   if (!price && price !== 0) return "";
@@ -43,15 +41,6 @@ const fetchProducts = async (): Promise<TebexProduct[]> => {
   return (data?.products ?? []) as TebexProduct[];
 };
 
-const waitForTebexCheckout = async (timeoutMs = 3000, intervalMs = 100) => {
-  const started = Date.now();
-  while (Date.now() - started < timeoutMs) {
-    if (window.TebexCheckout?.openCheckout) return true;
-    await new Promise((r) => setTimeout(r, intervalMs));
-  }
-  return false;
-};
-
 const Store = () => {
   const { toast } = useToast();
   const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
@@ -59,9 +48,7 @@ const Store = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [tebexReady, setTebexReady] = useState(false);
-
-  const hasInjectedScript = useRef(false);
+  const [tebexReady, setTebexReady] = useState(true); // tebex.js via npm import
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -94,48 +81,9 @@ const Store = () => {
   }, [products, activeCategory, searchTerm]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const init = async () => {
-      if (!accountToken) return;
-
-      // If already available, mark ready
-      if (window.TebexCheckout?.openCheckout) {
-        if (!cancelled) setTebexReady(true);
-        return;
-      }
-
-      // Inject script once
-      if (!hasInjectedScript.current) {
-        hasInjectedScript.current = true;
-
-        const existing = document.querySelector(`script[src="${TEBEX_SCRIPT_SRC}"]`);
-        if (!existing) {
-          const script = document.createElement("script");
-          script.src = TEBEX_SCRIPT_SRC;
-          script.async = true;
-          script.defer = true;
-          script.onload = () => {
-            // no-op; we’ll detect readiness via polling below
-          };
-          script.onerror = () => {
-            if (!cancelled) setTebexReady(false);
-          };
-          document.body.appendChild(script);
-        }
-      }
-
-      // Poll for the global to exist
-      const ok = await waitForTebexCheckout(3000, 100);
-      if (!cancelled) setTebexReady(ok);
-    };
-
-    init();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [accountToken]);
+    // tebex.js is imported via npm; mark ready
+    setTebexReady(true);
+  }, []);
 
   const handleCheckout = async (product: TebexProduct) => {
     if (!accountToken) {
@@ -145,23 +93,18 @@ const Store = () => {
 
     setIsSubmitting(true);
     try {
-      // Last-chance wait (useful if user clicks quickly)
-      if (!window.TebexCheckout?.openCheckout) {
-        const ok = await waitForTebexCheckout(1500, 100);
-        if (!ok) {
-          toast({
-            title: "Tebex not ready",
-            description:
-              "The Tebex script hasn’t loaded. If you use a strict Content Security Policy or an ad blocker, allow js.tebex.io.",
-          });
-          return;
-        }
+      const res = await fetch("/.netlify/functions/tebex-checkout-ident", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id, quantity: 1 }),
+      });
+      const payload = await res.json();
+      if (!res.ok || !payload?.ident) {
+        throw new Error(payload?.error || "Unable to start checkout.");
       }
 
-      window.TebexCheckout!.openCheckout({
-        account: accountToken,
-        package_id: String(product.id),
-      });
+      await Tebex.checkout.init({ ident: payload.ident });
+      Tebex.checkout.launch();
     } catch (err: any) {
       console.error("Tebex checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });
