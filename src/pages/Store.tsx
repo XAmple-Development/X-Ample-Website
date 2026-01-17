@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -25,6 +25,8 @@ declare global {
   }
 }
 
+const TEBEX_SCRIPT_SRC = "https://js.tebex.io/v/1.js";
+
 const formatPrice = (price: number, currency?: string) => {
   if (!price && price !== 0) return "";
   const formatter = new Intl.NumberFormat("en-GB", {
@@ -36,11 +38,18 @@ const formatPrice = (price: number, currency?: string) => {
 
 const fetchProducts = async (): Promise<TebexProduct[]> => {
   const response = await fetch("/.netlify/functions/tebex-products");
-  if (!response.ok) {
-    throw new Error("Unable to fetch store products right now.");
-  }
+  if (!response.ok) throw new Error("Unable to fetch store products right now.");
   const data = await response.json();
   return (data?.products ?? []) as TebexProduct[];
+};
+
+const waitForTebexCheckout = async (timeoutMs = 3000, intervalMs = 100) => {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (window.TebexCheckout?.openCheckout) return true;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  return false;
 };
 
 const Store = () => {
@@ -51,6 +60,8 @@ const Store = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [tebexReady, setTebexReady] = useState(false);
+
+  const hasInjectedScript = useRef(false);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -82,52 +93,72 @@ const Store = () => {
     });
   }, [products, activeCategory, searchTerm]);
 
-  // Load Tebex embedded checkout script (Safari-safe URL)
   useEffect(() => {
-    if (!accountToken) return;
+    let cancelled = false;
 
-    if (window.TebexCheckout) {
-      setTebexReady(true);
-      return;
-    }
+    const init = async () => {
+      if (!accountToken) return;
 
-    const SRC = "https://js.tebex.io/v/1.js";
-
-    const existing = document.querySelector(`script[src="${SRC}"]`) as HTMLScriptElement | null;
-    if (existing) {
-      // If it already loaded previously, mark ready
-      if ((existing as any)._tebexLoaded) {
-        setTebexReady(true);
+      // If already available, mark ready
+      if (window.TebexCheckout?.openCheckout) {
+        if (!cancelled) setTebexReady(true);
         return;
       }
-      existing.addEventListener("load", () => setTebexReady(true));
-      return;
-    }
 
-    const script = document.createElement("script");
-    script.src = SRC;
-    script.async = true;
-    script.onload = () => {
-      (script as any)._tebexLoaded = true;
-      setTebexReady(true);
+      // Inject script once
+      if (!hasInjectedScript.current) {
+        hasInjectedScript.current = true;
+
+        const existing = document.querySelector(`script[src="${TEBEX_SCRIPT_SRC}"]`);
+        if (!existing) {
+          const script = document.createElement("script");
+          script.src = TEBEX_SCRIPT_SRC;
+          script.async = true;
+          script.defer = true;
+          script.onload = () => {
+            // no-op; we’ll detect readiness via polling below
+          };
+          script.onerror = () => {
+            if (!cancelled) setTebexReady(false);
+          };
+          document.body.appendChild(script);
+        }
+      }
+
+      // Poll for the global to exist
+      const ok = await waitForTebexCheckout(3000, 100);
+      if (!cancelled) setTebexReady(ok);
     };
-    script.onerror = () => setTebexReady(false);
-    document.body.appendChild(script);
+
+    init();
+
+    return () => {
+      cancelled = true;
+    };
   }, [accountToken]);
 
-  const handleCheckout = (product: TebexProduct) => {
+  const handleCheckout = async (product: TebexProduct) => {
     if (!accountToken) {
       toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
-      return;
-    }
-    if (!window.TebexCheckout) {
-      toast({ title: "Tebex not ready", description: "Retry in a moment." });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      window.TebexCheckout.openCheckout({
+      // Last-chance wait (useful if user clicks quickly)
+      if (!window.TebexCheckout?.openCheckout) {
+        const ok = await waitForTebexCheckout(1500, 100);
+        if (!ok) {
+          toast({
+            title: "Tebex not ready",
+            description:
+              "The Tebex script hasn’t loaded. If you use a strict Content Security Policy or an ad blocker, allow js.tebex.io.",
+          });
+          return;
+        }
+      }
+
+      window.TebexCheckout!.openCheckout({
         account: accountToken,
         package_id: String(product.id),
       });
@@ -164,6 +195,7 @@ const Store = () => {
                   Browse every product from your Tebex store and check out securely on Tebex for
                   automatic fulfillment.
                 </p>
+
                 <div className="flex flex-wrap gap-3 mt-6">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <ShieldCheck className="w-4 h-4 text-teal-300" />
@@ -187,7 +219,7 @@ const Store = () => {
                     Seamless checkout
                   </CardTitle>
                   <CardDescription className="text-slate-200">
-                    We’ll fetch prices straight from Tebex and send you to their secure checkout for
+                    We’ll fetch prices straight from Tebex and open their secure checkout for
                     fulfillment.
                   </CardDescription>
                 </CardHeader>
@@ -201,20 +233,22 @@ const Store = () => {
                     </Badge>
                   </div>
 
-                  <p className="text-sm text-slate-200">
-                    Want to pay another way? Reach out on Discord and we’ll help you out.
-                  </p>
-
                   {!accountToken && (
                     <div className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
-                      Missing <span className="font-semibold">VITE_TEBEX_ACCOUNT_TOKEN</span> — checkout
-                      will be disabled.
+                      Missing <span className="font-semibold">VITE_TEBEX_ACCOUNT_TOKEN</span>.
                     </div>
                   )}
 
-                  {accountToken && !tebexReady && (
-                    <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
-                      Loading Tebex checkout…
+                  {accountToken && (
+                    <div
+                      className={cn(
+                        "text-xs rounded-md px-3 py-2 border",
+                        tebexReady
+                          ? "text-emerald-200 bg-emerald-500/10 border-emerald-500/30"
+                          : "text-slate-200 bg-white/5 border-white/10"
+                      )}
+                    >
+                      {tebexReady ? "Tebex ready ✅" : "Loading Tebex checkout…"}
                     </div>
                   )}
                 </CardContent>
