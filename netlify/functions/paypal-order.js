@@ -1,3 +1,6 @@
+const nodemailer = require('nodemailer');
+const { createClient } = require('@supabase/supabase-js');
+
 const DEFAULT_TEBEX_BASE = 'https://headless.tebex.io/api';
 
 const PAYPAL_API_BASE =
@@ -9,6 +12,28 @@ const normalizePrice = (value) => {
   if (value == null) return 0;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getSupabaseClient = () => {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false } });
+};
+
+const getMailer = () => {
+  const host = process.env.SMTP_HOST || 'mail.zvapor.xyz';
+  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: false,
+    requireTLS: true,
+    auth: { user, pass },
+  });
 };
 
 const mapProduct = (pkg, fallbackCurrency) => {
@@ -178,6 +203,79 @@ const captureOrder = async (orderId) => {
   });
 
   const data = await response.json();
+
+  if (response.ok) {
+    try {
+      const purchaseUnit = data?.purchase_units?.[0];
+      const capture = purchaseUnit?.payments?.captures?.[0];
+      const productId = purchaseUnit?.custom_id || purchaseUnit?.reference_id;
+      const payerEmail = data?.payer?.email_address || data?.payer?.email || null;
+      const amount = capture?.amount?.value || purchaseUnit?.amount?.value || null;
+      const currency = capture?.amount?.currency_code || purchaseUnit?.amount?.currency_code || null;
+
+      // Log to Supabase (best-effort)
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        await supabase.from('orders').insert([
+          {
+            paypal_order_id: orderId,
+            product_id: productId ? String(productId) : null,
+            payer_email: payerEmail,
+            amount,
+            currency,
+            status: data?.status || 'COMPLETED',
+            raw_payload: data,
+          },
+        ]);
+      }
+
+      // Send confirmation emails (best-effort)
+      const mailer = getMailer();
+      if (mailer && payerEmail) {
+        let productName = 'Tebex Product';
+        try {
+          if (productId) {
+            const product = await fetchTebexProduct(productId);
+            if (product?.name) productName = product.name;
+          }
+        } catch {
+          // ignore product lookup failure
+        }
+
+        const from = process.env.MAIL_FROM || 'no-reply@x-ampledevelopment.co.uk';
+        const toAdmin = process.env.MAIL_TO || 'info@x-ampledevelopment.co.uk';
+
+        await mailer.sendMail({
+          from,
+          to: toAdmin,
+          subject: `New PayPal Order: ${productName}`,
+          html: `
+            <h2>New PayPal Order</h2>
+            <p><strong>Product:</strong> ${productName}</p>
+            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Payer Email:</strong> ${payerEmail}</p>
+            <p><strong>Amount:</strong> ${amount || 'N/A'} ${currency || ''}</p>
+          `,
+        });
+
+        await mailer.sendMail({
+          from,
+          to: payerEmail,
+          subject: 'Your X-Ample Studios order confirmation',
+          html: `
+            <h2>Thanks for your purchase!</h2>
+            <p>We’ve received your PayPal payment.</p>
+            <p><strong>Product:</strong> ${productName}</p>
+            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Amount:</strong> ${amount || 'N/A'} ${currency || ''}</p>
+            <p>We’ll follow up if we need anything else.</p>
+          `,
+        });
+      }
+    } catch (err) {
+      console.error('Post-capture processing failed', err);
+    }
+  }
 
   return {
     statusCode: response.ok ? 200 : response.status,
