@@ -40,6 +40,7 @@ const Store = () => {
   const [cartItems, setCartItems] = useState<Array<{ productId: string; quantity: number }>>([]);
   const [tebexUsernameId, setTebexUsernameId] = useState("");
   const [tebexBasketIdent, setTebexBasketIdent] = useState<string | null>(null);
+  const [sessionToken, setSessionToken] = useState("");
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -81,6 +82,8 @@ const Store = () => {
     if (stored) setTebexBasketIdent(stored);
     const user = window.localStorage.getItem("tebexUsernameId");
     if (user) setTebexUsernameId(user);
+    const token = window.localStorage.getItem("tebexLoginToken");
+    if (token) setSessionToken(token);
   }, []);
 
   useEffect(() => {
@@ -90,18 +93,22 @@ const Store = () => {
     if (tebexUsernameId) {
       window.localStorage.setItem("tebexUsernameId", tebexUsernameId);
     }
-  }, [tebexBasketIdent, tebexUsernameId]);
+    if (sessionToken) {
+      window.localStorage.setItem("tebexLoginToken", sessionToken);
+    }
+  }, [tebexBasketIdent, tebexUsernameId, sessionToken]);
 
   useEffect(() => {
     const sync = async () => {
-      if (!tebexUsernameId || cartItems.length === 0) return;
+      if ((!tebexUsernameId && !sessionToken) || cartItems.length === 0) return;
       try {
         const res = await fetch("/.netlify/functions/tebex-basket-sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ident: tebexBasketIdent,
-            usernameId: tebexUsernameId,
+            usernameId: tebexUsernameId || undefined,
+            sessionToken: sessionToken || undefined,
             items: cartItems,
           }),
         });
@@ -118,7 +125,14 @@ const Store = () => {
     };
 
     sync();
-  }, [cartItems, tebexBasketIdent, tebexUsernameId]);
+  }, [cartItems, tebexBasketIdent, tebexUsernameId, sessionToken]);
+  const handleLogin = () => {
+    const token = sessionToken || crypto.randomUUID();
+    setSessionToken(token);
+    window.localStorage.setItem("tebexLoginToken", token);
+    const returnUrl = encodeURIComponent(`${window.location.origin}/store?cart=1`);
+    window.location.href = `https://checkout.tebex.io/login/${process.env.REACT_APP_TEBEX_ACCOUNT_TOKEN || ""}?return_url=${returnUrl}&reference=${encodeURIComponent(token)}`;
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -164,8 +178,8 @@ const Store = () => {
       toast({ title: "Cart is empty", description: "Add products before checkout." });
       return;
     }
-    if (!tebexUsernameId) {
-      toast({ title: "Username ID required", description: "Enter your Tebex username_id first." });
+    if (!tebexUsernameId && !sessionToken) {
+      toast({ title: "Login required", description: "Please login via Tebex first." });
       return;
     }
     setIsSubmitting(true);
@@ -175,7 +189,8 @@ const Store = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cartItems,
-          usernameId: tebexUsernameId,
+          usernameId: tebexUsernameId || undefined,
+          sessionToken: sessionToken || undefined,
           returnUrl: `${window.location.origin}/store?status=success`,
           cancelUrl: `${window.location.origin}/store?status=cancelled`,
         }),
@@ -472,12 +487,19 @@ const Store = () => {
                   <label className="text-xs text-slate-300">
                     Tebex username_id (required to sync Tebex basket)
                   </label>
-                  <input
+                    <input
                     value={tebexUsernameId}
                     onChange={(e) => setTebexUsernameId(e.target.value)}
                     placeholder="Enter username_id"
                     className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   />
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full mt-2"
+                      onClick={handleLogin}
+                    >
+                      Login with Tebex
+                    </Button>
                 </div>
                 {cartDetailed.map(({ product, quantity, lineTotal }) => (
                   <div key={product.id} className="flex items-center justify-between gap-4">

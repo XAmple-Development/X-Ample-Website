@@ -33,12 +33,37 @@ exports.handler = async (event) => {
     return json(400, { error: "Invalid JSON body" });
   }
 
-  const { items = [], usernameId, returnUrl, cancelUrl } = body;
-  if (!usernameId) return json(400, { error: "usernameId is required" });
+  const { items = [], usernameId, returnUrl, cancelUrl, sessionToken } = body;
   if (!Array.isArray(items) || items.length === 0) return json(400, { error: "items are required" });
 
   const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
   const resolvedCancel = cancelUrl || `${process.env.URL || ""}/store?status=cancelled`;
+
+  let resolvedUsernameId = usernameId;
+
+  if (!resolvedUsernameId && sessionToken) {
+    const { createClient } = require("@supabase/supabase-js");
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return json(500, { error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" });
+    const supabase = createClient(url, key, { auth: { persistSession: false } });
+    const { data, error } = await supabase
+      .from("tebex_login_sessions")
+      .select("username_id, expires_at")
+      .eq("session_token", String(sessionToken))
+      .limit(1)
+      .maybeSingle();
+    if (error) return json(500, { error: "Failed to fetch login session", details: error.message });
+    if (!data || !data.username_id) {
+      return json(409, { error: "Login pending", details: "No username_id stored yet." });
+    }
+    if (data.expires_at && Date.parse(data.expires_at) < Date.now()) {
+      return json(409, { error: "Login expired", details: "Login session expired, please login again." });
+    }
+    resolvedUsernameId = data.username_id;
+  }
+
+  if (!resolvedUsernameId) return json(400, { error: "usernameId is required (login first)" });
 
   let basketIdent;
 
@@ -71,7 +96,7 @@ exports.handler = async (event) => {
           body: JSON.stringify({
             package_id: Number(item.productId),
             quantity: Number(item.quantity) || 1,
-            username_id: usernameId,
+        username_id: resolvedUsernameId,
           }),
         }
       );
