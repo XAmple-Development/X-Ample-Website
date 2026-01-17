@@ -46,12 +46,26 @@ const getBasicAuthHeader = () => {
   const projectId = process.env.TEBEX_PROJECT_ID;
   const privateKey = process.env.TEBEX_PRIVATE_KEY;
   if (!projectId || !privateKey) return null;
+  return "Basic " + Buffer.from(`${projectId}:${privateKey}`).toString("base64");
+};
 
-  const token = Buffer.from(`${projectId}:${privateKey}`).toString("base64");
-  return `Basic ${token}`;
+const readBodySafe = async (res) => {
+  const raw = await res.text();
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
 };
 
 exports.handler = async (event) => {
+  // Netlify on Node 18+ includes fetch. If this throws, set Netlify runtime to node 18+.
+  if (typeof fetch !== "function") {
+    return jsonResponse(500, {
+      error: "Server runtime missing fetch(). Ensure Netlify functions use Node 18+.",
+    });
+  }
+
   // Preflight (browser)
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -85,7 +99,9 @@ exports.handler = async (event) => {
   const authHeader = getBasicAuthHeader();
 
   if (!accountToken) return jsonResponse(500, { error: "Missing env var: TEBEX_ACCOUNT_TOKEN" });
-  if (!authHeader) return jsonResponse(500, { error: "Missing env vars: TEBEX_PROJECT_ID and/or TEBEX_PRIVATE_KEY" });
+  if (!authHeader) {
+    return jsonResponse(500, { error: "Missing env vars: TEBEX_PROJECT_ID and/or TEBEX_PRIVATE_KEY" });
+  }
 
   let body;
   try {
@@ -95,7 +111,6 @@ exports.handler = async (event) => {
   }
 
   const { productId, quantity = 1, playerName, email, returnUrl, cancelUrl } = body;
-
   if (!productId) return jsonResponse(400, { error: "productId is required" });
 
   const resolvedReturn = returnUrl || `${DEFAULT_RETURN}/store?status=success`;
@@ -104,15 +119,11 @@ exports.handler = async (event) => {
 
   try {
     //
-    // 1) Create basket
-    // IMPORTANT: Do NOT send "username" for game types that disallow it (your error confirms this).
+    // 1) Create basket (no username: your game type disallows it)
     //
     const createBasketRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
       body: JSON.stringify({
         complete_url: resolvedReturn,
         cancel_url: resolvedCancel,
@@ -121,10 +132,10 @@ exports.handler = async (event) => {
     });
 
     if (!createBasketRes.ok) {
-      const raw = await createBasketRes.text();
+      const details = await readBodySafe(createBasketRes);
       return jsonResponse(createBasketRes.status, {
         error: "Failed to create Tebex basket",
-        details: raw,
+        details,
       });
     }
 
@@ -140,26 +151,38 @@ exports.handler = async (event) => {
 
     //
     // 2) Add package
-    // IMPORTANT: Do NOT send "username" here either for your game type.
+    // Try global endpoint, then fall back to account-scoped endpoint (some setups require it).
     //
-    const addPackageRes = await fetch(`${tebexBase}/baskets/${basketIdent}/packages`, {
+    const pkgPayload = {
+      package_id: Number(productId),
+      quantity: Number(quantity) || 1,
+    };
+
+    let addPackageRes = await fetch(`${tebexBase}/baskets/${basketIdent}/packages`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
-      body: JSON.stringify({
-        package_id: Number(productId),
-        quantity: Number(quantity) || 1,
-      }),
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
+      body: JSON.stringify(pkgPayload),
     });
 
     if (!addPackageRes.ok) {
-      const raw = await addPackageRes.text();
+      // fallback
+      const fallbackRes = await fetch(
+        `${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}/packages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: authHeader },
+          body: JSON.stringify(pkgPayload),
+        }
+      );
+      addPackageRes = fallbackRes;
+    }
+
+    if (!addPackageRes.ok) {
+      const details = await readBodySafe(addPackageRes);
       return jsonResponse(addPackageRes.status, {
         error: "Basket created but failed to add package",
         basketIdent,
-        details: raw,
+        details,
       });
     }
 
@@ -168,18 +191,15 @@ exports.handler = async (event) => {
     //
     const basketGetRes = await fetch(`${tebexBase}/baskets/${basketIdent}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
     });
 
     if (!basketGetRes.ok) {
-      const raw = await basketGetRes.text();
+      const details = await readBodySafe(basketGetRes);
       return jsonResponse(basketGetRes.status, {
         error: "Package added but failed to fetch basket details",
         basketIdent,
-        details: raw,
+        details,
       });
     }
 
@@ -198,7 +218,6 @@ exports.handler = async (event) => {
       });
     }
 
-    // Note: email/playerName are echoed back for your app, but not applied to Tebex here.
     return jsonResponse(200, {
       ok: true,
       basketIdent,

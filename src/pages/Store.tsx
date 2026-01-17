@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx React.createElement */
-import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -85,6 +82,7 @@ const Store = () => {
     });
   }, [products, activeCategory, searchTerm]);
 
+  // Load Tebex embedded checkout script (Safari-safe URL)
   useEffect(() => {
     if (!accountToken) return;
 
@@ -93,16 +91,26 @@ const Store = () => {
       return;
     }
 
-    const existing = document.querySelector('script[src="https://js.tebex.io/"]');
+    const SRC = "https://js.tebex.io/v/1.js";
+
+    const existing = document.querySelector(`script[src="${SRC}"]`) as HTMLScriptElement | null;
     if (existing) {
+      // If it already loaded previously, mark ready
+      if ((existing as any)._tebexLoaded) {
+        setTebexReady(true);
+        return;
+      }
       existing.addEventListener("load", () => setTebexReady(true));
       return;
     }
 
     const script = document.createElement("script");
-    script.src = "https://js.tebex.io/";
+    script.src = SRC;
     script.async = true;
-    script.onload = () => setTebexReady(true);
+    script.onload = () => {
+      (script as any)._tebexLoaded = true;
+      setTebexReady(true);
+    };
     script.onerror = () => setTebexReady(false);
     document.body.appendChild(script);
   }, [accountToken]);
@@ -192,6 +200,7 @@ const Store = () => {
                       Tebex checkout
                     </Badge>
                   </div>
+
                   <p className="text-sm text-slate-200">
                     Want to pay another way? Reach out on Discord and we’ll help you out.
                   </p>
@@ -296,7 +305,10 @@ const Store = () => {
                   const hasSale = product.salePrice && product.salePrice < product.price;
 
                   return (
-                    <Card key={product.id} className="bg-white/5 border-white/10 backdrop-blur-sm flex flex-col">
+                    <Card
+                      key={product.id}
+                      className="bg-white/5 border-white/10 backdrop-blur-sm flex flex-col"
+                    >
                       <CardHeader className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Badge className="bg-cyan-500/20 text-cyan-100 border-cyan-500/40">
