@@ -46,6 +46,7 @@ const Store = () => {
   const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [usernameId, setUsernameId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [tebexReady, setTebexReady] = useState(true); // tebex.js via npm import
@@ -85,6 +86,21 @@ const Store = () => {
     setTebexReady(true);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const user = params.get("username_id") || params.get("usernameId");
+    if (user) setUsernameId(user);
+  }, []);
+
+  const handleLogin = () => {
+    if (!accountToken) {
+      toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
+      return;
+    }
+    const returnUrl = encodeURIComponent(window.location.href);
+    window.location.href = `https://checkout.tebex.io/login/${accountToken}?return_url=${returnUrl}`;
+  };
+
   const handleCheckout = async (product: TebexProduct) => {
     if (!accountToken) {
       toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
@@ -96,7 +112,7 @@ const Store = () => {
       const res = await fetch("/.netlify/functions/tebex-checkout-ident", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, quantity: 1 }),
+        body: JSON.stringify({ productId: product.id, quantity: 1, usernameId }),
       });
       const payload = await res.json();
       if (!res.ok || !payload?.ident) {
@@ -168,12 +184,12 @@ const Store = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="bg-white/10 text-cyan-200 border-cyan-200/30">
+                    <div className="px-3 py-1 rounded-full border border-cyan-200/30 bg-white/10 text-cyan-200 text-xs font-semibold">
                       Live catalog
-                    </Badge>
-                    <Badge variant="outline" className="bg-white/10 text-teal-200 border-teal-200/30">
+                    </div>
+                    <div className="px-3 py-1 rounded-full border border-teal-200/30 bg-white/10 text-teal-200 text-xs font-semibold">
                       Tebex checkout
-                    </Badge>
+                    </div>
                   </div>
 
                   {!accountToken && (
@@ -193,6 +209,16 @@ const Store = () => {
                     >
                       {tebexReady ? "Tebex ready ✅" : "Loading Tebex checkout…"}
                     </div>
+                  )}
+
+                  {accountToken && !usernameId && (
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100"
+                      onClick={handleLogin}
+                    >
+                      Login with Tebex
+                    </Button>
                   )}
                 </CardContent>
               </Card>
@@ -288,13 +314,13 @@ const Store = () => {
                     >
                       <CardHeader className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Badge className="bg-cyan-500/20 text-cyan-100 border-cyan-500/40">
+                          <div className="px-3 py-1 rounded-full border border-cyan-500/40 bg-cyan-500/20 text-cyan-100 text-xs font-semibold">
                             {product.category ?? "General"}
-                          </Badge>
+                          </div>
                           {product.recurring && (
-                            <Badge variant="outline" className="text-teal-100 border-teal-200/40">
+                            <div className="px-3 py-1 rounded-full border border-teal-200/40 bg-white/5 text-teal-100 text-xs font-semibold">
                               {product.recurring}
-                            </Badge>
+                            </div>
                           )}
                         </div>
 

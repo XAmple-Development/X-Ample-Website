@@ -45,7 +45,7 @@ exports.handler = async (event) => {
     return json(400, { error: "Invalid JSON body" });
   }
 
-  const { productId, quantity = 1, returnUrl, cancelUrl } = body;
+  const { productId, quantity = 1, returnUrl, cancelUrl, usernameId } = body;
   if (!productId) return json(400, { error: "productId is required" });
 
   const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
@@ -87,6 +87,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         package_id: Number(productId),
         quantity: Number(quantity) || 1,
+        username_id: usernameId || undefined,
       }),
     });
 
