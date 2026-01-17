@@ -1,4 +1,4 @@
-const DEFAULT_TEBEX_BASE = 'https://plugin.tebex.io';
+const DEFAULT_TEBEX_BASE = 'https://headless.tebex.io/api';
 
 const PAYPAL_API_BASE =
   (process.env.PAYPAL_ENV === 'live' || process.env.PAYPAL_ENV === 'production')
@@ -42,18 +42,15 @@ const mapProduct = (pkg, fallbackCurrency) => {
 };
 
 const fetchTebexProduct = async (productId) => {
-  const tebexSecret = process.env.TEBEX_API_SECRET;
-  const tebexBase = (process.env.TEBEX_API_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, '');
+  const accountToken = process.env.TEBEX_ACCOUNT_TOKEN;
+  const tebexBase = (process.env.TEBEX_HEADLESS_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, '');
 
-  if (!tebexSecret) {
-    throw new Error('TEBEX_API_SECRET is not set');
+  if (!accountToken) {
+    throw new Error('TEBEX_ACCOUNT_TOKEN is not set');
   }
 
-  const response = await fetch(`${tebexBase}/packages`, {
-    headers: {
-      'X-Tebex-Secret': tebexSecret,
-      'Content-Type': 'application/json',
-    },
+  const response = await fetch(`${tebexBase}/accounts/${accountToken}/packages`, {
+    headers: { 'Content-Type': 'application/json' },
   });
 
   if (!response.ok) {
