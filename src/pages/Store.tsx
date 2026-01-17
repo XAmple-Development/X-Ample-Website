@@ -89,6 +89,7 @@ const Store = () => {
 
   useEffect(() => {
     window.localStorage.setItem("storeCart", JSON.stringify(cartItems));
+    window.dispatchEvent(new Event("store-cart-updated"));
   }, [cartItems]);
 
   const categories = useMemo(() => {

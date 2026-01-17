@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import WidgetBot from "@/components/WidgetBot";
 
@@ -10,6 +10,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, profile } = useAuth();
+  const [cartCount, setCartCount] = useState(0);
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -31,6 +32,33 @@ const Header = () => {
     if (href !== "/" && location.pathname.startsWith(href)) return true;
     return false;
     };
+
+  useEffect(() => {
+    const readCart = () => {
+      try {
+        const stored = window.localStorage.getItem("storeCart");
+        if (!stored) return setCartCount(0);
+        const items = JSON.parse(stored);
+        if (!Array.isArray(items)) return setCartCount(0);
+        const total = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+        setCartCount(total);
+      } catch {
+        setCartCount(0);
+      }
+    };
+
+    readCart();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === "storeCart") readCart();
+    };
+    const onCustom = () => readCart();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("store-cart-updated", onCustom as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("store-cart-updated", onCustom as EventListener);
+    };
+  }, []);
 
 
   return (
@@ -61,6 +89,14 @@ const Header = () => {
 
           {/* Auth Button & Mobile Menu */}
           <div className="flex items-center space-x-4">
+            <Link to="/store" className="relative hidden md:inline-flex">
+              <ShoppingCart className="w-5 h-5 text-gray-600 hover:text-cyan-500 transition-colors" />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
             {/* Auth Button */}
             {user && profile ? (
               <Link to="/dashboard">
