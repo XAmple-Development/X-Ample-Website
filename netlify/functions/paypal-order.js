@@ -101,7 +101,7 @@ const getPayPalAccessToken = async () => {
   return data?.access_token;
 };
 
-const createOrder = async (productId, customerEmail) => {
+const createOrder = async (productId, customerEmail, returnUrl, cancelUrl) => {
   const product = await fetchTebexProduct(productId);
 
   if (!product) {
@@ -136,6 +136,13 @@ const createOrder = async (productId, customerEmail) => {
       user_action: 'PAY_NOW',
     },
   };
+
+  if (returnUrl) {
+    orderPayload.application_context.return_url = returnUrl;
+  }
+  if (cancelUrl) {
+    orderPayload.application_context.cancel_url = cancelUrl;
+  }
 
   if (customerEmail) {
     orderPayload.payer = { email_address: customerEmail };
@@ -192,13 +199,13 @@ exports.handler = async (event) => {
     const body = event.body ? JSON.parse(event.body) : {};
 
     if (action === 'create') {
-      const { productId, customerEmail } = body;
+      const { productId, customerEmail, returnUrl, cancelUrl } = body;
 
       if (!productId) {
         return { statusCode: 400, body: JSON.stringify({ error: 'productId is required' }) };
       }
 
-      return await createOrder(productId, customerEmail);
+      return await createOrder(productId, customerEmail, returnUrl, cancelUrl);
     }
 
     if (action === 'capture') {

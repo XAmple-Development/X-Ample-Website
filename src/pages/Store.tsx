@@ -31,9 +31,7 @@ const formatPrice = (price: number, currency?: string) => {
 
 const Store = () => {
   const { toast } = useToast();
-  const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
-
-  const [usernameId, setUsernameId] = useState("");
+  const [paypalStatus, setPaypalStatus] = useState<"idle" | "processing">("idle");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,9 +44,33 @@ const Store = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const user = params.get("username_id") || params.get("usernameId");
-    if (user) setUsernameId(user);
-  }, []);
+    const token = params.get("token");
+    const payerId = params.get("PayerID");
+    if (!token) return;
+
+    const capture = async () => {
+      setPaypalStatus("processing");
+      try {
+        const res = await fetch("/.netlify/functions/paypal-order?action=capture", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId: token, payerId }),
+        });
+        const payload = await res.json();
+        if (!res.ok) {
+          throw new Error(payload?.error || "Unable to capture PayPal order.");
+        }
+        toast({ title: "Payment complete", description: "Your order is being processed." });
+      } catch (err: any) {
+        toast({ title: "Payment error", description: err?.message || "Please contact support." });
+      } finally {
+        setPaypalStatus("idle");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    };
+
+    capture();
+  }, [toast]);
 
   const categories = useMemo(() => {
     if (!products?.length) return ["All"];
@@ -72,38 +94,29 @@ const Store = () => {
     });
   }, [products, activeCategory, searchTerm]);
 
-  const handleLogin = () => {
-    if (!accountToken) {
-      toast({ title: "Missing token", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
-      return;
-    }
-    const returnUrl = encodeURIComponent(window.location.href);
-    window.location.href = `https://checkout.tebex.io/login/${accountToken}?return_url=${returnUrl}`;
-  };
-
   const handleCheckout = async (product: TebexProduct) => {
-    if (!accountToken) {
-      toast({ title: "Missing token", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
-      return;
-    }
-    if (!usernameId) {
-      toast({ title: "Login required", description: "Login to get a username_id first." });
-      return;
-    }
     setIsSubmitting(true);
     try {
-      const res = await fetch("/.netlify/functions/tebex-checkout-ident", {
+      const res = await fetch("/.netlify/functions/paypal-order?action=create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, quantity: 1, usernameId }),
+        body: JSON.stringify({
+          productId: product.id,
+          returnUrl: `${window.location.origin}/store`,
+          cancelUrl: `${window.location.origin}/store?cancelled=1`,
+        }),
       });
       const payload = await res.json();
-      if (!res.ok || !payload?.checkoutUrl) {
-        throw new Error(payload?.error || "Unable to start checkout.");
+      if (!res.ok || !payload?.links) {
+        throw new Error(payload?.error || "Unable to start PayPal checkout.");
       }
-      window.location.href = payload.checkoutUrl;
+      const approve = payload.links.find((link: { rel: string }) => link.rel === "approve");
+      if (!approve?.href) {
+        throw new Error("Missing PayPal approval link.");
+      }
+      window.location.href = approve.href;
     } catch (err: any) {
-      console.error("Tebex checkout error", err);
+      console.error("PayPal checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });
     } finally {
       setIsSubmitting(false);
@@ -129,11 +142,10 @@ const Store = () => {
                   Official X-Ample Store
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-4">
-                  Tebex Products. <span className="text-cyan-300">Headless Checkout.</span>
+                  Tebex Products. <span className="text-cyan-300">Pay with PayPal.</span>
                 </h1>
                 <p className="text-lg text-slate-200 max-w-2xl">
-                  This store uses Tebex Headless API to list products and build a basket, then
-                  redirects to Tebex checkout for payment and fulfillment.
+                  Products are listed from Tebex. Payments are handled securely by PayPal.
                 </p>
                 <div className="flex flex-wrap gap-3 mt-6">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
@@ -142,7 +154,7 @@ const Store = () => {
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <Wallet className="w-4 h-4 text-cyan-300" />
-                    Tebex checkout
+                    PayPal checkout
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <RefreshCw className="w-4 h-4 text-cyan-300" />
@@ -155,35 +167,18 @@ const Store = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingBag className="w-5 h-5 text-cyan-300" />
-                    Login Required
+                    Pay with PayPal
                   </CardTitle>
                   <CardDescription className="text-slate-200">
-                    Tebex requires a logged-in CFX account before adding packages to a basket.
+                    We create a PayPal order and redirect you to approve payment.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {!accountToken && (
-                    <div className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
-                      Missing <span className="font-semibold">VITE_TEBEX_ACCOUNT_TOKEN</span>.
+                  {paypalStatus === "processing" && (
+                    <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
+                      Processing PayPal payment…
                     </div>
                   )}
-                  <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
-                    onClick={handleLogin}
-                    disabled={!accountToken}
-                  >
-                    Login with Tebex
-                  </Button>
-                  <div className="space-y-1">
-                    <label className="text-xs text-slate-300">Username ID (from Tebex login)</label>
-                    <input
-                      value={usernameId}
-                      onChange={(e) => setUsernameId(e.target.value)}
-                      placeholder="Paste username_id after login"
-                      className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                    />
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -314,9 +309,9 @@ const Store = () => {
                         <Button
                           className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
                           onClick={() => handleCheckout(product)}
-                          disabled={isSubmitting || !accountToken}
+                          disabled={isSubmitting}
                         >
-                          {isSubmitting ? "Starting..." : "Checkout via Tebex"}
+                          {isSubmitting ? "Starting..." : "Pay with PayPal"}
                         </Button>
                       </CardContent>
                     </Card>
