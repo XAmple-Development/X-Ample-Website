@@ -8,10 +8,14 @@ const jsonResponse = (statusCode, body) => ({
 });
 
 exports.handler = async (event) => {
+  if (event.httpMethod === 'GET') {
+    return jsonResponse(200, { ok: true, message: 'Use POST with productId to create a Tebex basket.' });
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { Allow: 'POST' },
+      headers: { Allow: 'POST, GET' },
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
