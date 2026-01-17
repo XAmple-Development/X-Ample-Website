@@ -126,13 +126,30 @@ const Store = () => {
 
     sync();
   }, [cartItems, tebexBasketIdent, tebexUsernameId, sessionToken]);
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const token = sessionToken || crypto.randomUUID();
     setSessionToken(token);
     window.localStorage.setItem("tebexLoginToken", token);
-    const returnUrl = encodeURIComponent(`${window.location.origin}/store?cart=1`);
-    const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
-    window.location.href = `https://checkout.tebex.io/login/${accountToken || ""}?return_url=${returnUrl}&reference=${encodeURIComponent(token)}`;
+    try {
+      const res = await fetch("/.netlify/functions/tebex-basket-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authOnly: true,
+          ident: tebexBasketIdent,
+          sessionToken: token,
+          returnUrl: `${window.location.origin}/store?cart=1`,
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok || !payload?.authUrl) {
+        throw new Error(payload?.error || "Unable to start Tebex login.");
+      }
+      if (payload?.ident) setTebexBasketIdent(payload.ident);
+      window.location.href = payload.authUrl;
+    } catch (err: any) {
+      toast({ title: "Login failed", description: err?.message || "Please try again." });
+    }
   };
 
   useEffect(() => {
@@ -197,8 +214,16 @@ const Store = () => {
         }),
       });
       const payload = await res.json();
-      if (!res.ok || !payload?.checkoutUrl) {
+      if (!res.ok) {
         throw new Error(payload?.error || "Unable to start Tebex checkout.");
+      }
+      if (payload?.authUrl) {
+        if (payload?.ident) setTebexBasketIdent(payload.ident);
+        window.location.href = payload.authUrl;
+        return;
+      }
+      if (!payload?.checkoutUrl) {
+        throw new Error("Missing Tebex checkout URL.");
       }
       window.location.href = payload.checkoutUrl;
     } catch (err: any) {

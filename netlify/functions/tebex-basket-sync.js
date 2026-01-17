@@ -7,10 +7,10 @@ const json = (statusCode, body) => ({
 });
 
 const getAuthHeader = () => {
-  const projectId = process.env.TEBEX_PROJECT_ID;
+  const publicToken = process.env.TEBEX_PUBLIC_TOKEN;
   const privateKey = process.env.TEBEX_PRIVATE_KEY;
-  if (!projectId || !privateKey) return null;
-  const token = Buffer.from(`${projectId}:${privateKey}`).toString("base64");
+  if (!publicToken || !privateKey) return null;
+  const token = Buffer.from(`${publicToken}:${privateKey}`).toString("base64");
   return `Basic ${token}`;
 };
 
@@ -24,7 +24,7 @@ exports.handler = async (event) => {
   const tebexBase = (process.env.TEBEX_HEADLESS_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, "");
 
   if (!accountToken) return json(500, { error: "Missing TEBEX_ACCOUNT_TOKEN" });
-  if (!authHeader) return json(500, { error: "Missing TEBEX_PROJECT_ID or TEBEX_PRIVATE_KEY" });
+  if (!authHeader) return json(500, { error: "Missing TEBEX_PUBLIC_TOKEN or TEBEX_PRIVATE_KEY" });
 
   let body;
   try {
@@ -33,8 +33,8 @@ exports.handler = async (event) => {
     return json(400, { error: "Invalid JSON body" });
   }
 
-  const { items = [], usernameId, returnUrl, cancelUrl, sessionToken } = body;
-  if (!Array.isArray(items) || items.length === 0) return json(400, { error: "items are required" });
+  const { items = [], usernameId, returnUrl, cancelUrl, sessionToken, ident, authOnly } = body;
+  if (!Array.isArray(items) && !authOnly) return json(400, { error: "items are required" });
 
   const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
   const resolvedCancel = cancelUrl || `${process.env.URL || ""}/store?status=cancelled`;
@@ -65,28 +65,53 @@ exports.handler = async (event) => {
 
   if (!resolvedUsernameId) return json(400, { error: "usernameId is required (login first)" });
 
-  let basketIdent;
+  let basketIdent = ident || null;
 
   try {
-    const basketRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: authHeader },
-      body: JSON.stringify({
-        complete_url: resolvedReturn,
-        cancel_url: resolvedCancel,
-        username_id: usernameId,
-      }),
-    });
-    if (!basketRes.ok) {
-      return json(basketRes.status, {
-        error: "Failed to create basket",
-        details: await basketRes.text(),
+    if (!basketIdent) {
+      const basketRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: authHeader },
+        body: JSON.stringify({
+          complete_url: resolvedReturn,
+          cancel_url: resolvedCancel,
+        }),
       });
+      if (!basketRes.ok) {
+        return json(basketRes.status, {
+          error: "Failed to create basket",
+          details: await basketRes.text(),
+        });
+      }
+      const basketData = await basketRes.json();
+      basketIdent = basketData?.data?.ident || basketData?.ident;
     }
-    const basketData = await basketRes.json();
-    basketIdent = basketData?.data?.ident || basketData?.ident;
 
     // Add each item
+    // If not yet authorized, return auth URL
+    if (!resolvedUsernameId) {
+      const authRes = await fetch(
+        `${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}/auth?returnUrl=${encodeURIComponent(
+          resolvedReturn
+        )}`,
+        { headers: { Authorization: authHeader } }
+      );
+      if (!authRes.ok) {
+        return json(authRes.status, {
+          error: "Failed to fetch auth URL",
+          details: await authRes.text(),
+          ident: basketIdent,
+        });
+      }
+      const authOptions = await authRes.json();
+      const firstUrl = Array.isArray(authOptions) ? authOptions[0]?.url : authOptions?.url;
+      return json(200, { ident: basketIdent, authUrl: firstUrl || null });
+    }
+
+    if (!items || items.length === 0) {
+      return json(200, { ident: basketIdent, checkoutUrl: null, count: 0 });
+    }
+
     for (const item of items) {
       const addRes = await fetch(
         `${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}/packages`,
@@ -96,7 +121,7 @@ exports.handler = async (event) => {
           body: JSON.stringify({
             package_id: Number(item.productId),
             quantity: Number(item.quantity) || 1,
-        username_id: resolvedUsernameId,
+            username_id: resolvedUsernameId,
           }),
         }
       );
