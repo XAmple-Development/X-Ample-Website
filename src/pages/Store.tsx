@@ -10,8 +10,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
@@ -57,8 +55,6 @@ const Store = () => {
   const { toast } = useToast();
   const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
 
-  const [selectedProduct, setSelectedProduct] = useState<TebexProduct | null>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
@@ -94,17 +90,6 @@ const Store = () => {
     });
   }, [products, activeCategory, searchTerm]);
 
-  const openCheckout = (product: TebexProduct) => {
-    setSelectedProduct(product);
-    setCheckoutOpen(true);
-  };
-
-  const closeCheckout = () => {
-    setCheckoutOpen(false);
-    setSelectedProduct(null);
-    setIsSubmitting(false);
-  };
-
   useEffect(() => {
     if (!accountToken) return;
     if (window.TebexCheckout) {
@@ -119,8 +104,7 @@ const Store = () => {
     document.body.appendChild(script);
   }, [accountToken]);
 
-  const handleCheckout = async () => {
-    if (!selectedProduct) return;
+  const handleCheckout = async (product: TebexProduct) => {
     if (!accountToken) {
       toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
       return;
@@ -133,10 +117,8 @@ const Store = () => {
     try {
       window.TebexCheckout.openCheckout({
         account: accountToken,
-        packageId: String(selectedProduct.id),
+        packageId: String(product.id),
       });
-      setCheckoutOpen(false);
-      setSelectedProduct(null);
     } catch (err: any) {
       console.error("Tebex checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });
@@ -235,11 +217,11 @@ const Store = () => {
                 ))}
               </div>
               <div className="w-full md:w-72">
-                <Input
+                <input
                   placeholder="Search products..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-slate-400"
+                  className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
             </div>
@@ -338,9 +320,16 @@ const Store = () => {
                         )}
                         <Button
                           className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-                          onClick={() => openCheckout(product)}
+                          onClick={() => handleCheckout(product)}
+                          disabled={isSubmitting || !accountToken || !tebexReady}
                         >
-                          {accountToken ? "Checkout via Tebex" : "Connect Tebex token"}
+                          {isSubmitting
+                            ? "Starting..."
+                            : !accountToken
+                              ? "Set Tebex token"
+                              : !tebexReady
+                                ? "Loading Tebex..."
+                                : "Checkout via Tebex"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -353,70 +342,6 @@ const Store = () => {
       </main>
 
       <Footer />
-
-      <Dialog open={checkoutOpen} onOpenChange={(open) => (open ? setCheckoutOpen(true) : closeCheckout())}>
-        <DialogContent className="sm:max-w-lg bg-slate-950 text-white border-white/10">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-cyan-300" />
-              Checkout via Tebex
-            </DialogTitle>
-            <DialogDescription className="text-slate-200">
-              We’ll launch the embedded Tebex checkout for secure payment and automatic fulfillment.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedProduct && (
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-slate-400">Product</p>
-                  <p className="font-semibold">{selectedProduct.name}</p>
-                  <p className="text-sm text-slate-300 mt-1 line-clamp-2">
-                    {selectedProduct.description || "No description provided."}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Total</p>
-                  <p className="text-xl font-bold text-cyan-300">
-                    {formatPrice(selectedProduct.salePrice ?? selectedProduct.price, selectedProduct.currency)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-white/10 bg-white/5 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm text-slate-200">
-                  <CheckCircle2 className="w-4 h-4 text-teal-300" />
-                  Secure Tebex checkout
-                </div>
-                {!accountToken && (
-                  <div className="text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-md p-3">
-                    Missing VITE_TEBEX_ACCOUNT_TOKEN. Add it to start checkout.
-                  </div>
-                )}
-                <Button
-                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-                  onClick={handleCheckout}
-                  disabled={isSubmitting || !accountToken || !tebexReady}
-                >
-                  {isSubmitting
-                    ? "Starting checkout..."
-                    : !accountToken
-                      ? "Set Tebex token"
-                      : !tebexReady
-                        ? "Loading Tebex..."
-                        : "Open Tebex checkout"}
-                </Button>
-              </div>
-
-              <div className="text-xs text-slate-400 leading-relaxed">
-                Payments and fulfillment are processed by Tebex. If you need help after checkout,
-                contact support with your Tebex order ID and email.
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
