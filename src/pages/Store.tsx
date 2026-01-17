@@ -97,7 +97,7 @@ const Store = () => {
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://js.tebex.io/embed.js";
+    script.src = "https://js.tebex.io/";
     script.async = true;
     script.onload = () => setTebexReady(true);
     script.onerror = () => setTebexReady(false);
