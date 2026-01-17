@@ -89,7 +89,11 @@ const Header = () => {
 
           {/* Auth Button & Mobile Menu */}
           <div className="flex items-center space-x-4">
-            <Link to="/store" className="relative hidden md:inline-flex">
+            <Link
+              to="/store?cart=1"
+              className="relative hidden md:inline-flex"
+              onClick={() => window.dispatchEvent(new Event("store-cart-open"))}
+            >
               <ShoppingCart className="w-5 h-5 text-gray-600 hover:text-cyan-500 transition-colors" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">

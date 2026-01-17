@@ -1,6 +1,7 @@
 /** @jsxRuntime classic */
 /** @jsx React.createElement */
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -31,6 +32,7 @@ const formatPrice = (price: number, currency?: string) => {
 
 const Store = () => {
   const { toast } = useToast();
+  const location = useLocation();
   const [paypalStatus, setPaypalStatus] = useState<"idle" | "processing">("idle");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
@@ -91,6 +93,23 @@ const Store = () => {
     window.localStorage.setItem("storeCart", JSON.stringify(cartItems));
     window.dispatchEvent(new Event("store-cart-updated"));
   }, [cartItems]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("cart") === "1") {
+      setCartOpen(true);
+      params.delete("cart");
+      const nextSearch = params.toString();
+      const nextUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const open = () => setCartOpen(true);
+    window.addEventListener("store-cart-open", open);
+    return () => window.removeEventListener("store-cart-open", open);
+  }, []);
 
   const categories = useMemo(() => {
     if (!products?.length) return ["All"];
