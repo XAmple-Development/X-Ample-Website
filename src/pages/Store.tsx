@@ -33,7 +33,6 @@ const formatPrice = (price: number, currency?: string) => {
 const Store = () => {
   const { toast } = useToast();
   const location = useLocation();
-  const [paypalStatus, setPaypalStatus] = useState<"idle" | "processing">("idle");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,33 +49,14 @@ const Store = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const payerId = params.get("PayerID");
-    if (!token) return;
-
-    const capture = async () => {
-      setPaypalStatus("processing");
-      try {
-        const res = await fetch("/.netlify/functions/paypal-order?action=capture", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId: token, payerId }),
-        });
-        const payload = await res.json();
-        if (!res.ok) {
-          throw new Error(payload?.error || "Unable to capture PayPal order.");
-        }
-        toast({ title: "Payment complete", description: "Your order is being processed." });
-        setCartItems([]);
-      } catch (err: any) {
-        toast({ title: "Payment error", description: err?.message || "Please contact support." });
-      } finally {
-        setPaypalStatus("idle");
-        window.history.replaceState({}, "", window.location.pathname);
-      }
-    };
-
-    capture();
+    if (params.get("status") === "success") {
+      toast({ title: "Checkout complete", description: "Thanks! Tebex will process your order." });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (params.get("status") === "cancelled") {
+      toast({ title: "Checkout cancelled", description: "You can resume anytime." });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, [toast]);
 
   useEffect(() => {
@@ -184,28 +164,29 @@ const Store = () => {
       toast({ title: "Cart is empty", description: "Add products before checkout." });
       return;
     }
+    if (!tebexUsernameId) {
+      toast({ title: "Username ID required", description: "Enter your Tebex username_id first." });
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const res = await fetch("/.netlify/functions/paypal-order?action=create", {
+      const res = await fetch("/.netlify/functions/tebex-basket-sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cartItems,
-          returnUrl: `${window.location.origin}/store`,
-          cancelUrl: `${window.location.origin}/store?cancelled=1`,
+          usernameId: tebexUsernameId,
+          returnUrl: `${window.location.origin}/store?status=success`,
+          cancelUrl: `${window.location.origin}/store?status=cancelled`,
         }),
       });
       const payload = await res.json();
-      if (!res.ok || !payload?.links) {
-        throw new Error(payload?.error || "Unable to start PayPal checkout.");
+      if (!res.ok || !payload?.checkoutUrl) {
+        throw new Error(payload?.error || "Unable to start Tebex checkout.");
       }
-      const approve = payload.links.find((link: { rel: string }) => link.rel === "approve");
-      if (!approve?.href) {
-        throw new Error("Missing PayPal approval link.");
-      }
-      window.location.href = approve.href;
+      window.location.href = payload.checkoutUrl;
     } catch (err: any) {
-      console.error("PayPal checkout error", err);
+      console.error("Tebex checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });
     } finally {
       setIsSubmitting(false);
@@ -287,10 +268,10 @@ const Store = () => {
                   Official X-Ample Store
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-4">
-                  Tebex Products. <span className="text-cyan-300">Pay with PayPal.</span>
+                  Tebex Products. <span className="text-cyan-300">Headless Checkout.</span>
                 </h1>
                 <p className="text-lg text-slate-200 max-w-2xl">
-                  Products are listed from Tebex. Payments are handled securely by PayPal.
+                  Products are listed from Tebex. Checkout is handled by Tebex via the Headless API.
                 </p>
                 <div className="flex flex-wrap gap-3 mt-6">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
@@ -299,7 +280,7 @@ const Store = () => {
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <Wallet className="w-4 h-4 text-cyan-300" />
-                    PayPal checkout
+                    Tebex checkout
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <RefreshCw className="w-4 h-4 text-cyan-300" />
@@ -312,18 +293,16 @@ const Store = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingBag className="w-5 h-5 text-cyan-300" />
-                    Pay with PayPal
+                    Tebex Checkout
                   </CardTitle>
                   <CardDescription className="text-slate-200">
-                    We create a PayPal order and redirect you to approve payment.
+                    We create a Tebex basket and redirect you to checkout.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {paypalStatus === "processing" && (
-                    <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
-                      Processing PayPal payment…
-                    </div>
-                  )}
+                  <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
+                    Enter your Tebex username_id inside the basket to sync items.
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -534,7 +513,7 @@ const Store = () => {
                   onClick={handleCheckout}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Starting..." : "Checkout with PayPal"}
+                  {isSubmitting ? "Starting..." : "Checkout via Tebex"}
                 </Button>
               </div>
             )}

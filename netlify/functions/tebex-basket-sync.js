@@ -33,28 +33,33 @@ exports.handler = async (event) => {
     return json(400, { error: "Invalid JSON body" });
   }
 
-  const { items = [], usernameId, ident } = body;
+  const { items = [], usernameId, returnUrl, cancelUrl } = body;
   if (!usernameId) return json(400, { error: "usernameId is required" });
   if (!Array.isArray(items) || items.length === 0) return json(400, { error: "items are required" });
 
-  let basketIdent = ident;
+  const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
+  const resolvedCancel = cancelUrl || `${process.env.URL || ""}/store?status=cancelled`;
+
+  let basketIdent;
 
   try {
-    if (!basketIdent) {
-      const basketRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: authHeader },
-        body: JSON.stringify({}),
+    const basketRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
+      body: JSON.stringify({
+        complete_url: resolvedReturn,
+        cancel_url: resolvedCancel,
+        username_id: usernameId,
+      }),
+    });
+    if (!basketRes.ok) {
+      return json(basketRes.status, {
+        error: "Failed to create basket",
+        details: await basketRes.text(),
       });
-      if (!basketRes.ok) {
-        return json(basketRes.status, {
-          error: "Failed to create basket",
-          details: await basketRes.text(),
-        });
-      }
-      const basketData = await basketRes.json();
-      basketIdent = basketData?.data?.ident || basketData?.ident;
     }
+    const basketData = await basketRes.json();
+    basketIdent = basketData?.data?.ident || basketData?.ident;
 
     // Add each item
     for (const item of items) {
@@ -93,7 +98,13 @@ exports.handler = async (event) => {
     const basketDetails = await basketGet.json();
     const packages = basketDetails?.data?.packages || [];
     const count = packages.reduce((sum, p) => sum + (Number(p?.qty) || 0), 0);
-    return json(200, { ident: basketIdent, count });
+    const checkoutUrl =
+      basketDetails?.data?.links?.checkout ||
+      basketDetails?.links?.checkout ||
+      basketDetails?.data?.checkout_url ||
+      basketDetails?.checkout_url ||
+      null;
+    return json(200, { ident: basketIdent, count, checkoutUrl });
   } catch (err) {
     console.error("tebex-basket-sync error", err);
     return json(500, { error: "Unexpected Tebex error", details: String(err?.message || err) });
