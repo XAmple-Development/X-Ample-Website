@@ -4,8 +4,9 @@ const json = (statusCode, body) => ({
   statusCode,
   headers: {
     "Content-Type": "application/json",
-    // If you're calling from browser:
     "Access-Control-Allow-Origin": "*",
+    // Helps with some setups/tools:
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   },
   body: JSON.stringify(body),
 });
@@ -25,7 +26,7 @@ exports.handler = async (event) => {
       statusCode: 204,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
       },
       body: "",
@@ -51,8 +52,8 @@ exports.handler = async (event) => {
   }
 
   const {
-    items = [], // [{ productId, quantity }]
-    ident: providedIdent, // reuse basket if you want
+    items = [],                 // [{ productId, quantity }]
+    ident: providedIdent,        // reuse basket if you want
     authOnly = false,
     returnUrl,
     cancelUrl,
@@ -61,35 +62,30 @@ exports.handler = async (event) => {
   const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
   const resolvedCancel = cancelUrl || `${process.env.URL || ""}/store?status=cancelled`;
 
+  // OPTIONAL SAFER DEFAULT (recommended):
+  // const resolvedReturn = returnUrl || `${process.env.URL || ""}/store`;
+
   const headers = {
     "Content-Type": "application/json",
     Authorization: authHeader,
   };
 
   const getAuthUrl = async (ident) => {
-    const authRes = await fetch(
-      `${tebexBase}/accounts/${accountToken}/baskets/${ident}/auth?returnUrl=${encodeURIComponent(
-        resolvedReturn
-      )}`,
-      { headers: { Authorization: authHeader } }
-    );
+    const url = `${tebexBase}/accounts/${accountToken}/baskets/${ident}/auth?returnUrl=${encodeURIComponent(
+      // where to send the user AFTER they finish login
+      `${process.env.URL || ""}/store`
+    )}`;
+
+    const authRes = await fetch(url, { headers: { Authorization: authHeader } });
 
     if (!authRes.ok) {
-      return {
-        ok: false,
-        status: authRes.status,
-        details: await authRes.text(),
-      };
+      return { ok: false, status: authRes.status, details: await authRes.text() };
     }
 
     const authOptions = await authRes.json();
     const firstUrl = Array.isArray(authOptions) ? authOptions[0]?.url : authOptions?.url;
 
-    return {
-      ok: true,
-      authUrl: firstUrl || null,
-      authOptions,
-    };
+    return { ok: true, authUrl: firstUrl || null, authOptions };
   };
 
   const getBasket = async (ident) => {
@@ -104,7 +100,7 @@ exports.handler = async (event) => {
   };
 
   const addPackage = async (ident, productId, quantity) => {
-    // IMPORTANT: add-package endpoint is /baskets/{ident}/packages (NOT /accounts/.../baskets/.../packages)
+    // Correct endpoint:
     const res = await fetch(`${tebexBase}/baskets/${ident}/packages`, {
       method: "POST",
       headers,
@@ -145,18 +141,14 @@ exports.handler = async (event) => {
       const basketData = await basketRes.json();
       ident = basketData?.data?.ident || basketData?.ident;
 
-      if (!ident) {
-        return json(500, { error: "Basket created but ident missing", basket: basketData });
-      }
+      if (!ident) return json(500, { error: "Basket created but ident missing", basket: basketData });
     }
 
     // 2) If authOnly, just return auth URL
     if (authOnly) {
       const auth = await getAuthUrl(ident);
-      if (!auth.ok) {
-        return json(auth.status, { error: "Failed to fetch auth URL", details: auth.details, ident });
-      }
-      return json(200, { ident, authUrl: auth.authUrl, authOptions: auth.authOptions });
+      if (!auth.ok) return json(auth.status, { error: "Failed to fetch auth URL", details: auth.details, ident });
+      return json(200, { ident, authUrl: auth.authUrl, authOptions: auth.authOptions, loginRequired: true });
     }
 
     // 3) Try add items (if any)
@@ -168,42 +160,24 @@ exports.handler = async (event) => {
         const add = await addPackage(ident, productId, item?.quantity);
 
         // If user isn't authenticated yet, return auth URL
-        if (!add.ok && add.status === 422 && String(add.details).includes("must login")) {
+        if (!add.ok && add.status === 422 && String(add.details).toLowerCase().includes("must login")) {
           const auth = await getAuthUrl(ident);
-          if (!auth.ok) {
-            return json(auth.status, { error: "Login required, but auth URL failed", details: auth.details, ident });
-          }
-          return json(200, {
-            ident,
-            authUrl: auth.authUrl,
-            loginRequired: true,
-          });
+          if (!auth.ok) return json(auth.status, { error: "Login required, but auth URL failed", details: auth.details, ident });
+          return json(200, { ident, authUrl: auth.authUrl, loginRequired: true });
         }
 
         if (!add.ok) {
-          return json(add.status, {
-            error: "Failed to add package to basket",
-            details: add.details,
-            ident,
-            productId,
-          });
+          return json(add.status, { error: "Failed to add package to basket", details: add.details, ident, productId });
         }
       }
     }
 
     // 4) Fetch basket to get checkout URL
     const basket = await getBasket(ident);
-    if (!basket.ok) {
-      return json(basket.status, { error: "Failed to fetch basket", details: basket.details, ident });
-    }
+    if (!basket.ok) return json(basket.status, { error: "Failed to fetch basket", details: basket.details, ident });
 
     const b = basket.data?.data || basket.data;
-    const checkoutUrl =
-      b?.links?.checkout ||
-      basket.data?.links?.checkout ||
-      b?.checkout_url ||
-      basket.data?.checkout_url ||
-      null;
+    const checkoutUrl = b?.links?.checkout || basket.data?.links?.checkout || b?.checkout_url || basket.data?.checkout_url || null;
 
     const count = Array.isArray(b?.packages)
       ? b.packages.reduce((sum, p) => sum + (Number(p?.in_basket?.quantity) || 0), 0)
@@ -216,6 +190,7 @@ exports.handler = async (event) => {
       usernameId: b?.username_id || null,
       username: b?.username || null,
       basket: b,
+      loginRequired: false,
     });
   } catch (err) {
     console.error("tebex-basket error", err);
