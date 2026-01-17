@@ -77,7 +77,8 @@ exports.handler = async (event) => {
     if (!ident) return json(500, { error: "Missing basket ident", details: basketData });
 
     // Add package
-    const addPkgRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${ident}/packages`, {
+    // Add package (no account prefix needed when using ident)
+    const addPkgRes = await fetch(`${tebexBase}/baskets/${ident}/packages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
