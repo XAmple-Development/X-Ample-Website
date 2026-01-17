@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -18,7 +18,6 @@ import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
 import {
   CheckCircle2,
-  CreditCard,
   RefreshCw,
   ShieldCheck,
   ShoppingBag,
@@ -26,14 +25,6 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-declare global {
-  interface Window {
-    paypal?: any;
-  }
-}
-
-type PayPalStatus = "idle" | "loading" | "ready" | "error" | "missingClientId" | "processing";
 
 const formatPrice = (price: number, currency?: string) => {
   if (!price && price !== 0) return "";
@@ -56,13 +47,12 @@ const fetchProducts = async (): Promise<TebexProduct[]> => {
 
 const Store = () => {
   const { toast } = useToast();
-  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 
   const [selectedProduct, setSelectedProduct] = useState<TebexProduct | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [paypalStatus, setPaypalStatus] = useState<PayPalStatus>("idle");
-  const [paypalReadyToRender, setPaypalReadyToRender] = useState(false);
-  const [paypalButtonsMounted, setPaypalButtonsMounted] = useState(false);
+  const [playerName, setPlayerName] = useState("");
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
@@ -96,143 +86,52 @@ const Store = () => {
     });
   }, [products, activeCategory, searchTerm]);
 
-  const resetPayPalState = () => {
-    setPaypalStatus("idle");
-    setPaypalReadyToRender(false);
-    setPaypalButtonsMounted(false);
-  };
-
-  useEffect(() => {
-    if (!selectedProduct || !checkoutOpen) return;
-
-    if (!paypalClientId) {
-      setPaypalStatus("missingClientId");
-      return;
-    }
-
-    const currencyCode = selectedProduct.currency || "USD";
-    const existingScript = document.querySelector(
-      `script[data-paypal-sdk][data-currency="${currencyCode}"]`
-    ) as HTMLScriptElement | null;
-
-    const loadButtons = () => {
-      if (!window.paypal) {
-        setPaypalStatus("error");
-        return;
-      }
-      setPaypalReadyToRender(true);
-      setPaypalStatus("ready");
-    };
-
-    if (window.paypal && existingScript) {
-      loadButtons();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=${currencyCode}`;
-    script.async = true;
-    script.dataset.paypalSdk = "true";
-    script.dataset.currency = currencyCode;
-    script.onload = loadButtons;
-    script.onerror = () => setPaypalStatus("error");
-
-    setPaypalStatus("loading");
-    document.body.appendChild(script);
-
-    return () => {
-      // leave the script in place for reuse; PayPal recommends not tearing it down between renders
-    };
-  }, [selectedProduct, checkoutOpen, paypalClientId]);
-
-  useEffect(() => {
-    if (!selectedProduct || !checkoutOpen || !paypalReadyToRender || !window.paypal) {
-      return;
-    }
-
-    const buttonContainer = document.getElementById("paypal-buttons");
-    if (!buttonContainer) return;
-
-    buttonContainer.innerHTML = "";
-
-    const buttons = window.paypal.Buttons({
-      style: { color: "blue", shape: "rect", label: "paypal", height: 45 },
-      createOrder: async () => {
-        setPaypalStatus("processing");
-        const res = await fetch("/.netlify/functions/paypal-order?action=create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: selectedProduct.id }),
-        });
-
-        const payload = await res.json();
-
-        if (!res.ok || !payload.id) {
-          setPaypalStatus("error");
-          const message =
-            payload?.error || "We could not start the PayPal payment. Please try again.";
-          toast({ title: "Payment error", description: message });
-          throw new Error(message);
-        }
-
-        setPaypalStatus("ready");
-        return payload.id;
-      },
-      onApprove: async (data) => {
-        setPaypalStatus("processing");
-        const res = await fetch("/.netlify/functions/paypal-order?action=capture", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId: data.orderID, productId: selectedProduct.id }),
-        });
-
-        const payload = await res.json();
-
-        if (!res.ok) {
-          setPaypalStatus("error");
-          toast({
-            title: "Capture failed",
-            description: payload?.error || "Unable to capture your payment. No charge was made.",
-          });
-          return;
-        }
-
-        setPaypalStatus("ready");
-        setCheckoutOpen(false);
-        setSelectedProduct(null);
-        toast({
-          title: "Payment received",
-          description: "Thanks! We’ve started processing your order.",
-        });
-      },
-      onError: (err) => {
-        console.error("PayPal checkout error", err);
-        setPaypalStatus("error");
-        toast({
-          title: "Payment error",
-          description: "Something went wrong while contacting PayPal. Please try again.",
-        });
-      },
-    });
-
-    buttons.render(buttonContainer);
-    setPaypalButtonsMounted(true);
-
-    return () => {
-      buttons.close?.();
-    };
-  }, [selectedProduct, checkoutOpen, paypalReadyToRender, toast]);
-
   const openCheckout = (product: TebexProduct) => {
     setSelectedProduct(product);
     setCheckoutOpen(true);
-    resetPayPalState();
+    setPlayerName("");
+    setEmail("");
   };
 
   const closeCheckout = () => {
     setCheckoutOpen(false);
     setSelectedProduct(null);
-    resetPayPalState();
+    setIsSubmitting(false);
+  };
+
+  const handleCheckout = async () => {
+    if (!selectedProduct) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/.netlify/functions/tebex-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: 1,
+          playerName: playerName || undefined,
+          email: email || undefined,
+          returnUrl: `${window.location.origin}/store?status=success`,
+          cancelUrl: `${window.location.origin}/store?status=cancelled`,
+        }),
+      });
+
+      const payload = await res.json();
+
+      if (!res.ok || !payload.checkoutUrl) {
+        throw new Error(payload?.error || "Unable to start checkout right now.");
+      }
+
+      window.location.href = payload.checkoutUrl;
+    } catch (err: any) {
+      console.error("Tebex checkout error", err);
+      toast({
+        title: "Checkout failed",
+        description: err?.message || "Please try again in a moment.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -254,11 +153,11 @@ const Store = () => {
                   Official X-Ample Store
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-4">
-                  Tebex Products. <span className="text-cyan-300">Pay with PayPal.</span>
+                  Tebex Products. <span className="text-cyan-300">Pay through Tebex.</span>
                 </h1>
                 <p className="text-lg text-slate-200 max-w-2xl">
-                  Browse every product from your Tebex store and check out securely through PayPal.
-                  Once payment completes, we’ll process fulfillment just like any Tebex purchase.
+                  Browse every product from your Tebex store and check out securely on Tebex for
+                  automatic fulfillment.
                 </p>
                 <div className="flex flex-wrap gap-3 mt-6">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
@@ -282,8 +181,8 @@ const Store = () => {
                     Seamless checkout
                   </CardTitle>
                   <CardDescription className="text-slate-200">
-                    We’ll fetch prices straight from Tebex. PayPal handles the payment, and we’ll
-                    deliver as normal on our side.
+                    We’ll fetch prices straight from Tebex and send you to their secure checkout for
+                    fulfillment.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -292,11 +191,11 @@ const Store = () => {
                       Live catalog
                     </Badge>
                     <Badge variant="outline" className="bg-white/10 text-teal-200 border-teal-200/30">
-                      PayPal only
+                      Tebex checkout
                     </Badge>
                   </div>
                   <p className="text-sm text-slate-200">
-                    Looking for another payment method? Reach out on Discord and we’ll help you out.
+                    Want to pay another way? Reach out on Discord and we’ll help you out.
                   </p>
                 </CardContent>
               </Card>
@@ -430,8 +329,7 @@ const Store = () => {
                           className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
                           onClick={() => openCheckout(product)}
                         >
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Buy with PayPal
+                          Buy now
                         </Button>
                       </CardContent>
                     </Card>
@@ -449,12 +347,11 @@ const Store = () => {
         <DialogContent className="sm:max-w-lg bg-slate-950 text-white border-white/10">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-cyan-300" />
-              Checkout with PayPal
+              <ShoppingBag className="w-5 h-5 text-cyan-300" />
+              Checkout via Tebex
             </DialogTitle>
             <DialogDescription className="text-slate-200">
-              We’ll create a PayPal order for this Tebex product. No charges are made until you
-              confirm in PayPal.
+              We’ll redirect you to Tebex checkout for secure payment and automatic fulfillment.
             </DialogDescription>
           </DialogHeader>
 
@@ -476,43 +373,36 @@ const Store = () => {
                 </div>
               </div>
 
-              {!paypalClientId && (
-                <div className="bg-amber-500/10 border border-amber-500/40 text-amber-100 px-3 py-2 rounded-md text-sm">
-                  Missing VITE_PAYPAL_CLIENT_ID. Set this in your env to render PayPal buttons.
-                </div>
-              )}
-
-              <div className="rounded-md border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-2 mb-3 text-sm text-slate-200">
+              <div className="rounded-md border border-white/10 bg-white/5 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm text-slate-200">
                   <CheckCircle2 className="w-4 h-4 text-teal-300" />
-                  Secure PayPal checkout
+                  Secure Tebex checkout
                 </div>
-                {paypalStatus === "loading" && (
-                  <div className="flex items-center gap-2 text-sm text-slate-300">
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Loading PayPal…
-                  </div>
-                )}
-                {paypalStatus === "error" && (
-                  <div className="text-sm text-red-200">
-                    Couldn’t load PayPal. Please close and try again.
-                  </div>
-                )}
-                <div id="paypal-buttons" />
-                {paypalStatus === "ready" && !paypalButtonsMounted && (
-                  <div className="text-sm text-slate-300">Initializing PayPal…</div>
-                )}
-                {paypalStatus === "processing" && (
-                  <div className="flex items-center gap-2 text-sm text-slate-300 mt-2">
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Processing payment…
-                  </div>
-                )}
+                <Input
+                  placeholder="Player name / identifier (if required)"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  className="bg-slate-900 border-white/10 text-white placeholder:text-slate-400"
+                />
+                <Input
+                  type="email"
+                  placeholder="Email (for receipts)"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-slate-900 border-white/10 text-white placeholder:text-slate-400"
+                />
+                <Button
+                  className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                  onClick={handleCheckout}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Starting checkout..." : "Continue to Tebex checkout"}
+                </Button>
               </div>
 
               <div className="text-xs text-slate-400 leading-relaxed">
-                Payments are processed by PayPal. Products and pricing come directly from Tebex. If
-                you need help after checkout, contact support with your PayPal email and order ID.
+                Payments and fulfillment are processed by Tebex. If you need help after checkout,
+                contact support with your Tebex order ID and email.
               </div>
             </div>
           )}
