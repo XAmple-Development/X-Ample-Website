@@ -1,4 +1,6 @@
-const DEFAULT_TEBEX_BASE = 'https://plugin.tebex.io';
+// Use Headless API so we can authenticate with the Private Key shown in the Tebex
+// dashboard (Project Private Key).
+const DEFAULT_TEBEX_BASE = 'https://headless.tebex.io/api';
 
 const normalizePrice = (value) => {
   if (value == null) return 0;
@@ -6,32 +8,36 @@ const normalizePrice = (value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const mapProduct = (pkg, fallbackCurrency) => {
+const mapProduct = (item, fallbackCurrency) => {
+  // Headless listings payload typically includes: id, name, description, price.amount, price.currency, image.src, category.name
   const price =
-    normalizePrice(pkg?.sale?.discounted_price) ||
-    normalizePrice(pkg?.sale?.price) ||
-    normalizePrice(pkg?.base_price ?? pkg?.price?.amount ?? pkg?.price);
+    normalizePrice(item?.sale?.discounted_price) ||
+    normalizePrice(item?.sale?.price) ||
+    normalizePrice(item?.base_price ?? item?.price?.amount ?? item?.price);
+
+  const image =
+    item?.image?.src ?? item?.image_url ?? item?.image ?? null;
 
   return {
-    id: pkg?.id ?? pkg?.package_id ?? pkg?.identifier ?? pkg?.listing_id,
-    name: pkg?.name ?? pkg?.package_name ?? 'Untitled product',
-    description: pkg?.description ?? pkg?.short_description ?? '',
-    image: pkg?.image ?? pkg?.image_url ?? null,
-    category: pkg?.category?.name ?? pkg?.category ?? pkg?.category_id ?? 'General',
+    id: item?.id ?? item?.package_id ?? item?.identifier ?? item?.listing_id,
+    name: item?.name ?? item?.package_name ?? 'Untitled product',
+    description: item?.description ?? item?.short_description ?? '',
+    image,
+    category: item?.category?.name ?? item?.category ?? item?.category_id ?? 'General',
     price,
     salePrice:
-      pkg?.sale?.discounted_price != null || pkg?.sale?.price != null
-        ? normalizePrice(pkg?.sale?.discounted_price ?? pkg?.sale?.price)
+      item?.sale?.discounted_price != null || item?.sale?.price != null
+        ? normalizePrice(item?.sale?.discounted_price ?? item?.sale?.price)
         : null,
     currency:
-      pkg?.currency?.iso_4217 ??
-      pkg?.currency ??
+      item?.currency?.iso_4217 ??
+      item?.currency ??
       fallbackCurrency ??
-      pkg?.price?.currency ??
+      item?.price?.currency ??
       'USD',
     recurring:
-      pkg?.expiry_length && pkg?.expiry_period
-        ? `${pkg.expiry_length} ${pkg.expiry_period}`
+      item?.expiry_length && item?.expiry_period
+        ? `${item.expiry_length} ${item.expiry_period}`
         : null,
   };
 };
@@ -45,20 +51,21 @@ exports.handler = async (event) => {
     };
   }
 
-  const tebexSecret = process.env.TEBEX_API_SECRET;
-  const tebexBase = (process.env.TEBEX_API_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, '');
+  const tebexSecret = process.env.TEBEX_API_SECRET || process.env.TEBEX_HEADLESS_KEY;
+  const tebexBase = (process.env.TEBEX_HEADLESS_BASE || process.env.TEBEX_API_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, '');
 
   if (!tebexSecret) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: 'Missing TEBEX_API_SECRET environment variable. Set it in Netlify.',
+        error: 'Missing TEBEX_API_SECRET/TEBEX_HEADLESS_KEY environment variable. Set it in Netlify.',
       }),
     };
   }
 
   try {
-    const response = await fetch(`${tebexBase}/packages`, {
+    // Headless listings endpoint
+    const response = await fetch(`${tebexBase}/listings`, {
       headers: {
         'X-Tebex-Secret': tebexSecret,
         'Content-Type': 'application/json',
@@ -77,7 +84,7 @@ exports.handler = async (event) => {
     }
 
     const payload = await response.json();
-    const packages = payload?.packages ?? payload?.data ?? payload ?? [];
+    const packages = payload?.data ?? payload?.packages ?? payload ?? [];
     const fallbackCurrency =
       payload?.currency?.iso_4217 ?? payload?.currency ?? payload?.price?.currency;
 
