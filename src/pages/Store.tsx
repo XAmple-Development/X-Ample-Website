@@ -131,7 +131,8 @@ const Store = () => {
     setSessionToken(token);
     window.localStorage.setItem("tebexLoginToken", token);
     const returnUrl = encodeURIComponent(`${window.location.origin}/store?cart=1`);
-    window.location.href = `https://checkout.tebex.io/login/${process.env.REACT_APP_TEBEX_ACCOUNT_TOKEN || ""}?return_url=${returnUrl}&reference=${encodeURIComponent(token)}`;
+    const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
+    window.location.href = `https://checkout.tebex.io/login/${accountToken || ""}?return_url=${returnUrl}&reference=${encodeURIComponent(token)}`;
   };
 
   useEffect(() => {
