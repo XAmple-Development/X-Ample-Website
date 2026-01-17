@@ -22,6 +22,7 @@ import DiscordBots from "./pages/DiscordBots";
 import Vacancies from "./pages/Vacancies";
 import AdminVacancies from "./pages/AdminVacancies";
 import License from "./pages/License";
+import Store from "./pages/Store";
 
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/portfolio" element={<Portfolio />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/team" element={<Team />} />
+                <Route path="/store" element={<Store />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/users" element={<UserManagement />} />
