@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -26,6 +26,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+declare global {
+  interface Window {
+    TebexCheckout?: {
+      openCheckout: (options: { account: string; packageId: string }) => void;
+    };
+  }
+}
+
 const formatPrice = (price: number, currency?: string) => {
   if (!price && price !== 0) return "";
   const formatter = new Intl.NumberFormat("en-GB", {
@@ -47,14 +55,14 @@ const fetchProducts = async (): Promise<TebexProduct[]> => {
 
 const Store = () => {
   const { toast } = useToast();
+  const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
 
   const [selectedProduct, setSelectedProduct] = useState<TebexProduct | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [playerName, setPlayerName] = useState("");
-  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [tebexReady, setTebexReady] = useState(false);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -89,8 +97,6 @@ const Store = () => {
   const openCheckout = (product: TebexProduct) => {
     setSelectedProduct(product);
     setCheckoutOpen(true);
-    setPlayerName("");
-    setEmail("");
   };
 
   const closeCheckout = () => {
@@ -99,36 +105,41 @@ const Store = () => {
     setIsSubmitting(false);
   };
 
+  useEffect(() => {
+    if (!accountToken) return;
+    if (window.TebexCheckout) {
+      setTebexReady(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://js.tebex.io/embed.js";
+    script.async = true;
+    script.onload = () => setTebexReady(true);
+    script.onerror = () => setTebexReady(false);
+    document.body.appendChild(script);
+  }, [accountToken]);
+
   const handleCheckout = async () => {
     if (!selectedProduct) return;
+    if (!accountToken) {
+      toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
+      return;
+    }
+    if (!window.TebexCheckout) {
+      toast({ title: "Tebex not ready", description: "Retry in a moment." });
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const res = await fetch("/.netlify/functions/tebex-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: 1,
-          playerName: playerName || undefined,
-          email: email || undefined,
-          returnUrl: `${window.location.origin}/store?status=success`,
-          cancelUrl: `${window.location.origin}/store?status=cancelled`,
-        }),
+      window.TebexCheckout.openCheckout({
+        account: accountToken,
+        packageId: String(selectedProduct.id),
       });
-
-      const payload = await res.json();
-
-      if (!res.ok || !payload.checkoutUrl) {
-        throw new Error(payload?.error || "Unable to start checkout right now.");
-      }
-
-      window.location.href = payload.checkoutUrl;
+      setCheckoutOpen(false);
+      setSelectedProduct(null);
     } catch (err: any) {
       console.error("Tebex checkout error", err);
-      toast({
-        title: "Checkout failed",
-        description: err?.message || "Please try again in a moment.",
-      });
+      toast({ title: "Checkout failed", description: err?.message || "Please try again." });
     } finally {
       setIsSubmitting(false);
     }
@@ -329,7 +340,7 @@ const Store = () => {
                           className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
                           onClick={() => openCheckout(product)}
                         >
-                          Buy now
+                          {accountToken ? "Checkout via Tebex" : "Connect Tebex token"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -351,7 +362,7 @@ const Store = () => {
               Checkout via Tebex
             </DialogTitle>
             <DialogDescription className="text-slate-200">
-              We’ll redirect you to Tebex checkout for secure payment and automatic fulfillment.
+              We’ll launch the embedded Tebex checkout for secure payment and automatic fulfillment.
             </DialogDescription>
           </DialogHeader>
 
@@ -378,25 +389,23 @@ const Store = () => {
                   <CheckCircle2 className="w-4 h-4 text-teal-300" />
                   Secure Tebex checkout
                 </div>
-                <Input
-                  placeholder="Player name / identifier (if required)"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
-                  className="bg-slate-900 border-white/10 text-white placeholder:text-slate-400"
-                />
-                <Input
-                  type="email"
-                  placeholder="Email (for receipts)"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-900 border-white/10 text-white placeholder:text-slate-400"
-                />
+                {!accountToken && (
+                  <div className="text-sm text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-md p-3">
+                    Missing VITE_TEBEX_ACCOUNT_TOKEN. Add it to start checkout.
+                  </div>
+                )}
                 <Button
                   className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
                   onClick={handleCheckout}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !accountToken || !tebexReady}
                 >
-                  {isSubmitting ? "Starting checkout..." : "Continue to Tebex checkout"}
+                  {isSubmitting
+                    ? "Starting checkout..."
+                    : !accountToken
+                      ? "Set Tebex token"
+                      : !tebexReady
+                        ? "Loading Tebex..."
+                        : "Open Tebex checkout"}
                 </Button>
               </div>
 
