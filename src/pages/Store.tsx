@@ -14,20 +14,13 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
-import {
-  CheckCircle2,
-  RefreshCw,
-  ShieldCheck,
-  ShoppingBag,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 declare global {
   interface Window {
     TebexCheckout?: {
-      openCheckout: (options: { account: string; packageId: string }) => void;
+      openCheckout: (options: { account: string; package_id: string }) => void;
     };
   }
 }
@@ -46,7 +39,6 @@ const fetchProducts = async (): Promise<TebexProduct[]> => {
   if (!response.ok) {
     throw new Error("Unable to fetch store products right now.");
   }
-
   const data = await response.json();
   return (data?.products ?? []) as TebexProduct[];
 };
@@ -77,10 +69,10 @@ const Store = () => {
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
-
     return products.filter((product) => {
       const matchesCategory =
         activeCategory === "All" || String(product.category ?? "General") === activeCategory;
+
       const matchesSearch =
         !searchTerm ||
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,10 +84,18 @@ const Store = () => {
 
   useEffect(() => {
     if (!accountToken) return;
+
     if (window.TebexCheckout) {
       setTebexReady(true);
       return;
     }
+
+    const existing = document.querySelector('script[src="https://js.tebex.io/"]');
+    if (existing) {
+      existing.addEventListener("load", () => setTebexReady(true));
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://js.tebex.io/";
     script.async = true;
@@ -104,7 +104,7 @@ const Store = () => {
     document.body.appendChild(script);
   }, [accountToken]);
 
-  const handleCheckout = async (product: TebexProduct) => {
+  const handleCheckout = (product: TebexProduct) => {
     if (!accountToken) {
       toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
       return;
@@ -113,11 +113,12 @@ const Store = () => {
       toast({ title: "Tebex not ready", description: "Retry in a moment." });
       return;
     }
+
     setIsSubmitting(true);
     try {
       window.TebexCheckout.openCheckout({
         account: accountToken,
-        packageId: String(product.id),
+        package_id: String(product.id),
       });
     } catch (err: any) {
       console.error("Tebex checkout error", err);
@@ -167,6 +168,7 @@ const Store = () => {
                   </div>
                 </div>
               </div>
+
               <Card className="bg-white/5 border-white/10 backdrop-blur-md text-white w-full lg:w-[420px]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -190,6 +192,19 @@ const Store = () => {
                   <p className="text-sm text-slate-200">
                     Want to pay another way? Reach out on Discord and we’ll help you out.
                   </p>
+
+                  {!accountToken && (
+                    <div className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
+                      Missing <span className="font-semibold">VITE_TEBEX_ACCOUNT_TOKEN</span> — checkout
+                      will be disabled.
+                    </div>
+                  )}
+
+                  {accountToken && !tebexReady && (
+                    <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
+                      Loading Tebex checkout…
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -216,6 +231,7 @@ const Store = () => {
                   </Button>
                 ))}
               </div>
+
               <div className="w-full md:w-72">
                 <input
                   placeholder="Search products..."
@@ -277,10 +293,7 @@ const Store = () => {
                   const hasSale = product.salePrice && product.salePrice < product.price;
 
                   return (
-                    <Card
-                      key={product.id}
-                      className="bg-white/5 border-white/10 backdrop-blur-sm flex flex-col"
-                    >
+                    <Card key={product.id} className="bg-white/5 border-white/10 backdrop-blur-sm flex flex-col">
                       <CardHeader className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Badge className="bg-cyan-500/20 text-cyan-100 border-cyan-500/40">
@@ -292,10 +305,13 @@ const Store = () => {
                             </Badge>
                           )}
                         </div>
+
                         <CardTitle className="text-xl">{product.name}</CardTitle>
+
                         <CardDescription className="text-slate-200 line-clamp-3">
                           {product.description || "No description provided."}
                         </CardDescription>
+
                         <div className="flex items-baseline gap-2">
                           <span className="text-3xl font-bold text-cyan-300">
                             {formatPrice(displayPrice, product.currency)}
@@ -307,6 +323,7 @@ const Store = () => {
                           )}
                         </div>
                       </CardHeader>
+
                       <CardContent className="flex-1 flex flex-col gap-4">
                         {product.image && (
                           <div className="aspect-video rounded-lg overflow-hidden bg-white/5 border border-white/10">
@@ -318,6 +335,7 @@ const Store = () => {
                             />
                           </div>
                         )}
+
                         <Button
                           className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
                           onClick={() => handleCheckout(product)}
