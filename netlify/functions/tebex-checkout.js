@@ -162,9 +162,9 @@ exports.handler = async (event) => {
     }
 
     //
-    // 2) Add package to basket
+    // 2) Add package to basket (account-scoped path)
     //
-    const addPackageRes = await fetch(`${tebexBase}/baskets/${basketIdent}/packages`, {
+    const addPackageRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}/packages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -187,9 +187,9 @@ exports.handler = async (event) => {
     }
 
     //
-    // 3) Fetch basket to get checkout URL
+    // 3) Fetch basket to get checkout URL (account-scoped path)
     //
-    const basketGetRes = await fetch(`${tebexBase}/baskets/${basketIdent}`, {
+    const basketGetRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
