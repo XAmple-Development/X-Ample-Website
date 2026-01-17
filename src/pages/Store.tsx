@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
@@ -18,7 +17,6 @@ import Footer from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
 import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet } from "lucide-react";
-import Tebex from "@tebexio/tebex.js";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -122,12 +120,11 @@ const Store = () => {
         body: JSON.stringify({ productId: product.id, quantity: 1, usernameId }),
       });
       const payload = await res.json();
-      if (!res.ok || !payload?.ident) {
+      if (!res.ok || !payload?.checkoutUrl) {
         throw new Error(payload?.error || "Unable to start checkout.");
       }
 
-      await Tebex.checkout.init({ ident: payload.ident });
-      Tebex.checkout.launch();
+      window.location.href = payload.checkoutUrl;
     } catch (err: any) {
       console.error("Tebex checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });

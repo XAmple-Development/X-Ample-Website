@@ -47,7 +47,7 @@ exports.handler = async (event) => {
 
   const { productId, quantity = 1, returnUrl, cancelUrl, usernameId } = body;
   if (!productId) return json(400, { error: "productId is required" });
-  if (!usernameId) return json(400, { error: "usernameId is required (Tebex requires login)" });
+  if (!usernameId) return json(400, { error: "usernameId is required (login first)" });
 
   const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
   const resolvedCancel = cancelUrl || `${process.env.URL || ""}/store?status=cancelled`;
@@ -79,7 +79,7 @@ exports.handler = async (event) => {
 
     // Add package
     // Add package (no account prefix needed when using ident)
-    const addPkgRes = await fetch(`${tebexBase}/baskets/${ident}/packages`, {
+    const addPkgRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${ident}/packages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -100,7 +100,31 @@ exports.handler = async (event) => {
       });
     }
 
-    return json(200, { ident });
+    // Fetch basket to get checkout link
+    const basketGet = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${ident}`, {
+      headers: { Authorization: authHeader },
+    });
+
+    if (!basketGet.ok) {
+      return json(basketGet.status, {
+        error: "Failed to fetch basket after adding package",
+        details: await basketGet.text(),
+        ident,
+      });
+    }
+
+    const basketDetails = await basketGet.json();
+    const checkoutUrl =
+      basketDetails?.data?.links?.checkout ||
+      basketDetails?.links?.checkout ||
+      basketDetails?.data?.checkout_url ||
+      basketDetails?.checkout_url;
+
+    if (!checkoutUrl) {
+      return json(500, { error: "Missing checkout URL from basket", ident, basketDetails });
+    }
+
+    return json(200, { ident, checkoutUrl });
   } catch (err) {
     console.error("tebex-checkout-ident error", err);
     return json(500, { error: "Unexpected Tebex error", details: String(err?.message || err) });
