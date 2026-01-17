@@ -47,6 +47,7 @@ exports.handler = async (event) => {
 
   const { productId, quantity = 1, returnUrl, cancelUrl, usernameId } = body;
   if (!productId) return json(400, { error: "productId is required" });
+  if (!usernameId) return json(400, { error: "usernameId is required (Tebex requires login)" });
 
   const resolvedReturn = returnUrl || `${process.env.URL || ""}/store?status=success`;
   const resolvedCancel = cancelUrl || `${process.env.URL || ""}/store?status=cancelled`;

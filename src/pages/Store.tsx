@@ -46,7 +46,7 @@ const Store = () => {
   const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [usernameId, setUsernameId] = useState<string | null>(null);
+  const [usernameId, setUsernameId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [tebexReady, setTebexReady] = useState(true); // tebex.js via npm import
@@ -104,6 +104,13 @@ const Store = () => {
   const handleCheckout = async (product: TebexProduct) => {
     if (!accountToken) {
       toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
+      return;
+    }
+    if (!usernameId) {
+      toast({
+        title: "Username ID required",
+        description: "Login with Tebex or enter your username ID.",
+      });
       return;
     }
 
@@ -211,15 +218,26 @@ const Store = () => {
                     </div>
                   )}
 
-                  {accountToken && !usernameId && (
-                    <Button
-                      variant="outline"
-                      className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100"
-                      onClick={handleLogin}
-                    >
-                      Login with Tebex
-                    </Button>
-                  )}
+                  <div className="space-y-2">
+                    {accountToken && (
+                      <Button
+                        variant="outline"
+                        className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
+                        onClick={handleLogin}
+                      >
+                        Login with Tebex
+                      </Button>
+                    )}
+                    <div className="space-y-1">
+                      <label className="text-xs text-slate-300">Username ID (from Tebex login)</label>
+                      <input
+                        value={usernameId}
+                        onChange={(e) => setUsernameId(e.target.value)}
+                        placeholder="Paste username_id after login"
+                        className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
