@@ -1,59 +1,54 @@
 /** @jsxRuntime classic */
 /** @jsx React.createElement */
-import React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
 import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-declare global {
-  interface Window {}
-}
+const fetchProducts = async (): Promise<TebexProduct[]> => {
+  const response = await fetch("/.netlify/functions/tebex-products");
+  if (!response.ok) {
+    throw new Error("Unable to fetch store products right now.");
+  }
+  const data = await response.json();
+  return (data?.products ?? []) as TebexProduct[];
+};
 
 const formatPrice = (price: number, currency?: string) => {
   if (!price && price !== 0) return "";
-  const formatter = new Intl.NumberFormat("en-GB", {
+  return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: currency || "USD",
-  });
-  return formatter.format(price);
-};
-
-const fetchProducts = async (): Promise<TebexProduct[]> => {
-  const response = await fetch("/.netlify/functions/tebex-products");
-  if (!response.ok) throw new Error("Unable to fetch store products right now.");
-  const data = await response.json();
-  return (data?.products ?? []) as TebexProduct[];
+  }).format(price);
 };
 
 const Store = () => {
   const { toast } = useToast();
   const accountToken = import.meta.env.VITE_TEBEX_ACCOUNT_TOKEN as string | undefined;
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [usernameId, setUsernameId] = useState<string>("");
+  const [usernameId, setUsernameId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [tebexReady, setTebexReady] = useState(true); // tebex.js via npm import
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
     queryFn: fetchProducts,
     staleTime: 1000 * 60 * 5,
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const user = params.get("username_id") || params.get("usernameId");
+    if (user) setUsernameId(user);
+  }, []);
 
   const categories = useMemo(() => {
     if (!products?.length) return ["All"];
@@ -69,30 +64,17 @@ const Store = () => {
     return products.filter((product) => {
       const matchesCategory =
         activeCategory === "All" || String(product.category ?? "General") === activeCategory;
-
       const matchesSearch =
         !searchTerm ||
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (product.description ?? "").toLowerCase().includes(searchTerm.toLowerCase());
-
       return matchesCategory && matchesSearch;
     });
   }, [products, activeCategory, searchTerm]);
 
-  useEffect(() => {
-    // tebex.js is imported via npm; mark ready
-    setTebexReady(true);
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const user = params.get("username_id") || params.get("usernameId");
-    if (user) setUsernameId(user);
-  }, []);
-
   const handleLogin = () => {
     if (!accountToken) {
-      toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
+      toast({ title: "Missing token", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
       return;
     }
     const returnUrl = encodeURIComponent(window.location.href);
@@ -101,17 +83,13 @@ const Store = () => {
 
   const handleCheckout = async (product: TebexProduct) => {
     if (!accountToken) {
-      toast({ title: "Tebex token missing", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
+      toast({ title: "Missing token", description: "Set VITE_TEBEX_ACCOUNT_TOKEN" });
       return;
     }
     if (!usernameId) {
-      toast({
-        title: "Username ID required",
-        description: "Login with Tebex or enter your username ID.",
-      });
+      toast({ title: "Login required", description: "Login to get a username_id first." });
       return;
     }
-
     setIsSubmitting(true);
     try {
       const res = await fetch("/.netlify/functions/tebex-checkout-ident", {
@@ -123,7 +101,6 @@ const Store = () => {
       if (!res.ok || !payload?.checkoutUrl) {
         throw new Error(payload?.error || "Unable to start checkout.");
       }
-
       window.location.href = payload.checkoutUrl;
     } catch (err: any) {
       console.error("Tebex checkout error", err);
@@ -152,13 +129,12 @@ const Store = () => {
                   Official X-Ample Store
                 </div>
                 <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-4">
-                  Tebex Products. <span className="text-cyan-300">Pay through Tebex.</span>
+                  Tebex Products. <span className="text-cyan-300">Headless Checkout.</span>
                 </h1>
                 <p className="text-lg text-slate-200 max-w-2xl">
-                  Browse every product from your Tebex store and check out securely on Tebex for
-                  automatic fulfillment.
+                  This store uses Tebex Headless API to list products and build a basket, then
+                  redirects to Tebex checkout for payment and fulfillment.
                 </p>
-
                 <div className="flex flex-wrap gap-3 mt-6">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <ShieldCheck className="w-4 h-4 text-teal-300" />
@@ -166,7 +142,7 @@ const Store = () => {
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <Wallet className="w-4 h-4 text-cyan-300" />
-                    PayPal checkout
+                    Tebex checkout
                   </div>
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <RefreshCw className="w-4 h-4 text-cyan-300" />
@@ -179,61 +155,34 @@ const Store = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingBag className="w-5 h-5 text-cyan-300" />
-                    Seamless checkout
+                    Login Required
                   </CardTitle>
                   <CardDescription className="text-slate-200">
-                    We’ll fetch prices straight from Tebex and open their secure checkout for
-                    fulfillment.
+                    Tebex requires a logged-in CFX account before adding packages to a basket.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="px-3 py-1 rounded-full border border-cyan-200/30 bg-white/10 text-cyan-200 text-xs font-semibold">
-                      Live catalog
-                    </div>
-                    <div className="px-3 py-1 rounded-full border border-teal-200/30 bg-white/10 text-teal-200 text-xs font-semibold">
-                      Tebex checkout
-                    </div>
-                  </div>
-
                   {!accountToken && (
                     <div className="text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
                       Missing <span className="font-semibold">VITE_TEBEX_ACCOUNT_TOKEN</span>.
                     </div>
                   )}
-
-                  {accountToken && (
-                    <div
-                      className={cn(
-                        "text-xs rounded-md px-3 py-2 border",
-                        tebexReady
-                          ? "text-emerald-200 bg-emerald-500/10 border-emerald-500/30"
-                          : "text-slate-200 bg-white/5 border-white/10"
-                      )}
-                    >
-                      {tebexReady ? "Tebex ready ✅" : "Loading Tebex checkout…"}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    {accountToken && (
-                      <Button
-                        variant="outline"
-                        className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
-                        onClick={handleLogin}
-                      >
-                        Login with Tebex
-                      </Button>
-                    )}
-                    <div className="space-y-1">
-                      <label className="text-xs text-slate-300">Username ID (from Tebex login)</label>
-                      <input
-                        value={usernameId}
-                        onChange={(e) => setUsernameId(e.target.value)}
-                        placeholder="Paste username_id after login"
-                        className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                      />
-                    </div>
+                  <Button
+                    variant="outline"
+                    className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
+                    onClick={handleLogin}
+                    disabled={!accountToken}
+                  >
+                    Login with Tebex
+                  </Button>
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Username ID (from Tebex login)</label>
+                    <input
+                      value={usernameId}
+                      onChange={(e) => setUsernameId(e.target.value)}
+                      placeholder="Paste username_id after login"
+                      className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -261,7 +210,6 @@ const Store = () => {
                   </Button>
                 ))}
               </div>
-
               <div className="w-full md:w-72">
                 <input
                   placeholder="Search products..."
@@ -321,7 +269,6 @@ const Store = () => {
                 {filteredProducts.map((product) => {
                   const displayPrice = product.salePrice ?? product.price;
                   const hasSale = product.salePrice && product.salePrice < product.price;
-
                   return (
                     <Card
                       key={product.id}
@@ -338,13 +285,10 @@ const Store = () => {
                             </div>
                           )}
                         </div>
-
                         <CardTitle className="text-xl">{product.name}</CardTitle>
-
                         <CardDescription className="text-slate-200 line-clamp-3">
                           {product.description || "No description provided."}
                         </CardDescription>
-
                         <div className="flex items-baseline gap-2">
                           <span className="text-3xl font-bold text-cyan-300">
                             {formatPrice(displayPrice, product.currency)}
@@ -356,7 +300,6 @@ const Store = () => {
                           )}
                         </div>
                       </CardHeader>
-
                       <CardContent className="flex-1 flex flex-col gap-4">
                         {product.image && (
                           <div className="aspect-video rounded-lg overflow-hidden bg-white/5 border border-white/10">
@@ -368,19 +311,12 @@ const Store = () => {
                             />
                           </div>
                         )}
-
                         <Button
                           className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
                           onClick={() => handleCheckout(product)}
-                          disabled={isSubmitting || !accountToken || !tebexReady}
+                          disabled={isSubmitting || !accountToken}
                         >
-                          {isSubmitting
-                            ? "Starting..."
-                            : !accountToken
-                              ? "Set Tebex token"
-                              : !tebexReady
-                                ? "Loading Tebex..."
-                                : "Checkout via Tebex"}
+                          {isSubmitting ? "Starting..." : "Checkout via Tebex"}
                         </Button>
                       </CardContent>
                     </Card>
