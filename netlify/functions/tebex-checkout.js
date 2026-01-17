@@ -1,21 +1,21 @@
 // tebex-checkout.js (Netlify Function)
 //
-// Expects POST JSON:
+// POST JSON:
 // {
 //   "productId": 7208967,
 //   "quantity": 1,
-//   "playerName": "test",
-//   "email": "test@example.com",        // optional (Headless doesn't always support setting email directly)
+//   "playerName": "test",               // accepted by your API, but NOT sent to Tebex (some game types disallow username)
+//   "email": "test@example.com",        // optional (not always supported to pre-set in Headless)
 //   "returnUrl": "https://yoursite.com/store?status=success",   // optional
 //   "cancelUrl": "https://yoursite.com/store?status=cancelled"  // optional
 // }
 //
-// REQUIRED ENV VARS (Headless API):
-// - TEBEX_ACCOUNT_TOKEN   (your webstore token / account token like t66x-...)
-// - TEBEX_PROJECT_ID      (Headless Project ID)
-// - TEBEX_PRIVATE_KEY     (Headless Private Key)
+// REQUIRED ENV VARS (Tebex Headless API):
+// - TEBEX_ACCOUNT_TOKEN   (webstore token like t66x-...)
+// - TEBEX_PROJECT_ID      (Project ID for Basic auth username)
+// - TEBEX_PRIVATE_KEY     (Private Key for Basic auth password)
 //
-// Optional ENV VAR:
+// Optional ENV VARS:
 // - TEBEX_HEADLESS_BASE   (default: https://headless.tebex.io/api)
 // - URL                   (Netlify site URL; used for default return/cancel)
 
@@ -26,7 +26,6 @@ const jsonResponse = (statusCode, body) => ({
   statusCode,
   headers: {
     "Content-Type": "application/json",
-    // CORS (handy for local testing / browser calls)
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
@@ -34,7 +33,6 @@ const jsonResponse = (statusCode, body) => ({
   body: JSON.stringify(body),
 });
 
-// Netlify/Proxy friendly client IP extraction
 const getClientIp = (event) => {
   const h = event.headers || {};
   return (
@@ -44,11 +42,9 @@ const getClientIp = (event) => {
   );
 };
 
-// Build Basic auth header for Headless API (Project ID : Private Key)
 const getBasicAuthHeader = () => {
   const projectId = process.env.TEBEX_PROJECT_ID;
   const privateKey = process.env.TEBEX_PRIVATE_KEY;
-
   if (!projectId || !privateKey) return null;
 
   const token = Buffer.from(`${projectId}:${privateKey}`).toString("base64");
@@ -56,7 +52,7 @@ const getBasicAuthHeader = () => {
 };
 
 exports.handler = async (event) => {
-  // Preflight for browsers
+  // Preflight (browser)
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 204,
@@ -85,20 +81,11 @@ exports.handler = async (event) => {
   }
 
   const tebexBase = (process.env.TEBEX_HEADLESS_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, "");
-  const accountToken = process.env.TEBEX_ACCOUNT_TOKEN; // t66x-...
+  const accountToken = process.env.TEBEX_ACCOUNT_TOKEN;
   const authHeader = getBasicAuthHeader();
 
-  if (!accountToken) {
-    return jsonResponse(500, {
-      error: "Missing env var: TEBEX_ACCOUNT_TOKEN",
-    });
-  }
-
-  if (!authHeader) {
-    return jsonResponse(500, {
-      error: "Missing env vars: TEBEX_PROJECT_ID and/or TEBEX_PRIVATE_KEY",
-    });
-  }
+  if (!accountToken) return jsonResponse(500, { error: "Missing env var: TEBEX_ACCOUNT_TOKEN" });
+  if (!authHeader) return jsonResponse(500, { error: "Missing env vars: TEBEX_PROJECT_ID and/or TEBEX_PRIVATE_KEY" });
 
   let body;
   try {
@@ -107,26 +94,18 @@ exports.handler = async (event) => {
     return jsonResponse(400, { error: "Invalid JSON body" });
   }
 
-  const {
-    productId,
-    quantity = 1,
-    playerName,
-    email, // optional - see note below
-    returnUrl,
-    cancelUrl,
-  } = body;
+  const { productId, quantity = 1, playerName, email, returnUrl, cancelUrl } = body;
 
   if (!productId) return jsonResponse(400, { error: "productId is required" });
 
-  // Tebex typically calls these complete_url / cancel_url
   const resolvedReturn = returnUrl || `${DEFAULT_RETURN}/store?status=success`;
   const resolvedCancel = cancelUrl || `${DEFAULT_RETURN}/store?status=cancelled`;
-
   const ip = getClientIp(event);
 
   try {
     //
     // 1) Create basket
+    // IMPORTANT: Do NOT send "username" for game types that disallow it (your error confirms this).
     //
     const createBasketRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets`, {
       method: "POST",
@@ -137,17 +116,15 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         complete_url: resolvedReturn,
         cancel_url: resolvedCancel,
-        // These are optional but useful for game stores:
-        username: playerName || undefined,
         ip: ip || undefined,
       }),
     });
 
     if (!createBasketRes.ok) {
-      const text = await createBasketRes.text();
+      const raw = await createBasketRes.text();
       return jsonResponse(createBasketRes.status, {
         error: "Failed to create Tebex basket",
-        details: text,
+        details: raw,
       });
     }
 
@@ -162,9 +139,10 @@ exports.handler = async (event) => {
     }
 
     //
-    // 2) Add package to basket (account-scoped path)
+    // 2) Add package
+    // IMPORTANT: Do NOT send "username" here either for your game type.
     //
-    const addPackageRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}/packages`, {
+    const addPackageRes = await fetch(`${tebexBase}/baskets/${basketIdent}/packages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -173,23 +151,22 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         package_id: Number(productId),
         quantity: Number(quantity) || 1,
-        username: playerName || undefined,
       }),
     });
 
     if (!addPackageRes.ok) {
-      const text = await addPackageRes.text();
+      const raw = await addPackageRes.text();
       return jsonResponse(addPackageRes.status, {
         error: "Basket created but failed to add package",
-        details: text,
         basketIdent,
+        details: raw,
       });
     }
 
     //
-    // 3) Fetch basket to get checkout URL (account-scoped path)
+    // 3) Fetch basket to get checkout URL
     //
-    const basketGetRes = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${basketIdent}`, {
+    const basketGetRes = await fetch(`${tebexBase}/baskets/${basketIdent}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -198,11 +175,11 @@ exports.handler = async (event) => {
     });
 
     if (!basketGetRes.ok) {
-      const text = await basketGetRes.text();
+      const raw = await basketGetRes.text();
       return jsonResponse(basketGetRes.status, {
         error: "Package added but failed to fetch basket details",
-        details: text,
         basketIdent,
+        details: raw,
       });
     }
 
@@ -221,19 +198,11 @@ exports.handler = async (event) => {
       });
     }
 
-    // NOTE about email:
-    // Headless API flows generally attach customer details during checkout,
-    // and not all stores expose a simple "set email" endpoint in Headless.
-    // If you *must* prefill email, the usual way is via checkout/custom fields
-    // depending on your store config.
-    //
-    // We return email in the response for your app to use, but we don't
-    // attempt to set it on Tebex here to avoid calling non-existent endpoints.
+    // Note: email/playerName are echoed back for your app, but not applied to Tebex here.
     return jsonResponse(200, {
       ok: true,
       basketIdent,
       checkoutUrl,
-      // echo back what was requested
       productId: Number(productId),
       quantity: Number(quantity) || 1,
       playerName: playerName || null,
