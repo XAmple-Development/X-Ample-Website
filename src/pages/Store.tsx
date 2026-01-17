@@ -39,6 +39,8 @@ const Store = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<Array<{ productId: string; quantity: number }>>([]);
+  const [tebexUsernameId, setTebexUsernameId] = useState("");
+  const [tebexBasketIdent, setTebexBasketIdent] = useState<string | null>(null);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -93,6 +95,50 @@ const Store = () => {
     window.localStorage.setItem("storeCart", JSON.stringify(cartItems));
     window.dispatchEvent(new Event("store-cart-updated"));
   }, [cartItems]);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("tebexBasketIdent");
+    if (stored) setTebexBasketIdent(stored);
+    const user = window.localStorage.getItem("tebexUsernameId");
+    if (user) setTebexUsernameId(user);
+  }, []);
+
+  useEffect(() => {
+    if (tebexBasketIdent) {
+      window.localStorage.setItem("tebexBasketIdent", tebexBasketIdent);
+    }
+    if (tebexUsernameId) {
+      window.localStorage.setItem("tebexUsernameId", tebexUsernameId);
+    }
+  }, [tebexBasketIdent, tebexUsernameId]);
+
+  useEffect(() => {
+    const sync = async () => {
+      if (!tebexUsernameId || cartItems.length === 0) return;
+      try {
+        const res = await fetch("/.netlify/functions/tebex-basket-sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ident: tebexBasketIdent,
+            usernameId: tebexUsernameId,
+            items: cartItems,
+          }),
+        });
+        const payload = await res.json();
+        if (!res.ok) return;
+        if (payload?.ident) setTebexBasketIdent(payload.ident);
+        if (typeof payload?.count === "number") {
+          window.localStorage.setItem("tebexBasketCount", String(payload.count));
+          window.dispatchEvent(new Event("store-cart-updated"));
+        }
+      } catch {
+        // ignore sync errors
+      }
+    };
+
+    sync();
+  }, [cartItems, tebexBasketIdent, tebexUsernameId]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -443,6 +489,17 @@ const Store = () => {
               <p className="text-slate-300">Your basket is empty.</p>
             ) : (
               <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300">
+                    Tebex username_id (required to sync Tebex basket)
+                  </label>
+                  <input
+                    value={tebexUsernameId}
+                    onChange={(e) => setTebexUsernameId(e.target.value)}
+                    placeholder="Enter username_id"
+                    className="w-full rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
                 {cartDetailed.map(({ product, quantity, lineTotal }) => (
                   <div key={product.id} className="flex items-center justify-between gap-4">
                     <div>

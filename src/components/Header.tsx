@@ -36,12 +36,10 @@ const Header = () => {
   useEffect(() => {
     const readCart = () => {
       try {
-        const stored = window.localStorage.getItem("storeCart");
+        const stored = window.localStorage.getItem("tebexBasketCount");
         if (!stored) return setCartCount(0);
-        const items = JSON.parse(stored);
-        if (!Array.isArray(items)) return setCartCount(0);
-        const total = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-        setCartCount(total);
+        const total = Number(stored);
+        setCartCount(Number.isFinite(total) ? total : 0);
       } catch {
         setCartCount(0);
       }
