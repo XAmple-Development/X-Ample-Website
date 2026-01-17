@@ -1,6 +1,6 @@
-// Use Headless API so we can authenticate with the Private Key shown in the Tebex
-// dashboard (Project Private Key).
-const DEFAULT_TEBEX_BASE = 'https://headless.tebex.io/api';
+// Prefer Headless API (account token), then Headless private key, and fall back to Plugin API (server key)
+const DEFAULT_HEADLESS_BASE = 'https://headless.tebex.io/api';
+const DEFAULT_PLUGIN_BASE = 'https://plugin.tebex.io';
 
 const normalizePrice = (value) => {
   if (value == null) return 0;
@@ -51,56 +51,121 @@ exports.handler = async (event) => {
     };
   }
 
-  const tebexSecret = process.env.TEBEX_API_SECRET || process.env.TEBEX_HEADLESS_KEY;
-  const tebexBase = (process.env.TEBEX_HEADLESS_BASE || process.env.TEBEX_API_BASE || DEFAULT_TEBEX_BASE).replace(/\/$/, '');
+  const accountToken = process.env.TEBEX_ACCOUNT_TOKEN;
+  const headlessSecret = process.env.TEBEX_HEADLESS_KEY || process.env.TEBEX_API_SECRET;
+  const pluginSecret = process.env.TEBEX_PLUGIN_SECRET || process.env.TEBEX_API_SECRET;
+  const projectId = process.env.TEBEX_PROJECT_ID;
 
-  if (!tebexSecret) {
+  const headlessBase = (process.env.TEBEX_HEADLESS_BASE || DEFAULT_HEADLESS_BASE).replace(/\/$/, '');
+  const pluginBase = (process.env.TEBEX_PLUGIN_BASE || DEFAULT_PLUGIN_BASE).replace(/\/$/, '');
+
+  if (!accountToken && !headlessSecret && !pluginSecret) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: 'Missing TEBEX_API_SECRET/TEBEX_HEADLESS_KEY environment variable. Set it in Netlify.',
+        error: 'Missing Tebex credentials. Set TEBEX_ACCOUNT_TOKEN (recommended), or TEBEX_HEADLESS_KEY (project private key), or TEBEX_PLUGIN_SECRET (server key).',
       }),
     };
   }
 
-  try {
-    // Headless listings endpoint
-    const response = await fetch(`${tebexBase}/listings`, {
+  const tryHeadlessToken = async () => {
+    if (!accountToken) return null;
+    const response = await fetch(`${headlessBase}/accounts/${accountToken}/packages`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      return { error: true, status: response.status, details: await response.text() };
+    }
+    const payload = await response.json();
+    return {
+      products: (payload?.data ?? payload?.packages ?? payload ?? [])
+        .map((pkg) => mapProduct(pkg, payload?.currency?.iso_4217 ?? payload?.currency ?? payload?.price?.currency))
+        .filter((item) => item.id != null),
+    };
+  };
+
+  const tryHeadless = async () => {
+    if (!headlessSecret) return null;
+    const response = await fetch(`${headlessBase}/listings`, {
       headers: {
-        'X-Tebex-Secret': tebexSecret,
+        'X-Tebex-Secret': headlessSecret,
+        ...(projectId ? { 'X-Tebex-Project': projectId } : {}),
         'Content-Type': 'application/json',
       },
     });
-
     if (!response.ok) {
-      const details = await response.text();
+      return { error: true, status: response.status, details: await response.text() };
+    }
+    const payload = await response.json();
+    return {
+      products: (payload?.data ?? payload?.packages ?? payload ?? [])
+        .map((pkg) => mapProduct(pkg, payload?.currency?.iso_4217 ?? payload?.currency ?? payload?.price?.currency))
+        .filter((item) => item.id != null),
+    };
+  };
+
+  const tryPlugin = async () => {
+    if (!pluginSecret) return null;
+    const response = await fetch(`${pluginBase}/packages`, {
+      headers: {
+        'X-Tebex-Secret': pluginSecret,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      return { error: true, status: response.status, details: await response.text() };
+    }
+    const payload = await response.json();
+    return {
+      products: (payload?.packages ?? payload?.data ?? payload ?? [])
+        .map((pkg) => mapProduct(pkg, payload?.currency?.iso_4217 ?? payload?.currency ?? payload?.price?.currency))
+        .filter((item) => item.id != null),
+    };
+  };
+
+  try {
+    // 1) Try Headless account token path (most reliable for listings)
+    const tokenResult = await tryHeadlessToken();
+    if (tokenResult && !tokenResult.error) {
       return {
-        statusCode: response.status,
-        body: JSON.stringify({
-          error: 'Failed to fetch products from Tebex',
-          details,
-        }),
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
+        body: JSON.stringify({ products: tokenResult.products }),
       };
     }
 
-    const payload = await response.json();
-    const packages = payload?.data ?? payload?.packages ?? payload ?? [];
-    const fallbackCurrency =
-      payload?.currency?.iso_4217 ?? payload?.currency ?? payload?.price?.currency;
+    // 2) Try headless secret listings
+    const headlessResult = await tryHeadless();
+    if (headlessResult && !headlessResult.error) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
+        body: JSON.stringify({ products: headlessResult.products }),
+      };
+    }
 
-    const products = Array.isArray(packages)
-      ? packages
-          .map((pkg) => mapProduct(pkg, fallbackCurrency))
-          .filter((item) => item.id != null)
-      : [];
+    // 3) Fallback to plugin packages
+    const pluginResult = await tryPlugin();
+    if (pluginResult && !pluginResult.error) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
+        body: JSON.stringify({ products: pluginResult.products }),
+      };
+    }
 
+    // If all failed, report token error first, then headless, then plugin
+    const failure = tokenResult?.error
+      ? tokenResult
+      : headlessResult?.error
+        ? headlessResult
+        : pluginResult;
     return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300',
-      },
-      body: JSON.stringify({ products }),
+      statusCode: failure?.status || 500,
+      body: JSON.stringify({
+        error: 'Failed to fetch products from Tebex',
+        details: failure?.details || 'Unknown error',
+      }),
     };
   } catch (error) {
     console.error('Tebex product fetch failed', error);
