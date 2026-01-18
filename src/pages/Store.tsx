@@ -67,6 +67,8 @@ const Store = () => {
   // Live basket display
   const [tebexBasketLive, setTebexBasketLive] = useState<any | null>(null);
   const [tebexBasketLiveLoading, setTebexBasketLiveLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplying, setPromoApplying] = useState(false);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -226,6 +228,33 @@ const Store = () => {
       setTebexBasketLive(null);
     } finally {
       setTebexBasketLiveLoading(false);
+    }
+  };
+
+  const isTebexLoggedIn = useMemo(() => {
+    const usernameId =
+      tebexBasketLive?.username_id ??
+      tebexBasketLive?.basket?.username_id ??
+      tebexBasketLive?.basket?.usernameId ??
+      null;
+    return !!usernameId;
+  }, [tebexBasketLive]);
+
+  const launchEmbeddedCheckout = async (ident: string, fallbackCheckoutUrl?: string) => {
+    try {
+      const mod = await import("@tebexio/tebex.js");
+      const Tebex = (mod as any).default || (mod as any);
+
+      Tebex.checkout.init({ ident });
+      Tebex.checkout.launch();
+      return true;
+    } catch (err) {
+      console.error("Tebex.js launch failed", err);
+      if (fallbackCheckoutUrl) {
+        window.location.href = fallbackCheckoutUrl;
+        return true;
+      }
+      return false;
     }
   };
 
@@ -440,12 +469,52 @@ const Store = () => {
       const checkoutUrl = payload?.checkoutUrl || payload?.checkout_url || payload?.basket?.links?.checkout || null;
       if (!checkoutUrl) throw new Error("Missing Tebex checkout URL.");
 
-      window.location.href = checkoutUrl;
+      const ident = String(payload?.ident || tebexBasketIdent || "").trim();
+      if (ident) {
+        const ok = await launchEmbeddedCheckout(ident, checkoutUrl);
+        if (!ok) window.location.href = checkoutUrl;
+      } else {
+        window.location.href = checkoutUrl;
+      }
     } catch (err: any) {
       console.error("Tebex checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const applyPromoCode = async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    if (!cartItems.length) {
+      toast({ title: "Add an item first", description: "Promo codes apply to a basket with items." });
+      return;
+    }
+
+    setPromoApplying(true);
+    try {
+      // Ensure a basket exists (creates ident if needed) and items are present.
+      const synced = await syncBasketToTebex({ silent: true });
+      const ident = String(synced?.payload?.ident || tebexBasketIdent || "").trim();
+      if (!ident) throw new Error("Basket ident missing. Please try syncing again.");
+
+      const res = await fetch("/.netlify/functions/tebex-basket-apply-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ident, code }),
+      });
+
+      const payload = await readJson(res);
+      if (!res.ok) throw new Error(payload?.error || "Failed to apply promo code.");
+
+      toast({ title: "Code applied", description: payload?.applied ? `Applied as ${payload.applied}.` : "Applied." });
+      setPromoCode("");
+      await refreshLiveBasket(ident);
+    } catch (err: any) {
+      toast({ title: "Couldn’t apply code", description: err?.message || "Please try again." });
+    } finally {
+      setPromoApplying(false);
     }
   };
 
@@ -764,21 +833,55 @@ const Store = () => {
               <p className="text-slate-300">Your basket is empty.</p>
             ) : (
               <div className="space-y-4">
-                {/* Login-only */}
-                <div className="bg-white/5 border border-white/10 rounded-md p-3">
-                  <p className="text-sm font-semibold mb-2">Login</p>
-                  <p className="text-xs text-slate-300 mb-3">
-                    Login via Tebex Identity so your basket is tied to your Discord/FiveM account.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
-                    onClick={handleLogin}
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login with Discord/FiveM via Tebex
-                  </Button>
+                {/* Promo / code */}
+                <div className="bg-white/5 border border-white/10 rounded-md p-3 space-y-2">
+                  <p className="text-sm font-semibold">Promo / Creator Code</p>
+                  <div className="flex gap-2">
+                    <input
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="Enter code"
+                      className="flex-1 rounded-md bg-white/5 border border-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100"
+                      onClick={applyPromoCode}
+                      disabled={promoApplying}
+                    >
+                      {promoApplying ? "Applying..." : "Apply"}
+                    </Button>
+                  </div>
+                  {(tebexBasketLive?.basket?.creator_code || (tebexBasketLive?.basket?.coupons?.length ?? 0) > 0) && (
+                    <p className="text-xs text-slate-300">
+                      Applied:{" "}
+                      {tebexBasketLive?.basket?.creator_code
+                        ? `Creator: ${tebexBasketLive.basket.creator_code}`
+                        : `Coupons: ${(tebexBasketLive?.basket?.coupons ?? [])
+                            .map((c: any) => c?.coupon_code)
+                            .filter(Boolean)
+                            .join(", ")}`}
+                    </p>
+                  )}
                 </div>
+
+                {/* Login (only if needed) */}
+                {!isTebexLoggedIn && (
+                  <div className="bg-white/5 border border-white/10 rounded-md p-3">
+                    <p className="text-sm font-semibold mb-2">Login</p>
+                    <p className="text-xs text-slate-300 mb-3">
+                      Login via Tebex Identity so your basket is tied to your Discord/FiveM account.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
+                      onClick={handleLogin}
+                    >
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login with Discord/FiveM via Tebex
+                    </Button>
+                  </div>
+                )}
 
                 {/* Local cart items */}
                 {cartDetailed.map(({ product, quantity, lineTotal }) => (
