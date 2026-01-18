@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { asArray, getIn, isRecord } from "@/lib/safe";
+import { isRecord } from "@/lib/safe";
 
 type TebexCategory = {
   id?: number | string;
@@ -19,14 +19,11 @@ type TebexPackage = {
   total_price?: unknown;
 };
 
-function pickCategories(payload: unknown): TebexCategory[] {
-  const maybe =
-    getIn(payload, ["data", "categories"]) ??
-    getIn(payload, ["data"]) ??
-    getIn(payload, ["categories"]) ??
-    getIn(payload, ["response", "categories"]) ??
-    payload;
-  return asArray(maybe) as TebexCategory[];
+function pickCategory(payload: unknown): TebexCategory | null {
+  // Tebex can return { data: {...} } for category endpoints.
+  if (!payload || typeof payload !== "object") return null;
+  const data = (payload as { data?: unknown }).data ?? payload;
+  return isRecord(data) ? (data as TebexCategory) : null;
 }
 
 function priceToText(pkg: TebexPackage): string | null {
@@ -54,7 +51,7 @@ export function CategoryClient({ categoryId }: { categoryId: string }) {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/store/categories", {
+        const res = await fetch(`/api/store/categories/${categoryId}`, {
           headers: { Accept: "application/json" },
         });
         const json = await res.json().catch(() => null);
@@ -74,17 +71,9 @@ export function CategoryClient({ categoryId }: { categoryId: string }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [categoryId]);
 
-  const category = useMemo(() => {
-    const categories = pickCategories(data);
-    return (
-      categories.find(
-        (c) =>
-          String(c?.id ?? c?.category_id ?? "") === String(categoryId ?? ""),
-      ) ?? null
-    );
-  }, [data, categoryId]);
+  const category = useMemo(() => pickCategory(data), [data]);
 
   if (loading) {
     return (
