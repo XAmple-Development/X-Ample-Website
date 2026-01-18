@@ -14,6 +14,7 @@ import Portfolio from "./pages/Portfolio";
 import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Store from "./pages/Store";
+import NotFound from "./pages/NotFound";
 
 
 const queryClient = new QueryClient();
