@@ -8,6 +8,9 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+[functions]
+  directory = "netlify/functions"
+
 [[redirects]]
   from = "http://x-ampledevelopment.co.uk/*"
   to = "https://x-ampledevelopment.co.uk/:splat"

@@ -33,9 +33,10 @@ npm run dev
 ### CMS (Decap / Netlify CMS)
 
 - Admin UI lives at `/admin` (served from `public/admin/`).
-- In Netlify, enable:
-  - **Identity**
-  - **Git Gateway**
+- Uses **Decap CMS + GitHub backend** (Netlify Identity/Git Gateway are deprecated).
+- Configure GitHub OAuth via Netlify Functions:
+  - `/.netlify/functions/oauth-begin`
+  - `/.netlify/functions/oauth-complete`
 
 Content lives in:
 
