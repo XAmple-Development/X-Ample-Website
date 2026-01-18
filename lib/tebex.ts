@@ -27,7 +27,12 @@ function getBasicAuthHeader() {
   const user = getEnv("TEBEX_PUBLIC_TOKEN");
   const pass = getEnv("TEBEX_PRIVATE_KEY");
   if (!user || !pass) return null;
-  const encoded = Buffer.from(`${user}:${pass}`).toString("base64");
+  const raw = `${user}:${pass}`;
+  // Support both Node.js (Buffer) and Edge runtimes (btoa).
+  const encoded =
+    typeof globalThis.btoa === "function"
+      ? globalThis.btoa(raw)
+      : Buffer.from(raw).toString("base64");
   return `Basic ${encoded}`;
 }
 
