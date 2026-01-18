@@ -70,10 +70,14 @@ exports.handler = async (event) => {
     Authorization: authHeader,
   };
 
+  // Where to send the user AFTER they finish Tebex Identity login.
+  // Prefer the caller-provided returnUrl (frontend passes a full origin URL),
+  // but fall back to your site store page.
+  const loginReturnUrl = returnUrl || `${process.env.URL || ""}/store?cart=1`;
+
   const getAuthUrl = async (ident) => {
     const url = `${tebexBase}/accounts/${accountToken}/baskets/${ident}/auth?returnUrl=${encodeURIComponent(
-      // where to send the user AFTER they finish login
-      `${process.env.URL || ""}/store`
+      loginReturnUrl
     )}`;
 
     const authRes = await fetch(url, { headers: { Authorization: authHeader } });

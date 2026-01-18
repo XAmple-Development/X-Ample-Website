@@ -43,7 +43,7 @@ const Header = () => {
 
     readCart();
     const onStorage = (event: StorageEvent) => {
-      if (event.key === "storeCart") readCart();
+      if (event.key === "storeCart" || event.key === "tebexBasketCount") readCart();
     };
     const onCustom = () => readCart();
     window.addEventListener("storage", onStorage);
@@ -67,17 +67,29 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`transition-colors duration-300 ${
-                  isActive(item.href)
-                    ? "text-cyan-500 font-semibold"
-                    : "text-gray-600 hover:text-cyan-500"
-                }`}
-              >
-                {item.name}
-              </Link>
+              item.href.startsWith("http") ? (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-gray-600 hover:text-cyan-500 transition-colors duration-300"
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`transition-colors duration-300 ${
+                    isActive(item.href)
+                      ? "text-cyan-500 font-semibold"
+                      : "text-gray-600 hover:text-cyan-500"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              )
             ))}
           </nav>
 
