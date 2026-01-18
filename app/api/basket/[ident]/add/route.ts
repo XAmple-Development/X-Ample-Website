@@ -1,0 +1,49 @@
+import { NextRequest, NextResponse } from "next/server";
+import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
+
+export const runtime = "nodejs";
+
+type AddRequest = {
+  package_id: number | string;
+  quantity?: number;
+};
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ ident: string }> },
+) {
+  if (!hasTebexEnv()) {
+    return NextResponse.json(
+      {
+        error:
+          "Missing Tebex env vars. Set TEBEX_WEBSTORE_TOKEN, TEBEX_PUBLIC_TOKEN, TEBEX_PRIVATE_KEY.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const { ident } = await params;
+  const body = (await req.json().catch(() => null)) as AddRequest | null;
+  if (!body?.package_id) {
+    return NextResponse.json(
+      { error: "Missing required field: package_id" },
+      { status: 400 },
+    );
+  }
+
+  const payload = {
+    package_id: body.package_id,
+    quantity: typeof body.quantity === "number" ? body.quantity : 1,
+  };
+
+  const added = await tebexFetch<unknown>(
+    `/baskets/${encodeURIComponent(ident)}/packages`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+
+  return NextResponse.json(added, { status: 200 });
+}
+

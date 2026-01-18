@@ -1,0 +1,191 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+type TebexCategory = {
+  id?: number | string;
+  name?: string;
+  packages?: TebexPackage[];
+};
+
+type TebexPackage = {
+  id?: number | string;
+  name?: string;
+  price?: unknown;
+  base_price?: unknown;
+  total_price?: unknown;
+  image?: string;
+};
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function pickCategories(payload: unknown): TebexCategory[] {
+  if (!payload || typeof payload !== "object") return [];
+  const obj = payload as any;
+  const maybe =
+    obj?.data?.categories ??
+    obj?.data ??
+    obj?.categories ??
+    obj?.response?.categories ??
+    obj;
+  return asArray(maybe) as TebexCategory[];
+}
+
+function priceToText(pkg: TebexPackage): string | null {
+  const candidate = pkg.total_price ?? pkg.base_price ?? pkg.price;
+  if (typeof candidate === "number") return `${candidate}`;
+  if (typeof candidate === "string") return candidate;
+  if (candidate && typeof candidate === "object") {
+    const v = (candidate as any)?.formatted ?? (candidate as any)?.value;
+    if (typeof v === "string") return v;
+    if (typeof v === "number") return `${v}`;
+  }
+  return null;
+}
+
+export function StoreClient() {
+  const [data, setData] = useState<unknown>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch("/api/store/categories", {
+          headers: { Accept: "application/json" },
+        });
+        const json = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            (json && (json.error || json.message)) ||
+              `Request failed (${res.status})`,
+          );
+        }
+        if (!cancelled) setData(json);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categories = useMemo(() => pickCategories(data), [data]);
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-sm text-red-200">
+        <p className="font-semibold text-red-100">Couldn’t load the store.</p>
+        <p className="mt-2 text-red-100/80">{error}</p>
+        <p className="mt-3 text-red-100/70">
+          If you’re running locally, add Tebex env vars and restart the dev
+          server.
+        </p>
+      </div>
+    );
+  }
+
+  if (!categories.length) {
+    return (
+      <div className="rounded-2xl border border-black/10 p-5 text-sm text-foreground/75 dark:border-white/10">
+        No categories found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {categories.map((c, idx) => {
+        const id = c?.id ?? idx;
+        const name = c?.name ?? "Category";
+        const packages = Array.isArray(c?.packages) ? c.packages : [];
+
+        return (
+          <div
+            key={String(id)}
+            className="rounded-2xl border border-black/10 p-5 dark:border-white/10"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold">{name}</p>
+                <p className="mt-1 text-sm text-foreground/70">
+                  {packages.length} package{packages.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <Link
+                href={`/store/category/${encodeURIComponent(String(id))}`}
+                className="inline-flex h-9 items-center justify-center rounded-full border border-black/15 px-4 text-sm font-medium transition-colors hover:bg-black/[.04] dark:border-white/15 dark:hover:bg-white/[.06]"
+              >
+                View
+              </Link>
+            </div>
+
+            {packages.length > 0 ? (
+              <div className="mt-4 space-y-2">
+                {packages.slice(0, 3).map((p) => {
+                  const pid = p?.id;
+                  const pname = p?.name ?? "Package";
+                  const price = priceToText(p);
+                  return (
+                    <div
+                      key={String(pid ?? pname)}
+                      className="flex items-center justify-between gap-4 rounded-xl bg-black/[.03] px-3 py-2 text-sm dark:bg-white/[.06]"
+                    >
+                      <Link
+                        href={`/store/package/${encodeURIComponent(
+                          String(pid ?? ""),
+                        )}`}
+                        className="truncate font-medium"
+                      >
+                        {pname}
+                      </Link>
+                      {price ? (
+                        <span className="shrink-0 text-foreground/70">
+                          {price}
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
+      <div className="h-4 w-40 animate-pulse rounded bg-black/10 dark:bg-white/10" />
+      <div className="mt-3 h-3 w-24 animate-pulse rounded bg-black/10 dark:bg-white/10" />
+      <div className="mt-6 space-y-2">
+        <div className="h-9 w-full animate-pulse rounded-xl bg-black/10 dark:bg-white/10" />
+        <div className="h-9 w-full animate-pulse rounded-xl bg-black/10 dark:bg-white/10" />
+      </div>
+    </div>
+  );
+}
+
