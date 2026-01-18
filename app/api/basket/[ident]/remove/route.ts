@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
+import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
 
@@ -21,23 +22,27 @@ export async function POST(
     );
   }
 
-  const { ident } = await params;
-  const body = (await req.json().catch(() => null)) as RemoveRequest | null;
-  if (!body?.package_id) {
-    return NextResponse.json(
-      { error: "Missing required field: package_id" },
-      { status: 400 },
+  try {
+    const { ident } = await params;
+    const body = (await req.json().catch(() => null)) as RemoveRequest | null;
+    if (!body?.package_id) {
+      return NextResponse.json(
+        { error: "Missing required field: package_id" },
+        { status: 400 },
+      );
+    }
+
+    const removed = await tebexFetch<unknown>(
+      `/baskets/${encodeURIComponent(ident)}/packages/remove`,
+      {
+        method: "POST",
+        body: JSON.stringify({ package_id: body.package_id }),
+      },
     );
+
+    return NextResponse.json(removed, { status: 200 });
+  } catch (e) {
+    return errorJson(e, 502);
   }
-
-  const removed = await tebexFetch<unknown>(
-    `/baskets/${encodeURIComponent(ident)}/packages/remove`,
-    {
-      method: "POST",
-      body: JSON.stringify({ package_id: body.package_id }),
-    },
-  );
-
-  return NextResponse.json(removed, { status: 200 });
 }
 

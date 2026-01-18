@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
+import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
 
@@ -22,28 +23,32 @@ export async function POST(
     );
   }
 
-  const { ident } = await params;
-  const body = (await req.json().catch(() => null)) as AddRequest | null;
-  if (!body?.package_id) {
-    return NextResponse.json(
-      { error: "Missing required field: package_id" },
-      { status: 400 },
+  try {
+    const { ident } = await params;
+    const body = (await req.json().catch(() => null)) as AddRequest | null;
+    if (!body?.package_id) {
+      return NextResponse.json(
+        { error: "Missing required field: package_id" },
+        { status: 400 },
+      );
+    }
+
+    const payload = {
+      package_id: body.package_id,
+      quantity: typeof body.quantity === "number" ? body.quantity : 1,
+    };
+
+    const added = await tebexFetch<unknown>(
+      `/baskets/${encodeURIComponent(ident)}/packages`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
     );
+
+    return NextResponse.json(added, { status: 200 });
+  } catch (e) {
+    return errorJson(e, 502);
   }
-
-  const payload = {
-    package_id: body.package_id,
-    quantity: typeof body.quantity === "number" ? body.quantity : 1,
-  };
-
-  const added = await tebexFetch<unknown>(
-    `/baskets/${encodeURIComponent(ident)}/packages`,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
-  );
-
-  return NextResponse.json(added, { status: 200 });
 }
 

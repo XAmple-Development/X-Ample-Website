@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSiteUrl, hasTebexEnv, tebexFetch } from "@/lib/tebex";
 import { getIn, getProp, isRecord } from "@/lib/safe";
+import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
 
@@ -21,39 +22,43 @@ export async function POST(req: Request) {
     );
   }
 
-  const siteUrl = getSiteUrl();
-  const body = (await req.json().catch(() => ({}))) as CreateBasketRequest;
+  try {
+    const siteUrl = getSiteUrl();
+    const body = (await req.json().catch(() => ({}))) as CreateBasketRequest;
 
-  const complete_url =
-    body.complete_url ?? (siteUrl ? `${siteUrl}/store/complete` : undefined);
-  const cancel_url =
-    body.cancel_url ?? (siteUrl ? `${siteUrl}/store/cancel` : undefined);
+    const complete_url =
+      body.complete_url ?? (siteUrl ? `${siteUrl}/store/complete` : undefined);
+    const cancel_url =
+      body.cancel_url ?? (siteUrl ? `${siteUrl}/store/cancel` : undefined);
 
-  const payload: Record<string, unknown> = {
-    complete_auto_redirect: true,
-    custom: { source: "x-ample-website" },
-  };
-  if (complete_url) payload.complete_url = complete_url;
-  if (cancel_url) payload.cancel_url = cancel_url;
+    const payload: Record<string, unknown> = {
+      complete_auto_redirect: true,
+      custom: { source: "x-ample-website" },
+    };
+    if (complete_url) payload.complete_url = complete_url;
+    if (cancel_url) payload.cancel_url = cancel_url;
 
-  const basket = await tebexFetch<unknown>("/baskets", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  const ident = extractBasketIdent(basket);
-  if (typeof ident === "string" && ident.length > 0) {
-    const jar = await cookies();
-    jar.set("xa_basket", ident, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+    const basket = await tebexFetch<unknown>("/baskets", {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
-  }
 
-  return NextResponse.json(basket, { status: 200 });
+    const ident = extractBasketIdent(basket);
+    if (typeof ident === "string" && ident.length > 0) {
+      const jar = await cookies();
+      jar.set("xa_basket", ident, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
+
+    return NextResponse.json(basket, { status: 200 });
+  } catch (e) {
+    return errorJson(e, 502);
+  }
 }
 
 function extractBasketIdent(payload: unknown): string | null {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
+import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
 
@@ -17,8 +18,14 @@ export async function GET(
     );
   }
 
-  const { id } = await params;
-  const data = await tebexFetch<unknown>(`/packages/${encodeURIComponent(id)}`);
-  return NextResponse.json(data, { status: 200 });
+  try {
+    const { id } = await params;
+    const data = await tebexFetch<unknown>(
+      `/packages/${encodeURIComponent(id)}`,
+    );
+    return NextResponse.json(data, { status: 200 });
+  } catch (e) {
+    return errorJson(e, 502);
+  }
 }
 
