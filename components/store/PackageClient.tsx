@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import DOMPurify from "dompurify";
 import { getIn, isRecord } from "@/lib/safe";
 
 type TebexPackage = {
@@ -117,6 +118,12 @@ export function PackageClient({ packageId }: { packageId: string }) {
 
   const pkg = useMemo(() => pickPackage(data), [data]);
   const price = pkg ? priceToText(pkg) : null;
+  const safeDescriptionHtml = useMemo(() => {
+    if (!pkg?.description) return null;
+    return DOMPurify.sanitize(pkg.description, {
+      USE_PROFILES: { html: true },
+    });
+  }, [pkg?.description]);
 
   async function onAdd() {
     try {
@@ -188,10 +195,11 @@ export function PackageClient({ packageId }: { packageId: string }) {
         </Link>
       </div>
 
-      {pkg.description ? (
-        <div className="mt-6 rounded-2xl bg-black/[.03] p-5 text-sm leading-7 text-foreground/80 dark:bg-white/[.06]">
-          {pkg.description}
-        </div>
+      {safeDescriptionHtml ? (
+        <div
+          className="prose prose-invert mt-6 max-w-none rounded-2xl bg-black/[.03] p-5 text-sm leading-7 text-foreground/80 dark:bg-white/[.06]"
+          dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
+        />
       ) : null}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">

@@ -35,3 +35,52 @@ body {
   );
   background-size: 24px 24px;
 }
+
+/* Minimal prose styling for rendered Tebex HTML */
+.prose :where(h1, h2, h3) {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.prose :where(h1) {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  margin: 0.25rem 0 0.75rem;
+}
+.prose :where(h2) {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.prose :where(h3) {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.prose :where(p) {
+  margin: 0.75rem 0;
+}
+.prose :where(ul, ol) {
+  margin: 0.75rem 0;
+  padding-left: 1.25rem;
+}
+.prose :where(li) {
+  margin: 0.25rem 0;
+}
+.prose :where(code) {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.prose :where(pre) {
+  overflow-x: auto;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+.prose :where(a) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent);
+}
