@@ -20,6 +20,10 @@ function pickPackage(payload: unknown): TebexPackage | null {
     getIn(payload, ["package"]) ??
     getIn(payload, ["response", "package"]) ??
     payload;
+  if (Array.isArray(maybe)) {
+    const first = maybe[0];
+    return isRecord(first) ? (first as TebexPackage) : null;
+  }
   return isRecord(maybe) ? (maybe as TebexPackage) : null;
 }
 

@@ -23,6 +23,10 @@ function pickCategory(payload: unknown): TebexCategory | null {
   // Tebex can return { data: {...} } for category endpoints.
   if (!payload || typeof payload !== "object") return null;
   const data = (payload as { data?: unknown }).data ?? payload;
+  if (Array.isArray(data)) {
+    const first = data[0];
+    return isRecord(first) ? (first as TebexCategory) : null;
+  }
   return isRecord(data) ? (data as TebexCategory) : null;
 }
 
