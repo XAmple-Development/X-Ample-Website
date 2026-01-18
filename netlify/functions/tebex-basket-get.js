@@ -2,11 +2,18 @@
 
 const DEFAULT_TEBEX_BASE = "https://headless.tebex.io/api";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Cache-Control": "no-store",
+};
+
 const json = (statusCode, body) => ({
   statusCode,
   headers: {
+    ...corsHeaders,
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
   },
   body: JSON.stringify(body),
 });
@@ -20,17 +27,8 @@ const getAuthHeader = () => {
 };
 
 exports.handler = async (event) => {
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-      },
-      body: "",
-    };
+    return { statusCode: 204, headers: corsHeaders, body: "" };
   }
 
   if (event.httpMethod !== "GET") {
@@ -48,9 +46,12 @@ exports.handler = async (event) => {
   if (!ident) return json(400, { error: "Missing ident" });
 
   try {
-    const res = await fetch(`${tebexBase}/accounts/${accountToken}/baskets/${encodeURIComponent(ident)}`, {
-      headers: { Authorization: authHeader },
-    });
+    const res = await fetch(
+      `${tebexBase}/accounts/${accountToken}/baskets/${encodeURIComponent(ident)}`,
+      {
+        headers: { Authorization: authHeader },
+      }
+    );
 
     if (!res.ok) {
       return json(res.status, {
@@ -62,10 +63,8 @@ exports.handler = async (event) => {
     const payload = await res.json();
     const b = payload?.data || payload;
 
-    // Normalise the packages a bit (different responses use different fields)
     const packages = Array.isArray(b?.packages) ? b.packages : [];
     const count = packages.reduce((sum, p) => {
-      // In many Headless responses, quantity is in p.in_basket.quantity
       const qty = Number(p?.in_basket?.quantity ?? p?.qty ?? p?.quantity ?? 0);
       return sum + (Number.isFinite(qty) ? qty : 0);
     }, 0);
@@ -92,6 +91,9 @@ exports.handler = async (event) => {
       basket: b,
     });
   } catch (err) {
-    return json(500, { error: "Unexpected Tebex error", details: String(err?.message || err) });
+    return json(500, {
+      error: "Unexpected Tebex error",
+      details: String(err?.message || err),
+    });
   }
 };
