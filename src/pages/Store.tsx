@@ -10,20 +10,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { TebexProduct } from "@/types/tebex";
-import { RefreshCw, ShieldCheck, ShoppingBag, Sparkles, Wallet, Minus, Plus, Trash2 } from "lucide-react";
+import {
+  RefreshCw,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Wallet,
+  Minus,
+  Plus,
+  Trash2,
+  LogIn,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const fetchProducts = async (): Promise<TebexProduct[]> => {
   const response = await fetch("/.netlify/functions/tebex-products");
-  if (!response.ok) {
-    throw new Error("Unable to fetch store products right now.");
-  }
+  if (!response.ok) throw new Error("Unable to fetch store products right now.");
   const data = await response.json();
   return (data?.products ?? []) as TebexProduct[];
 };
 
 const formatPrice = (price: number, currency?: string) => {
-  if (price === null || price === undefined) return "";
+  if (!price && price !== 0) return "";
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: currency || "USD",
@@ -38,10 +46,20 @@ const Store = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [tebexBasketIdent, setTebexBasketIdent] = useState<string | null>(null);
+
+  // This is ONLY a local “session key” for your own tracking (and/or Supabase),
+  // not a Tebex token.
+  const [sessionToken, setSessionToken] = useState("");
+
+  // Live Tebex basket display (recommended)
+  const [tebexBasketLive, setTebexBasketLive] = useState<any | null>(null);
+  const [tebexBasketLiveLoading, setTebexBasketLiveLoading] = useState(false);
 
   const { data: products, isLoading, error, refetch } = useQuery({
     queryKey: ["tebex-products"],
@@ -49,39 +67,35 @@ const Store = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Handle checkout return states (?status=success|cancelled)
+  // Handle return from Tebex checkout
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-
     if (params.get("status") === "success") {
       toast({ title: "Checkout complete", description: "Thanks! Tebex will process your order." });
-      params.delete("status");
-      const next = params.toString();
-      window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+      // Optional: clear local cart on success
+      setCartItems([]);
+      window.localStorage.removeItem("storeCart");
+      window.localStorage.removeItem("tebexBasketCount");
+      window.dispatchEvent(new Event("store-cart-updated"));
+      window.history.replaceState({}, "", window.location.pathname);
     }
-
     if (params.get("status") === "cancelled") {
       toast({ title: "Checkout cancelled", description: "You can resume anytime." });
-      params.delete("status");
-      const next = params.toString();
-      window.history.replaceState({}, "", `${window.location.pathname}${next ? `?${next}` : ""}`);
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, [toast]);
 
-  // Load saved cart + basket ident
+  // Load local cart
   useEffect(() => {
-    const storedCart = window.localStorage.getItem("storeCart");
-    if (storedCart) {
+    const stored = window.localStorage.getItem("storeCart");
+    if (stored) {
       try {
-        const parsed = JSON.parse(storedCart);
+        const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) setCartItems(parsed);
       } catch {
         // ignore
       }
     }
-
-    const storedIdent = window.localStorage.getItem("tebexBasketIdent");
-    if (storedIdent) setTebexBasketIdent(storedIdent);
   }, []);
 
   // Persist cart
@@ -90,31 +104,20 @@ const Store = () => {
     window.dispatchEvent(new Event("store-cart-updated"));
   }, [cartItems]);
 
-  // Persist basket ident
+  // Load tebex basket ident + session token
   useEffect(() => {
-    if (tebexBasketIdent) {
-      window.localStorage.setItem("tebexBasketIdent", tebexBasketIdent);
-    }
-  }, [tebexBasketIdent]);
+    const storedIdent = window.localStorage.getItem("tebexBasketIdent");
+    if (storedIdent) setTebexBasketIdent(storedIdent);
 
-  // Open cart modal if ?cart=1
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("cart") === "1") {
-      setCartOpen(true);
-      params.delete("cart");
-      const nextSearch = params.toString();
-      const nextUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
-      window.history.replaceState({}, "", nextUrl);
-    }
-  }, [location.pathname, location.search]);
-
-  // Allow other components (Header) to open the cart
-  useEffect(() => {
-    const open = () => setCartOpen(true);
-    window.addEventListener("store-cart-open", open);
-    return () => window.removeEventListener("store-cart-open", open);
+    const token = window.localStorage.getItem("tebexLoginToken");
+    if (token) setSessionToken(token);
   }, []);
+
+  // Persist ident + token
+  useEffect(() => {
+    if (tebexBasketIdent) window.localStorage.setItem("tebexBasketIdent", tebexBasketIdent);
+    if (sessionToken) window.localStorage.setItem("tebexLoginToken", sessionToken);
+  }, [tebexBasketIdent, sessionToken]);
 
   const categories = useMemo(() => {
     if (!products?.length) return ["All"];
@@ -130,12 +133,10 @@ const Store = () => {
     return products.filter((product) => {
       const matchesCategory =
         activeCategory === "All" || String(product.category ?? "General") === activeCategory;
-
       const matchesSearch =
         !searchTerm ||
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (product.description ?? "").toLowerCase().includes(searchTerm.toLowerCase());
-
       return matchesCategory && matchesSearch;
     });
   }, [products, activeCategory, searchTerm]);
@@ -143,12 +144,10 @@ const Store = () => {
   const cartDetailed = useMemo(() => {
     if (!products) return [];
     const map = new Map(products.map((p) => [String(p.id), p]));
-
     return cartItems
       .map((item) => {
         const product = map.get(String(item.productId));
         if (!product) return null;
-
         const unitPrice = product.salePrice ?? product.price;
         return {
           product,
@@ -163,9 +162,7 @@ const Store = () => {
     }>;
   }, [cartItems, products]);
 
-  const cartTotal = useMemo(() => {
-    return cartDetailed.reduce((sum, item) => sum + item.lineTotal, 0);
-  }, [cartDetailed]);
+  const cartTotal = useMemo(() => cartDetailed.reduce((sum, item) => sum + item.lineTotal, 0), [cartDetailed]);
 
   const addToCart = (product: TebexProduct) => {
     setCartItems((prev) => {
@@ -198,19 +195,75 @@ const Store = () => {
     setCartItems((prev) => prev.filter((item) => String(item.productId) !== String(productId)));
   };
 
+  // Open cart if ?cart=1
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("cart") === "1") {
+      setCartOpen(true);
+      params.delete("cart");
+      const nextSearch = params.toString();
+      const nextUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+  }, [location.pathname, location.search]);
+
+  // Global open event
+  useEffect(() => {
+    const open = () => setCartOpen(true);
+    window.addEventListener("store-cart-open", open);
+    return () => window.removeEventListener("store-cart-open", open);
+  }, []);
+
+  // Live basket fetch
+  const refreshLiveBasket = async () => {
+    if (!tebexBasketIdent) {
+      setTebexBasketLive(null);
+      return;
+    }
+    setTebexBasketLiveLoading(true);
+    try {
+      const res = await fetch(
+        `/.netlify/functions/tebex-basket-get?ident=${encodeURIComponent(tebexBasketIdent)}`
+      );
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload?.error || "Failed to load Tebex basket");
+      setTebexBasketLive(payload);
+
+      // Keep the little badge counter in sync (if you use it elsewhere)
+      if (typeof payload?.count === "number") {
+        window.localStorage.setItem("tebexBasketCount", String(payload.count));
+        window.dispatchEvent(new Event("store-cart-updated"));
+      }
+    } catch {
+      setTebexBasketLive(null);
+    } finally {
+      setTebexBasketLiveLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (cartOpen) refreshLiveBasket();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartOpen, tebexBasketIdent]);
+
   /**
-   * Starts Tebex auth (FiveM login) and redirects to Tebex ident auth URL.
-   * Uses your Netlify function: /.netlify/functions/tebex-basket
+   * Login button:
+   * Calls tebex-basket-sync with authOnly:true to get authUrl.
+   * Then redirect user to Tebex ident login (Discord/FiveM).
    */
   const handleLogin = async () => {
-    setIsSubmitting(true);
+    const token = sessionToken || crypto.randomUUID();
+    setSessionToken(token);
+    window.localStorage.setItem("tebexLoginToken", token);
+
     try {
-      const res = await fetch("/.netlify/functions/tebex-basket", {
+      const res = await fetch("/.netlify/functions/tebex-basket-sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           authOnly: true,
           ident: tebexBasketIdent || undefined,
+          sessionToken: token,
           returnUrl: `${window.location.origin}/store?cart=1`,
           cancelUrl: `${window.location.origin}/store?cart=1`,
         }),
@@ -224,18 +277,18 @@ const Store = () => {
 
       if (payload?.ident) setTebexBasketIdent(payload.ident);
 
+      // Redirect to Tebex identity (Discord/FiveM)
       window.location.href = payload.authUrl;
     } catch (err: any) {
       toast({ title: "Login failed", description: err?.message || "Please try again." });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   /**
-   * Creates/reuses basket, attempts to add cart items.
-   * If Tebex requires login first, redirects to authUrl.
-   * Otherwise redirects to checkoutUrl.
+   * Checkout:
+   * - Sync items to Tebex via tebex-basket-sync
+   * - If login required -> redirect to authUrl
+   * - If checkoutUrl -> redirect there
    */
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -244,17 +297,14 @@ const Store = () => {
     }
 
     setIsSubmitting(true);
-
     try {
-      const res = await fetch("/.netlify/functions/tebex-basket", {
+      const res = await fetch("/.netlify/functions/tebex-basket-sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ident: tebexBasketIdent || undefined,
-          items: cartItems.map((i) => ({
-            productId: Number(i.productId),
-            quantity: i.quantity,
-          })),
+          sessionToken: sessionToken || undefined,
+          items: cartItems,
           returnUrl: `${window.location.origin}/store?status=success`,
           cancelUrl: `${window.location.origin}/store?status=cancelled`,
         }),
@@ -266,38 +316,27 @@ const Store = () => {
         throw new Error(payload?.error || "Unable to start Tebex checkout.");
       }
 
-      if (payload?.ident) setTebexBasketIdent(payload.ident);
-
-      // Tebex says user must login first
-      if (payload?.loginRequired && payload?.authUrl) {
+      // tebex-basket-sync can respond with authUrl when login is needed
+      if (payload?.authUrl) {
+        if (payload?.ident) setTebexBasketIdent(payload.ident);
         window.location.href = payload.authUrl;
         return;
       }
 
-      // ready to checkout
-      if (payload?.checkoutUrl) {
-        window.location.href = payload.checkoutUrl;
-        return;
+      if (payload?.ident) setTebexBasketIdent(payload.ident);
+
+      const checkoutUrl = payload?.checkoutUrl || payload?.checkout_url || null;
+      if (!checkoutUrl) {
+        throw new Error("Missing Tebex checkout URL.");
       }
 
-      throw new Error("Missing authUrl/checkoutUrl from Tebex.");
+      window.location.href = checkoutUrl;
     } catch (err: any) {
       console.error("Tebex checkout error", err);
       toast({ title: "Checkout failed", description: err?.message || "Please try again." });
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Buy now = replace cart with just 1 item and immediately checkout
-  const buyNow = async (product: TebexProduct) => {
-    setCartItems([{ productId: String(product.id), quantity: 1 }]);
-    setCartOpen(true);
-
-    // allow state to commit before checkout
-    setTimeout(() => {
-      handleCheckout();
-    }, 0);
   };
 
   return (
@@ -324,6 +363,7 @@ const Store = () => {
                 <p className="text-lg text-slate-200 max-w-2xl">
                   Products are listed from Tebex. Checkout is handled by Tebex via the Headless API.
                 </p>
+
                 <div className="flex flex-wrap gap-3 mt-6">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-sm">
                     <ShieldCheck className="w-4 h-4 text-teal-300" />
@@ -347,20 +387,19 @@ const Store = () => {
                     Tebex Checkout
                   </CardTitle>
                   <CardDescription className="text-slate-200">
-                    We create a Tebex basket and redirect you to checkout.
+                    Add items to your basket, login with Discord/FiveM via Tebex, then checkout.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
-                    Some products require Tebex login before checkout.
+                    Recommended flow: <b>Login with Discord/FiveM via Tebex</b> (no manual username_id input).
                   </div>
+
                   <Button
-                    variant="outline"
-                    className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
-                    onClick={handleLogin}
-                    disabled={isSubmitting}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                    onClick={() => setCartOpen(true)}
                   >
-                    {isSubmitting ? "Starting..." : "Login with Tebex"}
+                    Open Basket
                   </Button>
                 </CardContent>
               </Card>
@@ -447,6 +486,7 @@ const Store = () => {
                 {filteredProducts.map((product) => {
                   const displayPrice = product.salePrice ?? product.price;
                   const hasSale = product.salePrice && product.salePrice < product.price;
+
                   return (
                     <Card
                       key={product.id}
@@ -463,10 +503,13 @@ const Store = () => {
                             </div>
                           )}
                         </div>
+
                         <CardTitle className="text-xl">{product.name}</CardTitle>
+
                         <CardDescription className="text-slate-200 line-clamp-3">
                           {product.description || "No description provided."}
                         </CardDescription>
+
                         <div className="flex items-baseline gap-2">
                           <span className="text-3xl font-bold text-cyan-300">
                             {formatPrice(displayPrice, product.currency)}
@@ -478,6 +521,7 @@ const Store = () => {
                           )}
                         </div>
                       </CardHeader>
+
                       <CardContent className="flex-1 flex flex-col gap-4">
                         {product.image && (
                           <div className="aspect-video rounded-lg overflow-hidden bg-white/5 border border-white/10">
@@ -489,6 +533,7 @@ const Store = () => {
                             />
                           </div>
                         )}
+
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
@@ -499,8 +544,11 @@ const Store = () => {
                           </Button>
                           <Button
                             className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
-                            onClick={() => buyNow(product)}
-                            disabled={isSubmitting}
+                            onClick={() => {
+                              addToCart(product);
+                              // and open cart immediately
+                              setCartOpen(true);
+                            }}
                           >
                             Buy Now
                           </Button>
@@ -525,22 +573,76 @@ const Store = () => {
               </Button>
             </div>
 
+            {/* Live Tebex basket */}
+            <div className="bg-white/5 border border-white/10 rounded-md p-3 space-y-2 mb-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Tebex Basket (live)</p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100"
+                    onClick={refreshLiveBasket}
+                    disabled={!tebexBasketIdent || tebexBasketLiveLoading}
+                  >
+                    {tebexBasketLiveLoading ? "Refreshing..." : "Refresh"}
+                  </Button>
+                </div>
+              </div>
+
+              {!tebexBasketIdent ? (
+                <p className="text-xs text-slate-300">No Tebex basket yet. Add an item and we’ll create one.</p>
+              ) : tebexBasketLive ? (
+                <div className="text-xs text-slate-200 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Items</span>
+                    <span>{tebexBasketLive.count ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total</span>
+                    <span>
+                      {typeof tebexBasketLive.total_price === "number"
+                        ? formatPrice(tebexBasketLive.total_price, tebexBasketLive.currency)
+                        : "—"}
+                    </span>
+                  </div>
+
+                  {tebexBasketLive.checkoutUrl ? (
+                    <Button
+                      className="w-full mt-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
+                      onClick={() => (window.location.href = tebexBasketLive.checkoutUrl)}
+                    >
+                      Continue to Tebex Checkout
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-slate-300">
+                      Checkout link may appear after login + items are synced.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-300">Couldn’t load live Tebex basket. Try refresh.</p>
+              )}
+            </div>
+
             {cartDetailed.length === 0 ? (
               <p className="text-slate-300">Your basket is empty.</p>
             ) : (
               <div className="space-y-4">
-                <div className="text-xs text-slate-200 bg-white/5 border border-white/10 rounded-md px-3 py-2">
-                  Some products require Tebex login before checkout.
+                {/* Recommended login-only button */}
+                <div className="bg-white/5 border border-white/10 rounded-md p-3">
+                  <p className="text-sm font-semibold mb-2">Login</p>
+                  <p className="text-xs text-slate-300 mb-3">
+                    Login via Tebex identity so we can attach your basket to your Discord/FiveM identity.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
+                    onClick={handleLogin}
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Login with Discord/FiveM via Tebex
+                  </Button>
                 </div>
-
-                <Button
-                  variant="outline"
-                  className="border-white/30 text-white hover:border-cyan-300 hover:text-cyan-100 w-full"
-                  onClick={handleLogin}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Starting..." : "Login with Tebex"}
-                </Button>
 
                 {cartDetailed.map(({ product, quantity, lineTotal }) => (
                   <div key={product.id} className="flex items-center justify-between gap-4">
@@ -552,11 +654,19 @@ const Store = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" onClick={() => updateQuantity(String(product.id), -1)}>
+                      <Button
+                        variant="outline"
+                        className="border-white/20 text-white"
+                        onClick={() => updateQuantity(String(product.id), -1)}
+                      >
                         <Minus className="w-4 h-4" />
                       </Button>
                       <span className="w-6 text-center">{quantity}</span>
-                      <Button variant="outline" onClick={() => updateQuantity(String(product.id), 1)}>
+                      <Button
+                        variant="outline"
+                        className="border-white/20 text-white"
+                        onClick={() => updateQuantity(String(product.id), 1)}
+                      >
                         <Plus className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" onClick={() => removeFromCart(String(product.id))}>
@@ -582,6 +692,10 @@ const Store = () => {
                 >
                   {isSubmitting ? "Starting..." : "Checkout via Tebex"}
                 </Button>
+
+                <p className="text-xs text-slate-400">
+                  If Tebex asks you to login, you’ll be redirected automatically.
+                </p>
               </div>
             )}
           </div>
