@@ -7,14 +7,14 @@
   "Hero": {
     "CopyIP": "KOPIEER IP",
     "CopiedIP": "GEKOPIEERD!",
-    "JoinDiscord": "Word lid van Discord",
+    "JoinDiscord": "Word lid van onze Discord",
     "Join": "Nu meedoen",
     "Home": "Home",
     "Store": "Winkel",
     "Vote": "Stem",
     "Blog": "Blog",
     "Rules": "Regels",
-    "Wiki": "Wiki"
+    "Wiki": "Wiki"  
   },
   "Login": {
     "LoginToShop": "Log in om te winkelen",
