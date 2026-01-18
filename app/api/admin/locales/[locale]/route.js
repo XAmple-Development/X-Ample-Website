@@ -28,6 +28,13 @@ export async function POST(req, { params }) {
   if (process.env.NEXT_PUBLIC_IS_DEMO === "true") return NextResponse.json({ error: 'Cannot make changes in demo mode' }, { status: 400 });
 
   if (!authed()) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+  const isServerless = process.env.USING_SERVERLESS === 'true' || process.env.NEXT_RUNTIME === 'edge';
+  if (isServerless) {
+    return NextResponse.json(
+      { error: 'This deployment cannot persist locale changes (serverless filesystem).' },
+      { status: 400 }
+    );
+  }
   const { locale } = await params;
   const data = await req.json();
   const filePath = path.join(process.cwd(), 'messages', `${locale}.json`);

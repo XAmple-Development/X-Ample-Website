@@ -25,6 +25,10 @@ export async function getSettings() {
 }
 
 export async function setSettings(next) {
+  const isServerless = process.env.USING_SERVERLESS === 'true' || process.env.NEXT_RUNTIME === 'edge';
+  if (isServerless) {
+    throw new Error('Settings cannot be persisted on a serverless filesystem. Use a database/KV store, or deploy somewhere with persistent disk.');
+  }
   const json = JSON.stringify(next, null, 2);
   await fs.mkdir(path.dirname(SETTINGS_PATH), { recursive: true });
   await fs.writeFile(SETTINGS_PATH, json, 'utf-8');

@@ -21,6 +21,13 @@ export async function POST(req) {
   if (process.env.NEXT_PUBLIC_IS_DEMO === "true") return NextResponse.json({ error: 'Cannot make changes in demo mode' }, { status: 400 });
   
   if (!authed()) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+  const isServerless = process.env.USING_SERVERLESS === 'true' || process.env.NEXT_RUNTIME === 'edge';
+  if (isServerless) {
+    return NextResponse.json(
+      { error: 'This deployment cannot persist settings changes (serverless filesystem).' },
+      { status: 400 }
+    );
+  }
   const incoming = await req.json();
   const saved = await setSettings(incoming);
   return NextResponse.json({ ok: true, settings: saved });
