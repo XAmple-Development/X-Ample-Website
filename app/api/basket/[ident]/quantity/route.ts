@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
+import { hasTebexAuthEnv, tebexBasketFetch } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
@@ -13,11 +13,11 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ ident: string }> },
 ) {
-  if (!hasTebexEnv()) {
+  if (!hasTebexAuthEnv()) {
     return NextResponse.json(
       {
         error:
-          "Missing Tebex env vars. Set TEBEX_WEBSTORE_TOKEN, TEBEX_PUBLIC_TOKEN, TEBEX_PRIVATE_KEY.",
+          "Missing Tebex env vars. Set TEBEX_PUBLIC_TOKEN and TEBEX_PRIVATE_KEY.",
       },
       { status: 500 },
     );
@@ -35,7 +35,7 @@ export async function PUT(
       );
     }
 
-    const data = await tebexFetch<unknown>(
+    const data = await tebexBasketFetch<unknown>(
       `/baskets/${encodeURIComponent(ident)}/packages/${encodeURIComponent(
         String(body.package_id),
       )}`,

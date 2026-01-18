@@ -8,11 +8,15 @@ function getEnv(name: string): string | null {
 }
 
 export function hasTebexEnv() {
-  return (
-    !!getEnv("TEBEX_WEBSTORE_TOKEN") &&
-    !!getEnv("TEBEX_PUBLIC_TOKEN") &&
-    !!getEnv("TEBEX_PRIVATE_KEY")
-  );
+  return hasTebexAccountEnv();
+}
+
+export function hasTebexAuthEnv() {
+  return !!getEnv("TEBEX_PUBLIC_TOKEN") && !!getEnv("TEBEX_PRIVATE_KEY");
+}
+
+export function hasTebexAccountEnv() {
+  return !!getEnv("TEBEX_WEBSTORE_TOKEN") && hasTebexAuthEnv();
 }
 
 export function getSiteUrl() {
@@ -31,23 +35,11 @@ function getWebstoreToken() {
   return getEnv("TEBEX_WEBSTORE_TOKEN");
 }
 
-export async function tebexFetch<T>(
-  path: string,
-  init: TebexFetchInit = {},
-): Promise<T> {
-  const token = getWebstoreToken();
+async function tebexRequest<T>(url: string, init: TebexFetchInit = {}) {
   const auth = getBasicAuthHeader();
-
-  if (!token) {
-    throw new Error("Missing env var: TEBEX_WEBSTORE_TOKEN");
-  }
   if (!auth) {
     throw new Error("Missing env vars: TEBEX_PUBLIC_TOKEN / TEBEX_PRIVATE_KEY");
   }
-
-  const url = `https://headless.tebex.io/api/accounts/${encodeURIComponent(
-    token,
-  )}${path.startsWith("/") ? path : `/${path}`}`;
 
   const res = await fetch(url, {
     ...init,
@@ -76,4 +68,39 @@ export async function tebexFetch<T>(
 
   return body as T;
 }
+
+/**
+ * Tebex "account-scoped" endpoints.
+ * Example: /categories, /packages/:id, /baskets (create), /accounts/{token}/baskets/:ident (get)
+ */
+export async function tebexAccountFetch<T>(
+  path: string,
+  init: TebexFetchInit = {},
+): Promise<T> {
+  const token = getWebstoreToken();
+  if (!token) throw new Error("Missing env var: TEBEX_WEBSTORE_TOKEN");
+
+  const url = `https://headless.tebex.io/api/accounts/${encodeURIComponent(
+    token,
+  )}${path.startsWith("/") ? path : `/${path}`}`;
+
+  return tebexRequest<T>(url, init);
+}
+
+/**
+ * Tebex "basket-scoped" endpoints.
+ * Example: /baskets/{basketIdent}/packages (no accounts/{token} prefix)
+ */
+export async function tebexBasketFetch<T>(
+  path: string,
+  init: TebexFetchInit = {},
+): Promise<T> {
+  const url = `https://headless.tebex.io/api${
+    path.startsWith("/") ? path : `/${path}`
+  }`;
+  return tebexRequest<T>(url, init);
+}
+
+// Backwards-compatible name (account-scoped).
+export const tebexFetch = tebexAccountFetch;
 
