@@ -19,11 +19,7 @@ const Header = () => {
     { name: "About", href: "/about" },
     { name: "Team", href: "/team" },
     { name: "Portfolio", href: "/portfolio" },
-    { name: "Bots", href: "/bots" },
-    { name: "Vacancies", href: "/vacancies" },
     { name: "Contact", href: "/contact" },
-    { name: "Licenses", href: "/licenses" },
-    { name: "Status", href: "/status" },
     { name: "Discord", href: "https://discord.gg/bGhguE93Xp" },
   ];
 
