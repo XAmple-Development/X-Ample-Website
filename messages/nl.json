@@ -1,0 +1,208 @@
+{
+  "Navbar": {
+    "Support": "Support",
+    "Vote": "Stem",
+    "Login": "INLOGGEN"
+  },
+  "Hero": {
+    "CopyIP": "KOPIEER IP",
+    "CopiedIP": "GEKOPIEERD!",
+    "JoinDiscord": "Word lid van Discord",
+    "Join": "Nu meedoen",
+    "Home": "Home",
+    "Store": "Winkel",
+    "Vote": "Stem",
+    "Blog": "Blog",
+    "Rules": "Regels",
+    "Wiki": "Wiki"
+  },
+  "Login": {
+    "LoginToShop": "Log in om te winkelen",
+    "GetStarted": "Laten we beginnen met je gebruikersnaam in te voeren.",
+    "UsernameRequired": "Gebruikersnaam vereist",
+    "PleaseEnterUsername": "Voer je gebruikersnaam in",
+    "Error": "Fout",
+    "ErrorOccurred": "Er is een fout opgetreden",
+    "Login": "Inloggen",
+    "JavaEdition": "Java-editie",
+    "BedrockEdition": "Bedrock-editie",
+    "EnterUsername": "Gebruikersnaam invoeren",
+    "DiscordIdOptional": "Discord-ID (optioneel)"
+  },
+  "JoinModal": {
+    "joinUsingIp": "Maak verbinding met het onderstaande IP:",
+    "useIpBelow": "Gebruik het onderstaande IP om de server te joinen:",
+    "javaIp": "Java IP",
+    "bedrockIp": "Bedrock IP",
+    "bedrockPort": "Bedrock-poort",
+    "close": "Sluiten",
+    "joinServer": "Word lid van de server",
+    "joinToGetRewards": "Word lid van de server om je beloningen te ontvangen!"
+  },
+  "Home": {
+    "ClickToView": "Klik om te bekijken",
+    "HowToPlay": "Hoe te spelen",
+    "GetStartedOnServer": "Aan de slag op onze server",
+    "DownloadMinecraft": "Download Minecraft",
+    "GetLatestVersion": "Download de nieuwste versie",
+    "JoinOurServer": "Word lid van onze server",
+    "CreateYourAccount": "Maak je account aan",
+    "RegisterInGame": "Registreer in-game",
+    "StartPlaying": "Begin met spelen!",
+    "ExploreAndHaveFun": "Verken en veel plezier",
+    "JoinNow": "Doe nu mee"
+  },
+  "VoteHome": {
+    "VoteForServer": "Stem op onze server",
+    "VoteDescription": "Bedankt dat je op onze server speelt. Als je ervan geniet, laat dan een stem achter.",
+    "VotingRewards": "Stem-beloningen",
+    "VoteLink": "Stemlink",
+    "Every24Hours": "Elke 24 uur",
+    "View": "Bekijken",
+    "ViewAllLinks": "Alle stemlinks bekijken"
+  },
+  "Store": {
+    "RecentDonators": "Recente donateurs",
+    "ClickToView": "Klik om te bekijken",
+    "CommunityGoal": "Gemeenschapsdoel",
+    "AddToCart": "Toevoegen aan winkelwagen",
+    "CheckGiftCard": "Cadeaubon controleren",
+    "Check": "Controleren",
+    "Balance": "Saldo",
+    "Okay": "Oké",
+    "OriginalAmount": "Oorspronkelijk bedrag",
+    "GiftCardBalance": "Saldo cadeaubon",
+    "EnterGiftCardCode": "Voer cadeauboncode in",
+    "ProductAdded": "Product toegevoegd",
+    "BackTo": "Terug naar",
+    "BackToStore": "Terug naar winkel",
+    "Error": "Fout",
+    "GiftPackage": "Geef dit pakket cadeau",
+    "ViewAllItems": "Alle items bekijken",
+    "VoteForUs": "Stem op ons",
+    "ViewAllPosts": "Alle berichten bekijken"
+  },
+  "Blog": {
+    "BackToHomepage": "Terug naar startpagina",
+    "BackToBlog": "Terug naar blog",
+    "PostedOn": "Geplaatst",
+    "MoreFromUs": "Meer van ons",
+    "ExploreTopPosts": "Ontdek topberichten",
+    "By": "Door",
+    "ReadMore": "Lezen"
+  },
+  "Rules": {
+    "Title": "Serverregels",
+    "ServerRules": "Serverregels",
+    "DiscordRules": "Discord-regels",
+    "noCheating": "Niet cheaten",
+    "noCheatingDesc": "Het gebruik van hacks, exploits, macro's of oneerlijke voordelen is verboden.",
+    "respectOthers": "Respecteer anderen",
+    "respectOthersDesc": "Behandel iedereen beleefd. Pesterijen, haatdragende taal of pesten is niet toegestaan.",
+    "noGriefing": "Geen griefing",
+    "noGriefingDesc": "Vernietig, steel of stoor de bouwwerken of items van anderen niet.",
+    "noAdvertising": "Geen reclame",
+    "noAdvertisingDesc": "Promoot geen andere servers, diensten of sociale kanalen.",
+    "keepChatAppropriate": "Houd de chat netjes",
+    "keepChatAppropriateDesc": "Vermijd spam, overmatig hoofdlettersgebruik en ongepaste taal.",
+    "followDiscordTos": "Volg de Discord-voorwaarden",
+    "followDiscordTosDesc": "Alle leden moeten de Servicevoorwaarden en Richtlijnen van Discord volgen.",
+    "noSpamming": "Niet spammen",
+    "noSpammingDesc": "Vul kanalen niet met herhaalde berichten, vermeldingen of media.",
+    "respectPrivacy": "Respecteer privacy",
+    "respectPrivacyDesc": "Deel geen persoonlijke informatie en dox niemand.",
+    "noNsfwContent": "Geen NSFW-inhoud",
+    "noNsfwContentDesc": "Volwassen, gore of anderszins NSFW-inhoud is niet toegestaan.",
+    "useChannelsProperly": "Gebruik kanalen correct",
+    "useChannelsProperlyDesc": "Houd discussies in de juiste kanalen en volg vastgepinde instructies."
+  },
+  "Footer": {
+    "Copyright": "Auteursrecht",
+    "WeAreNotAffiliatedWithMojangStudios": "Wij zijn niet gelieerd aan Mojang Studios.",
+    "UsefulLinks": "Nuttige links",
+    "Support": "Support",
+    "SupportDescription": "Vragen vóór het afrekenen? Vraag het de community/staf op Discord of voor betalingssupport.",
+    "Home": "Home",
+    "Rules": "Regels",
+    "Store": "Winkel"
+  },
+  "Vote": {
+    "BackToHomepage": "Terug naar startpagina",
+    "VoteForServer": "Stem op onze server",
+    "VoteDescription": "Bedankt dat je op onze server speelt. Als je ervan geniet, laat dan een stem achter.",
+    "Every": "Elke",
+    "View": "Stem"
+  },
+  "SaleWidget": {
+    "ForLimitedTimeOnly": "Alleen voor beperkte tijd",
+    "Days": "Dagen",
+    "Hours": "Uren",
+    "Min": "Min",
+    "Sec": "Sec",
+    "ThisSaleWillEndIn": "Deze aanbieding eindigt over..."
+  },
+  "Basket": {
+    "CouponCode": "Kortingscode",
+    "GiftCardNumber": "Cadeaubonnummer",
+    "CreatorCode": "Creatorcode",
+    "Apply": "Toepassen",
+    "Error": "Fout",
+    "FailedToApplyCoupon": "Toepassen van kortingscode mislukt",
+    "FailedToApplyGiftCard": "Toepassen van cadeaubon mislukt",
+    "FailedToApplyCreatorCode": "Toepassen van creatorcode mislukt",
+    "total": "Totaal: {amount}",
+    "checkout": "Afrekenen"
+  },
+  "StoreExtra": {
+    "BasketEmpty": "Je winkelmand is leeg.",
+    "Total": "Totaal",
+    "ProceedToCheckout": "Doorgaan naar afrekenen",
+    "RefundPolicy": "Restitutiebeleid",
+    "PrivacyPolicy": "Privacybeleid",
+    "Impressum": "Colofon",
+    "GiftThisPackage": "Geef dit pakket cadeau",
+    "GiftPrefix": "Geschonken aan: ",
+    "Apply": "Toepassen",
+    "CouponCode": "Kortingscode",
+    "GiftCardNumber": "Cadeaubonnummer",
+    "Coupons": "Kortingscodes",
+    "GiftCards": "Cadeaubonnen",
+    "CreatorCode": "Creatorcode"
+  },
+  "Checkout": {
+    "Title": "Afrekenen",
+    "Checkout": "Afrekenen",
+    "Description": "Controleer je winkelmand en ga door naar afrekenen"
+  },
+  "Completed": {
+    "Title": "Je aankoop is voltooid!",
+    "Description": "Gebruik de knop hieronder om terug te gaan naar de winkel",
+    "BackToStore": "Terug naar winkel"
+  },
+  "NotFound": {
+    "404": "404",
+    "pageNotFound": "Pagina niet gevonden",
+    "sorry": "Sorry, de pagina die je zoekt bestaat niet.",
+    "goHome": "Ga naar home"
+  },
+  "BlogLayout": {
+    "RecommendedBlogs": "Aanbevolen blogs",
+    "PublishedOn": "Gepubliceerd op:",
+    "ReadTime": "Leestijd:"
+  },
+  "LanguageSwitcher": {
+    "ChangeLanguage": "Wijzig sitetaal"
+  },
+  "Ranks": {
+    "AddonMissingMessage": "Ranks-tabel add-on niet geïnstalleerd. Koop op https://buzz.dev/shop"
+  },
+  "Maintenance": {
+    "Title": "We zijn zo terug",
+    "Description": "Onze site ondergaat momenteel gepland onderhoud om je ervaring te verbeteren.",
+    "CheckBackSoon": "Kom snel terug. Bedankt voor je geduld.",
+    "JoinDiscord": "Word lid van onze Discord",
+    "TryAgain": "Probeer opnieuw"
+  }
+}
+
+

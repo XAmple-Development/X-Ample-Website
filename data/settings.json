@@ -1,0 +1,678 @@
+{
+  "general": {
+    "description": "General application settings",
+    "settings": {
+      "maintenance_mode": false,
+      "navbar_logo_url": "/logo.png",
+      "hero_image_url": "/logo.png",
+      "currency_symbol": "$",
+      "legal": {
+        "description": "Legal and policy links",
+        "settings": {
+          "privacy_policy_url": "/privacy-policy",
+          "terms_of_service_url": "/terms"
+        }
+      },
+      "pages": {
+        "description": "Pages to display on the site",
+        "settings": {
+          "home": true,
+          "store": true,
+          "vote": true,
+          "blog": true,
+          "rules": true,
+          "wiki": true
+        }
+      },
+      "other": {
+        "description": "Other settings",
+        "settings": {
+          "show_how_to_play": true
+        }
+      },
+      "vanity_links": {
+        "description": "Vanity links that redirect users to external URLs",
+        "settings": {
+          "links": [
+            {
+              "path": "discord",
+              "url": "https://discord.gg/buzz"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "server": {
+    "description": "Server connection settings",
+    "settings": {
+      "server_name": "FunBlocks",
+      "server_ip": "hypixel.net",
+      "server_bedrock_ip": "bedrock.hypixel.net",
+      "server_bedrock_port": "19132",
+      "bedrock_support": true
+    }
+  },
+  "social": {
+    "description": "Social media and community links",
+    "settings": {
+      "discord_url": "https://discord.gg/funblocks",
+      "discord_invite_code": "buzz",
+      "links": {
+        "discord": {
+          "icon": "FaDiscord",
+          "show": true,
+          "url": "https://discord.gg/blockymc"
+        },
+        "twitter": {
+          "icon": "FaTwitter",
+          "show": false,
+          "url": ""
+        },
+        "youtube": {
+          "icon": "FaYoutube",
+          "show": false,
+          "url": ""
+        },
+        "github": {
+          "icon": "fa-brands fa-github",
+          "show": false,
+          "url": ""
+        },
+        "reddit": {
+          "icon": "fa-brands fa-reddit",
+          "show": false,
+          "url": ""
+        },
+        "instagram": {
+          "icon": "fa-brands fa-instagram",
+          "show": false,
+          "url": ""
+        },
+        "facebook": {
+          "icon": "fa-brands fa-facebook",
+          "show": false,
+          "url": ""
+        },
+        "twitch": {
+          "icon": "fa-brands fa-twitch",
+          "show": false,
+          "url": ""
+        },
+        "website": {
+          "icon": "fa-solid fa-globe",
+          "show": false,
+          "url": ""
+        },
+        "wiki": {
+          "icon": "FaGlobe",
+          "show": true,
+          "url": "https://wiki.blockymc.com"
+        }
+      }
+    }
+  },
+  "store": {
+    "description": "Store configuration and display settings",
+    "settings": {
+      "general": {
+        "description": "General store settings",
+        "package_listing_columns": 3
+      },
+      "home_page_categories": {
+        "description": "Categories to display on the home page",
+        "settings": {
+          "shorter_cards": true,
+          "category_colors_order": [
+            "#AE1641",
+            "#FF5B32",
+            "#D816B0",
+            "#1A98CE"
+          ],
+          "override": false,
+          "categories": [],
+          "category_widget_limit": 3,
+          "category_widgets_per_row": 3
+        }
+      },
+      "featured_package_ids": [],
+      "package_variations": {
+        "description": "Package variations to display on the store page",
+        "package_ids_with_quantity_selection": [
+          "6756148",
+          "6753549",
+          "6753540",
+          "6753539",
+          "6194578",
+          "6756182",
+          "6756181",
+          "6756180",
+          "6756179",
+          "6756183"
+        ]
+      }
+    }
+  },
+  "ranks_table": {
+    "description": "Config for ranks table: ranks, features and values",
+    "settings": {
+      "ranks": [
+        {
+          "id": "6606919",
+          "label": "Bronze",
+          "package_id": "6606919"
+        },
+        {
+          "id": "6606920",
+          "label": "Silver",
+          "package_id": "6606920"
+        },
+        {
+          "id": "6606921",
+          "label": "Gold",
+          "package_id": "6606921"
+        },
+        {
+          "id": "6606923",
+          "label": "Platinum",
+          "package_id": "6606923"
+        }
+      ],
+      "features": [
+        {
+          "label": "Chat Prefix",
+          "key": "chat_prefix",
+          "type": "string",
+          "description": "A colourful prefix that appears before your name in chat.",
+          "values": {
+            "6606919": "Bronze",
+            "6606920": "Silver",
+            "6606921": "Gold",
+            "6606923": "Platinum"
+          },
+          "category": "survival"
+        },
+        {
+          "label": "Nickname",
+          "key": "nickname",
+          "type": "boolean",
+          "description": "Set a custom nickname that others will see.",
+          "values": {
+            "6606919": false,
+            "6606920": true,
+            "6606921": true,
+            "6606923": true
+          },
+          "category": "factions"
+        },
+        {
+          "label": "Sell Multiplier",
+          "key": "sell_multiplier",
+          "type": "string",
+          "description": "Get more money when you sell items at the shop.",
+          "values": {
+            "6606919": "1.1x",
+            "6606920": "1.5x",
+            "6606921": "2x",
+            "6606923": "2.5x"
+          },
+          "category": "prison"
+        },
+        {
+          "label": "Fly",
+          "key": "fly",
+          "type": "boolean",
+          "description": "Ability to fly in survival mode.",
+          "values": {
+            "6606919": false,
+            "6606920": false,
+            "6606921": true,
+            "6606923": true
+          },
+          "category": "survival"
+        },
+        {
+          "label": "Home Limit",
+          "key": "home_limit",
+          "type": "string",
+          "description": "Maximum number of homes you can set.",
+          "values": {
+            "6606919": "2",
+            "6606920": "3",
+            "6606921": "5",
+            "6606923": "8"
+          },
+          "category": "survival"
+        },
+        {
+          "label": "Faction Power",
+          "key": "faction_power",
+          "type": "string",
+          "description": "Bonus power for your faction.",
+          "values": {
+            "6606919": "0",
+            "6606920": "50",
+            "6606921": "100",
+            "6606923": "200"
+          },
+          "category": "factions"
+        },
+        {
+          "label": "Mining Speed",
+          "key": "mining_speed",
+          "type": "string",
+          "description": "Faster mining speed in prison.",
+          "values": {
+            "6606919": "1x",
+            "6606920": "1.2x",
+            "6606921": "1.5x",
+            "6606923": "2x"
+          },
+          "category": "prison"
+        },
+        {
+          "label": "Vote Rewards",
+          "key": "vote_rewards",
+          "type": "string",
+          "description": "Bonus rewards when voting for the server.",
+          "values": {
+            "6606919": "1x",
+            "6606920": "1.5x",
+            "6606921": "2x",
+            "6606923": "2.5x"
+          },
+          "category": "survival"
+        },
+        {
+          "label": "Faction Chunks",
+          "key": "faction_chunks",
+          "type": "string",
+          "description": "Maximum chunks your faction can claim.",
+          "values": {
+            "6606919": "10",
+            "6606920": "15",
+            "6606921": "25",
+            "6606923": "40"
+          },
+          "category": "factions"
+        },
+        {
+          "label": "PvP Protection",
+          "key": "pvp_protection",
+          "type": "boolean",
+          "description": "Protection from PvP damage.",
+          "values": {
+            "6606919": false,
+            "6606920": false,
+            "6606921": false,
+            "6606923": true
+          },
+          "category": "survival"
+        },
+        {
+          "label": "Auto Smelt",
+          "key": "auto_smelt",
+          "type": "boolean",
+          "description": "Automatically smelt ores when mined.",
+          "values": {
+            "6606919": false,
+            "6606920": false,
+            "6606921": false,
+            "6606923": false
+          },
+          "category": "prison"
+        },
+        {
+          "label": "Faction Bank",
+          "key": "faction_bank",
+          "type": "string",
+          "description": "Maximum money your faction bank can hold.",
+          "values": {
+            "6606919": "$10,000",
+            "6606920": "$25,000",
+            "6606921": "$50,000",
+            "6606923": "$100,000"
+          },
+          "category": "factions"
+        },
+        {
+          "label": "Daily Money",
+          "key": "daily_money",
+          "type": "string",
+          "description": "Daily money reward for logging in.",
+          "values": {
+            "6606919": "$100",
+            "6606920": "$250",
+            "6606921": "$500",
+            "6606923": "$1,000"
+          },
+          "category": "economy"
+        },
+        {
+          "label": "Shop Discount",
+          "key": "shop_discount",
+          "type": "string",
+          "description": "Discount on all shop purchases.",
+          "values": {
+            "6606919": "0%",
+            "6606920": "5%",
+            "6606921": "10%",
+            "6606923": "15%"
+          },
+          "category": "economy"
+        },
+        {
+          "label": "Interest Rate",
+          "key": "interest_rate",
+          "type": "string",
+          "description": "Daily interest on your bank balance.",
+          "values": {
+            "6606919": "0%",
+            "6606920": "1%",
+            "6606921": "2%",
+            "6606923": "3%"
+          },
+          "category": "economy"
+        }
+      ],
+      "categories": [
+        {
+          "id": "survival",
+          "label": "Survival",
+          "color": "#1A98CE"
+        },
+        {
+          "id": "factions",
+          "label": "Factions",
+          "color": "#00B549"
+        },
+        {
+          "id": "prison",
+          "label": "Prison",
+          "color": "#B5003F"
+        },
+        {
+          "id": "economy",
+          "label": "Economy",
+          "color": "#D5471C"
+        }
+      ]
+    },
+    "types": {
+      "settings": {
+        "ranks": {
+          "image": "url"
+        },
+        "features": {
+          "type": "enum:string|boolean|image"
+        }
+      }
+    }
+  },
+  "blog": {
+    "description": "Blog system configuration",
+    "settings": {
+      "enabled": true,
+      "home_page_featured_post": "newest",
+      "posts": [
+        {
+          "id": "demo-1",
+          "title": "Welcome to the store blog",
+          "excerpt": "An example post demonstrating the built-in blog system.",
+          "slug": "welcome-to-the-store-blog",
+          "feature_image": "/demo-image.png",
+          "published_at": "2024-01-01T12:00:00.000Z",
+          "html": "<p>This is a <strong>demo</strong> blog post. You can edit it from the admin panel.</p>"
+        },
+        {
+          "id": "test-slug",
+          "title": "How to join",
+          "slug": "how-to-join",
+          "excerpt": "This guide will help you join the server and start your journey.",
+          "feature_image": "https://bloom.buzz.dev/game_images/minecraft.png",
+          "published_at": "2025-10-01",
+          "html": "<p>1233</p>"
+        }
+      ]
+    }
+  },
+  "sales": {
+    "description": "Sales and promotional settings",
+    "settings": {
+      "show_sale_banner": true,
+      "show_sale_banner_illustration": true
+    }
+  },
+  "theme": {
+    "description": "Theme and visual settings",
+    "settings": {
+      "global_border_radius": 4,
+      "primary": "#1A98CE",
+      "primary_alt": "#0E1118",
+      "secondary": "#D5471C",
+      "background": "#0A0A11",
+      "background_alt": "#182030",
+      "text_color": "#D7E3FF",
+      "title_color": "#D7E3FF",
+      "site_container_width": 1200,
+      "number_formatting": {
+        "description": "Number formatting settings for thousands and decimals",
+        "settings": {
+          "thousands_separator": ",",
+          "decimal_separator": "."
+        }
+      }
+    },
+    "types": {
+      "settings": {
+        "primary": "color",
+        "primary_alt": "color",
+        "secondary": "color",
+        "background": "color",
+        "background_alt": "color",
+        "text_color": "color",
+        "title_color": "color"
+      }
+    }
+  },
+  "translation": {
+    "description": "Translation and localization settings",
+    "settings": {
+      "enabled": true,
+      "default_language": "en",
+      "languages": [
+        {
+          "flag": "/language_icons/en.png",
+          "value": "English",
+          "key": "en"
+        },
+        {
+          "flag": "/language_icons/nl.png",
+          "value": "Dutch",
+          "key": "nl"
+        },
+        {
+          "flag": "/language_icons/fr.png",
+          "value": "French",
+          "key": "fr"
+        },
+        {
+          "flag": "/language_icons/de.png",
+          "value": "German",
+          "key": "de"
+        },
+        {
+          "flag": "/language_icons/es.png",
+          "value": "Spanish",
+          "key": "es"
+        },
+        {
+          "flag": "/language_icons/pl.png",
+          "value": "Polish",
+          "key": "pl"
+        },
+        {
+          "flag": "/language_icons/tr.png",
+          "value": "Turkish",
+          "key": "tr"
+        }
+      ]
+    }
+  },
+  "patrons": {
+    "description": "Patrons configuration",
+    "settings": {
+      "shown": true,
+      "patrons": [
+        {
+          "name": "GOLD PATRONS",
+          "description": "Become a GOLD PATRON and get access to exclusive rewards!",
+          "backgroundColor": "#EFCD5B",
+          "textColor": "#6E5743",
+          "descriptionColor": "#92855C",
+          "donation_amount": 1000,
+          "users": [
+            "Buzz",
+            "Vosiekip",
+            "Hixy",
+            "Aetherius"
+          ]
+        },
+        {
+          "name": "DIAMOND PATRONS",
+          "description": "Become a DIAMOND PATRON and shine bright with exclusive benefits!",
+          "backgroundColor": "#5EB4DB",
+          "textColor": "#FFFFFF",
+          "descriptionColor": "#fff",
+          "donation_amount": 2500,
+          "users": [
+            "DiamondUser1",
+            "DiamondUser2",
+            "DiamondUser3",
+            "DiamondUser4"
+          ]
+        },
+        {
+          "name": "RUBY PATRONS",
+          "description": "Join the elite ranks of RUBY PATRONS and enjoy unique privileges!",
+          "backgroundColor": "#D02E5C",
+          "textColor": "#FFFFFF",
+          "descriptionColor": "#fff",
+          "donation_amount": 5000,
+          "users": [
+            "RubyUser1",
+            "RubyUser2",
+            "RubyUser3",
+            "RubyUser4"
+          ]
+        }
+      ]
+    },
+    "types": {
+      "settings": {
+        "patrons": {
+          "backgroundColor": "color",
+          "textColor": "color",
+          "descriptionColor": "color"
+        }
+      }
+    }
+  },
+  "rules": {
+    "description": "Rules configuration",
+    "settings": {
+      "columns_amount": 1,
+      "rules": [
+        {
+          "label": "noCheating",
+          "description": "noCheatingDesc"
+        },
+        {
+          "label": "respectOthers",
+          "description": "respectOthersDesc"
+        },
+        {
+          "label": "noGriefing",
+          "description": "noGriefingDesc"
+        },
+        {
+          "label": "noAdvertising",
+          "description": "noAdvertisingDesc"
+        },
+        {
+          "label": "keepChatAppropriate",
+          "description": "keepChatAppropriateDesc"
+        }
+      ],
+      "discord_rules": [
+        {
+          "label": "followDiscordTos",
+          "description": "followDiscordTosDesc"
+        },
+        {
+          "label": "noSpamming",
+          "description": "noSpammingDesc"
+        },
+        {
+          "label": "respectPrivacy",
+          "description": "respectPrivacyDesc"
+        },
+        {
+          "label": "noNsfwContent",
+          "description": "noNsfwContentDesc"
+        },
+        {
+          "label": "useChannelsProperly",
+          "description": "useChannelsProperlyDesc"
+        }
+      ]
+    }
+  },
+  "vote": {
+    "description": "Settings for vote links",
+    "settings": {
+      "links": [
+        {
+          "name": "MC Server List",
+          "url": "https://mc-server-list.com/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Minecraft Server List",
+          "url": "https://minecraft-server-list.com/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Top G Servers",
+          "url": "https://topg.org/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Minecraft Servers",
+          "url": "https://minecraftservers.org/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Top Minecraft Servers",
+          "url": "https://topminecraftservers.org/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Minecraft MP",
+          "url": "https://minecraft-mp.com/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Minecraft Server List",
+          "url": "https://minecraft-server-list.com/server/blockymc",
+          "every": "24 hours"
+        },
+        {
+          "name": "Minecraft Server List",
+          "url": "https://minecraft-server-list.com/server/blockymc",
+          "every": "24 hours"
+        }
+      ]
+    }
+  }
+}

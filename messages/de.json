@@ -1,0 +1,208 @@
+{
+  "Navbar": {
+    "Support": "Support",
+    "Vote": "Abstimmen",
+    "Login": "ANMELDEN"
+  },
+  "Hero": {
+    "CopyIP": "IP KOPIEREN",
+    "CopiedIP": "KOPIERT!",
+    "JoinDiscord": "Discord beitreten",
+    "Join": "Jetzt beitreten",
+    "Home": "Startseite",
+    "Store": "Shop",
+    "Vote": "Abstimmen",
+    "Blog": "Blog",
+    "Rules": "Regeln",
+    "Wiki": "Wiki"
+  },
+  "Login": {
+    "LoginToShop": "Zum Einkaufen anmelden",
+    "GetStarted": "Beginnen wir, indem du deinen Benutzernamen eingibst.",
+    "UsernameRequired": "Benutzername erforderlich",
+    "PleaseEnterUsername": "Bitte gib deinen Benutzernamen ein",
+    "Error": "Fehler",
+    "ErrorOccurred": "Es ist ein Fehler aufgetreten",
+    "Login": "Anmelden",
+    "JavaEdition": "Java Edition",
+    "BedrockEdition": "Bedrock Edition",
+    "EnterUsername": "Benutzernamen eingeben",
+    "DiscordIdOptional": "Discord-ID (optional)"
+  },
+  "JoinModal": {
+    "joinUsingIp": "Mit der untenstehenden IP beitreten:",
+    "useIpBelow": "Verwende die untenstehende IP, um dem Server beizutreten:",
+    "javaIp": "Java IP",
+    "bedrockIp": "Bedrock IP",
+    "bedrockPort": "Bedrock-Port",
+    "close": "Schließen",
+    "joinServer": "Server beitreten",
+    "joinToGetRewards": "Tritt dem Server bei, um deine Belohnungen zu erhalten!"
+  },
+  "Home": {
+    "ClickToView": "Zum Anzeigen klicken",
+    "HowToPlay": "So spielst du",
+    "GetStartedOnServer": "Starte auf unserem Server",
+    "DownloadMinecraft": "Minecraft herunterladen",
+    "GetLatestVersion": "Neueste Version erhalten",
+    "JoinOurServer": "Unserem Server beitreten",
+    "CreateYourAccount": "Dein Konto erstellen",
+    "RegisterInGame": "Im Spiel registrieren",
+    "StartPlaying": "Losspielen!",
+    "ExploreAndHaveFun": "Erkunde und hab Spaß",
+    "JoinNow": "Jetzt beitreten"
+  },
+  "VoteHome": {
+    "VoteForServer": "Stimme für unseren Server ab",
+    "VoteDescription": "Danke, dass du auf unserem Server spielst. Wenn es dir gefällt, hinterlasse eine Stimme.",
+    "VotingRewards": "Abstimmungsbelohnungen",
+    "VoteLink": "Abstimmungslink",
+    "Every24Hours": "Alle 24 Stunden",
+    "View": "Anzeigen",
+    "ViewAllLinks": "Alle Abstimmungslinks anzeigen"
+  },
+  "Store": {
+    "RecentDonators": "Neueste Spender",
+    "ClickToView": "Zum Anzeigen klicken",
+    "CommunityGoal": "Community-Ziel",
+    "AddToCart": "In den Warenkorb",
+    "CheckGiftCard": "Geschenkkarte prüfen",
+    "Check": "Prüfen",
+    "Balance": "Guthaben",
+    "Okay": "OK",
+    "OriginalAmount": "Ursprünglicher Betrag",
+    "GiftCardBalance": "Geschenkkarten-Guthaben",
+    "EnterGiftCardCode": "Geschenkkartencode eingeben",
+    "ProductAdded": "Produkt hinzugefügt",
+    "BackTo": "Zurück zu",
+    "BackToStore": "Zurück zum Shop",
+    "Error": "Fehler",
+    "GiftPackage": "Dieses Paket verschenken",
+    "ViewAllItems": "Alle Artikel anzeigen",
+    "VoteForUs": "Stimme für uns ab",
+    "ViewAllPosts": "Alle Beiträge anzeigen"
+  },
+  "Blog": {
+    "BackToHomepage": "Zurück zur Startseite",
+    "BackToBlog": "Zurück zum Blog",
+    "PostedOn": "Veröffentlicht",
+    "MoreFromUs": "Mehr von uns",
+    "ExploreTopPosts": "Top-Beiträge erkunden",
+    "By": "Von",
+    "ReadMore": "Lesen"
+  },
+  "Rules": {
+    "Title": "Serverregeln",
+    "ServerRules": "Serverregeln",
+    "DiscordRules": "Discord-Regeln",
+    "noCheating": "Kein Cheaten",
+    "noCheatingDesc": "Die Nutzung von Hacks, Exploits, Makros oder unfairen Vorteilen ist verboten.",
+    "respectOthers": "Andere respektieren",
+    "respectOthersDesc": "Behandle alle höflich. Belästigung, Hassrede oder Mobbing sind nicht erlaubt.",
+    "noGriefing": "Kein Griefing",
+    "noGriefingDesc": "Zerstöre, stiehl oder störe nicht die Bauten oder Gegenstände anderer.",
+    "noAdvertising": "Keine Werbung",
+    "noAdvertisingDesc": "Bewirb keine anderen Server, Dienste oder sozialen Kanäle.",
+    "keepChatAppropriate": "Chat angemessen halten",
+    "keepChatAppropriateDesc": "Vermeide Spam, übermäßige Großschreibung und unangemessene Sprache.",
+    "followDiscordTos": "Discord-Nutzungsbedingungen befolgen",
+    "followDiscordTosDesc": "Alle Mitglieder müssen die Nutzungsbedingungen und Community-Richtlinien von Discord einhalten.",
+    "noSpamming": "Kein Spamming",
+    "noSpammingDesc": "Flute Kanäle nicht mit wiederholten Nachrichten, Erwähnungen oder Medien.",
+    "respectPrivacy": "Privatsphäre respektieren",
+    "respectPrivacyDesc": "Teile keine persönlichen Informationen und doxe niemanden.",
+    "noNsfwContent": "Kein NSFW-Inhalt",
+    "noNsfwContentDesc": "Erwachsenen-, Gore- oder anderer NSFW-Inhalt ist nicht erlaubt.",
+    "useChannelsProperly": "Kanäle richtig verwenden",
+    "useChannelsProperlyDesc": "Halte Diskussionen in den richtigen Kanälen und folge angepinnten Anweisungen."
+  },
+  "Footer": {
+    "Copyright": "Urheberrecht",
+    "WeAreNotAffiliatedWithMojangStudios": "Wir stehen in keiner Verbindung zu Mojang Studios.",
+    "UsefulLinks": "Nützliche Links",
+    "Support": "Support",
+    "SupportDescription": "Fragen vor dem Bezahlen? Frage die Community/den Staff auf Discord oder erhalte Zahlungssupport.",
+    "Home": "Startseite",
+    "Rules": "Regeln",
+    "Store": "Shop"
+  },
+  "Vote": {
+    "BackToHomepage": "Zurück zur Startseite",
+    "VoteForServer": "Stimme für unseren Server ab",
+    "VoteDescription": "Danke, dass du auf unserem Server spielst. Wenn es dir gefällt, hinterlasse eine Stimme.",
+    "Every": "Alle",
+    "View": "Abstimmen"
+  },
+  "SaleWidget": {
+    "ForLimitedTimeOnly": "Nur für kurze Zeit",
+    "Days": "Tage",
+    "Hours": "Stunden",
+    "Min": "Min",
+    "Sec": "Sek",
+    "ThisSaleWillEndIn": "Dieses Angebot endet in..."
+  },
+  "Basket": {
+    "CouponCode": "Gutscheincode",
+    "GiftCardNumber": "Geschenkkartennummer",
+    "CreatorCode": "Creator-Code",
+    "Apply": "Anwenden",
+    "Error": "Fehler",
+    "FailedToApplyCoupon": "Gutscheincode konnte nicht angewendet werden",
+    "FailedToApplyGiftCard": "Geschenkkarte konnte nicht angewendet werden",
+    "FailedToApplyCreatorCode": "Creator-Code konnte nicht angewendet werden",
+    "total": "Gesamt: {amount}",
+    "checkout": "Zur Kasse"
+  },
+  "StoreExtra": {
+    "BasketEmpty": "Dein Warenkorb ist leer.",
+    "Total": "Gesamt",
+    "ProceedToCheckout": "Zur Kasse gehen",
+    "RefundPolicy": "Rückerstattungsrichtlinie",
+    "PrivacyPolicy": "Datenschutzrichtlinie",
+    "Impressum": "Impressum",
+    "GiftThisPackage": "Dieses Paket verschenken",
+    "GiftPrefix": "Geschenkt an: ",
+    "Apply": "Anwenden",
+    "CouponCode": "Gutscheincode",
+    "GiftCardNumber": "Geschenkkartennummer",
+    "Coupons": "Gutscheine",
+    "GiftCards": "Geschenkkarten",
+    "CreatorCode": "Creator-Code"
+  },
+  "Checkout": {
+    "Title": "Kasse",
+    "Checkout": "Kasse",
+    "Description": "Überprüfe deinen Warenkorb und fahre mit der Zahlung fort"
+  },
+  "Completed": {
+    "Title": "Dein Kauf wurde abgeschlossen!",
+    "Description": "Nutze die Schaltfläche unten, um zum Shop zurückzukehren",
+    "BackToStore": "Zurück zum Shop"
+  },
+  "NotFound": {
+    "404": "404",
+    "pageNotFound": "Seite nicht gefunden",
+    "sorry": "Die gesuchte Seite existiert nicht.",
+    "goHome": "Zur Startseite"
+  },
+  "BlogLayout": {
+    "RecommendedBlogs": "Empfohlene Blogs",
+    "PublishedOn": "Veröffentlicht am:",
+    "ReadTime": "Lesezeit:"
+  },
+  "LanguageSwitcher": {
+    "ChangeLanguage": "Website-Sprache ändern"
+  },
+  "Ranks": {
+    "AddonMissingMessage": "Ranks-Tabellen-Addon nicht installiert. Kauf auf https://buzz.dev/shop"
+  },
+  "Maintenance": {
+    "Title": "Wir sind gleich zurück",
+    "Description": "Unsere Website wird derzeit gewartet, um deine Erfahrung zu verbessern.",
+    "CheckBackSoon": "Bitte schau bald wieder vorbei. Danke für deine Geduld.",
+    "JoinDiscord": "Unserem Discord beitreten",
+    "TryAgain": "Erneut versuchen"
+  }
+}
+
+
