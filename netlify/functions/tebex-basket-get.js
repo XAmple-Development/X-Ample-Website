@@ -27,6 +27,7 @@ const getAuthHeader = () => {
 };
 
 exports.handler = async (event) => {
+  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
@@ -48,9 +49,7 @@ exports.handler = async (event) => {
   try {
     const res = await fetch(
       `${tebexBase}/accounts/${accountToken}/baskets/${encodeURIComponent(ident)}`,
-      {
-        headers: { Authorization: authHeader },
-      }
+      { headers: { Authorization: authHeader } }
     );
 
     if (!res.ok) {
@@ -63,12 +62,14 @@ exports.handler = async (event) => {
     const payload = await res.json();
     const b = payload?.data || payload;
 
+    // Normalise packages + quantities
     const packages = Array.isArray(b?.packages) ? b.packages : [];
     const count = packages.reduce((sum, p) => {
       const qty = Number(p?.in_basket?.quantity ?? p?.qty ?? p?.quantity ?? 0);
       return sum + (Number.isFinite(qty) ? qty : 0);
     }, 0);
 
+    // Try all known checkout fields, fallback to pay.tebex.io/{ident}
     const checkoutUrl =
       b?.links?.checkout ||
       payload?.links?.checkout ||
