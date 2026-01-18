@@ -2,20 +2,50 @@ export const metadata = {
   title: "Portfolio",
 };
 
-export default function PortfolioPage() {
+import path from "node:path";
+import { readJsonFile } from "@/lib/content";
+
+type PortfolioContent = {
+  intro: string;
+  items: Array<{ title: string; description: string }>;
+};
+
+const fallback: PortfolioContent = {
+  intro: "A curated view of shipped work.",
+  items: [
+    {
+      title: "Scripts",
+      description: "Modern gameplay systems and utilities.",
+    },
+    {
+      title: "MLOs",
+      description: "High-fidelity interiors and environments.",
+    },
+  ],
+};
+
+export default async function PortfolioPage() {
+  const contentPath = path.join(
+    process.cwd(),
+    "content",
+    "pages",
+    "portfolio.json",
+  );
+  const content = await readJsonFile<PortfolioContent>(contentPath, fallback);
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-3xl font-semibold tracking-tight">Portfolio</h1>
       <p className="mt-4 text-lg leading-8 text-foreground/75">
-        A curated view of shipped work. This page will be CMS-editable in the
-        next step so you can add projects without touching code.
+        {content.intro}
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Card title="Scripts">Modern gameplay systems and utilities.</Card>
-        <Card title="MLOs">High-fidelity interiors & environments.</Card>
-        <Card title="UI">Clean, readable interfaces with great UX.</Card>
-        <Card title="Support">Fast iteration, fixes, and improvements.</Card>
+        {content.items.map((item) => (
+          <Card key={item.title} title={item.title}>
+            {item.description}
+          </Card>
+        ))}
       </div>
     </div>
   );

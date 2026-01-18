@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSiteUrl, hasTebexEnv, tebexFetch } from "@/lib/tebex";
+import { getIn, getProp, isRecord } from "@/lib/safe";
 
 export const runtime = "nodejs";
 
@@ -35,15 +36,14 @@ export async function POST(req: Request) {
   if (complete_url) payload.complete_url = complete_url;
   if (cancel_url) payload.cancel_url = cancel_url;
 
-  const basket = await tebexFetch<any>("/baskets", {
+  const basket = await tebexFetch<unknown>("/baskets", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 
-  const ident =
-    basket?.ident ?? basket?.data?.ident ?? basket?.basket?.ident ?? null;
+  const ident = extractBasketIdent(basket);
   if (typeof ident === "string" && ident.length > 0) {
-    const jar = cookies();
+    const jar = await cookies();
     jar.set("xa_basket", ident, {
       httpOnly: true,
       sameSite: "lax",
@@ -54,5 +54,31 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json(basket, { status: 200 });
+}
+
+function extractBasketIdent(payload: unknown): string | null {
+  const direct = getProp(payload, "ident");
+  if (typeof direct === "string" && direct.length > 0) return direct;
+
+  const dataIdent = getIn(payload, ["data", "ident"]);
+  if (typeof dataIdent === "string" && dataIdent.length > 0) return dataIdent;
+
+  const basketIdent = getIn(payload, ["basket", "ident"]);
+  if (typeof basketIdent === "string" && basketIdent.length > 0)
+    return basketIdent;
+
+  const nestedBasketIdent = getIn(payload, ["data", "basket", "ident"]);
+  if (typeof nestedBasketIdent === "string" && nestedBasketIdent.length > 0)
+    return nestedBasketIdent;
+
+  // sometimes Tebex responses wrap in arrays/objects; try one more shape
+  if (isRecord(payload)) {
+    for (const v of Object.values(payload)) {
+      const found = extractBasketIdent(v);
+      if (found) return found;
+    }
+  }
+
+  return null;
 }
 

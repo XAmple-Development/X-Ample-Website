@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { ident: string } },
+  _req: NextRequest,
+  { params }: { params: Promise<{ ident: string }> },
 ) {
   if (!hasTebexEnv()) {
     return NextResponse.json(
@@ -17,7 +17,7 @@ export async function GET(
     );
   }
 
-  const { ident } = params;
+  const { ident } = await params;
   const data = await tebexFetch<unknown>(`/baskets/${encodeURIComponent(ident)}`);
   return NextResponse.json(data, { status: 200 });
 }

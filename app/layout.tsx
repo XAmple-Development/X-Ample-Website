@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · X-Ample Development",
   },
   description:
-    "X-Ample Development (X-Ample Studios) builds high-quality FiveM scripts, MLOs, and experiences.",
+    "X-Ample Development Studios builds high-quality FiveM scripts, MLOs, and experiences.",
   metadataBase: process.env.SITE_URL ? new URL(process.env.SITE_URL) : undefined,
 };
 

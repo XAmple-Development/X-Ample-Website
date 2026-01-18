@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## X-Ample Development Website
 
-## Getting Started
+Full-stack Next.js site for **X-Ample Development / X-Ample Studios** with:
 
-First, run the development server:
+- **Marketing pages** (CMS-editable)
+- **Blog** (MDX from repo)
+- **Tebex store integration** (Headless API, server-side only)
+- Deploy-ready for **Netlify**
+
+### Local development
+
+- Install deps:
+
+```bash
+npm install
+```
+
+- Copy env vars (see `env.example`) into your local env (e.g. `.env.local`) and fill them in.
+
+- Run dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Required environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **`TEBEX_WEBSTORE_TOKEN`**: used in `https://headless.tebex.io/api/accounts/{token}/...`
+- **`TEBEX_PUBLIC_TOKEN`**: Tebex Headless API Basic Auth username
+- **`TEBEX_PRIVATE_KEY`**: Tebex Headless API Basic Auth password (server-only)
+- **`SITE_URL`**: used to form Tebex basket `complete_url` / `cancel_url` (e.g. `https://your-site.netlify.app`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### CMS (Decap / Netlify CMS)
 
-## Learn More
+- Admin UI lives at `/admin` (served from `public/admin/`).
+- In Netlify, enable:
+  - **Identity**
+  - **Git Gateway**
 
-To learn more about Next.js, take a look at the following resources:
+Content lives in:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Blog posts: `content/blog/*.mdx`
+- Marketing page data: `content/pages/*.json`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Tebex integration
 
-## Deploy on Vercel
+All Tebex calls happen server-side via Next route handlers:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Categories: `GET /api/store/categories`
+- Package details: `GET /api/store/packages/:id`
+- Basket lifecycle: `/api/basket/...`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The storefront UI is under:
+
+- Store: `/store`
+- Cart: `/store/cart`
+- Checkout redirect: `/store/cart` → Tebex hosted checkout
+

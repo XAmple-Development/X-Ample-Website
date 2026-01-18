@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { asArray, getIn, isRecord } from "@/lib/safe";
 
 type TebexCategory = {
   id?: number | string;
@@ -17,19 +18,13 @@ type TebexPackage = {
   total_price?: unknown;
 };
 
-function asArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
-}
-
 function pickCategories(payload: unknown): TebexCategory[] {
-  if (!payload || typeof payload !== "object") return [];
-  const obj = payload as any;
   const maybe =
-    obj?.data?.categories ??
-    obj?.data ??
-    obj?.categories ??
-    obj?.response?.categories ??
-    obj;
+    getIn(payload, ["data", "categories"]) ??
+    getIn(payload, ["data"]) ??
+    getIn(payload, ["categories"]) ??
+    getIn(payload, ["response", "categories"]) ??
+    payload;
   return asArray(maybe) as TebexCategory[];
 }
 
@@ -37,10 +32,12 @@ function priceToText(pkg: TebexPackage): string | null {
   const candidate = pkg.total_price ?? pkg.base_price ?? pkg.price;
   if (typeof candidate === "number") return `${candidate}`;
   if (typeof candidate === "string") return candidate;
-  if (candidate && typeof candidate === "object") {
-    const v = (candidate as any)?.formatted ?? (candidate as any)?.value;
-    if (typeof v === "string") return v;
-    if (typeof v === "number") return `${v}`;
+  if (isRecord(candidate)) {
+    const formatted = candidate.formatted;
+    if (typeof formatted === "string") return formatted;
+    const value = candidate.value;
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return `${value}`;
   }
   return null;
 }

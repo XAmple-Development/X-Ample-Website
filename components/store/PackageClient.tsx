@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { getIn, isRecord } from "@/lib/safe";
 
 type TebexPackage = {
   id?: number | string;
@@ -14,20 +15,24 @@ type TebexPackage = {
 };
 
 function pickPackage(payload: unknown): TebexPackage | null {
-  if (!payload || typeof payload !== "object") return null;
-  const obj = payload as any;
-  const maybe = obj?.data ?? obj?.package ?? obj?.response?.package ?? obj;
-  return maybe && typeof maybe === "object" ? (maybe as TebexPackage) : null;
+  const maybe =
+    getIn(payload, ["data"]) ??
+    getIn(payload, ["package"]) ??
+    getIn(payload, ["response", "package"]) ??
+    payload;
+  return isRecord(maybe) ? (maybe as TebexPackage) : null;
 }
 
 function priceToText(pkg: TebexPackage): string | null {
   const candidate = pkg.total_price ?? pkg.base_price ?? pkg.price;
   if (typeof candidate === "number") return `${candidate}`;
   if (typeof candidate === "string") return candidate;
-  if (candidate && typeof candidate === "object") {
-    const v = (candidate as any)?.formatted ?? (candidate as any)?.value;
-    if (typeof v === "string") return v;
-    if (typeof v === "number") return `${v}`;
+  if (isRecord(candidate)) {
+    const formatted = candidate.formatted;
+    if (typeof formatted === "string") return formatted;
+    const value = candidate.value;
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return `${value}`;
   }
   return null;
 }

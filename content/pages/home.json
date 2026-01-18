@@ -1,0 +1,16 @@
+{
+  "kicker": "X-Ample Development · X-Ample Studios",
+  "title": "Premium FiveM assets that feel polished on day one.",
+  "subtitle": "We build scripts, MLOs, and experiences designed for performance, clarity, and clean UX. Browse the store, read updates, or get in touch for custom work.",
+  "primaryCta": { "label": "Browse Store", "href": "/store" },
+  "secondaryCta": { "label": "Contact Us", "href": "/contact" },
+  "features": [
+    {
+      "title": "Production-ready",
+      "body": "Modern UI, sane defaults, and real-world performance."
+    },
+    { "title": "Clear docs", "body": "Easy installation and configuration." },
+    { "title": "Active support", "body": "We iterate quickly and listen." }
+  ]
+}
+

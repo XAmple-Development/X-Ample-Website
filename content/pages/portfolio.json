@@ -1,0 +1,14 @@
+{
+  "intro": "A curated view of shipped work.",
+  "items": [
+    {
+      "title": "X-Ample PlayerList",
+      "description": "A polished player list UI with configurable display options."
+    },
+    {
+      "title": "X-Ample Civilian Jobs",
+      "description": "A set of civilian jobs built to fit common RP frameworks."
+    }
+  ]
+}
+
