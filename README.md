@@ -28,7 +28,7 @@ npm run dev
 - **`TEBEX_WEBSTORE_TOKEN`**: used in `https://headless.tebex.io/api/accounts/{token}/...`
 - **`TEBEX_PUBLIC_TOKEN`**: Tebex Headless API Basic Auth username
 - **`TEBEX_PRIVATE_KEY`**: Tebex Headless API Basic Auth password (server-only)
-- **`SITE_URL`**: used to form Tebex basket `complete_url` / `cancel_url` (e.g. `https://your-site.netlify.app`)
+- **`SITE_URL`**: used to form Tebex basket `complete_url` / `cancel_url` (production: `https://x-ampledevelopment.co.uk`)
 
 ### CMS (Decap / Netlify CMS)
 

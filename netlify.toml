@@ -4,3 +4,15 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[[redirects]]
+  from = "http://x-ampledevelopment.co.uk/*"
+  to = "https://x-ampledevelopment.co.uk/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.x-ampledevelopment.co.uk/*"
+  to = "https://x-ampledevelopment.co.uk/:splat"
+  status = 301
+  force = true
+
