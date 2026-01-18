@@ -20,6 +20,13 @@ export async function GET(
 
   try {
     const { id } = await params;
+    // Avoid Tebex calls with invalid IDs (prevents noisy 502s from `/undefined`).
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json(
+        { error: `Invalid package id: ${id}` },
+        { status: 400 },
+      );
+    }
     const data = await tebexFetch<unknown>(
       `/packages/${encodeURIComponent(id)}`,
     );

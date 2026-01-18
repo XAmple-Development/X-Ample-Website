@@ -151,14 +151,18 @@ export function StoreClient() {
                       key={String(pid ?? pname)}
                       className="flex items-center justify-between gap-4 rounded-xl bg-black/[.03] px-3 py-2 text-sm dark:bg-white/[.06]"
                     >
-                      <Link
-                        href={`/store/package/${encodeURIComponent(
-                          String(pid ?? ""),
-                        )}`}
-                        className="truncate font-medium"
-                      >
-                        {pname}
-                      </Link>
+                      {pid === undefined || pid === null ? (
+                        <span className="truncate font-medium">{pname}</span>
+                      ) : (
+                        <Link
+                          href={`/store/package/${encodeURIComponent(
+                            String(pid),
+                          )}`}
+                          className="truncate font-medium"
+                        >
+                          {pname}
+                        </Link>
+                      )}
                       {price ? (
                         <span className="shrink-0 text-foreground/70">
                           {price}

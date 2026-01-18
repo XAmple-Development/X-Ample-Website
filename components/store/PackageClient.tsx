@@ -84,6 +84,9 @@ export function PackageClient({ packageId }: { packageId: string }) {
     let cancelled = false;
     (async () => {
       try {
+        if (!packageId || packageId === "undefined") {
+          throw new Error("Invalid package id in URL.");
+        }
         setLoading(true);
         setError(null);
         const res = await fetch(`/api/store/packages/${packageId}`, {

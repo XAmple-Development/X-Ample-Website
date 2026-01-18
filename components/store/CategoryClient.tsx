@@ -141,11 +141,12 @@ export function CategoryClient({ categoryId }: { categoryId: string }) {
 
       <div className="mt-8 grid gap-3">
         {packages.map((p, idx) => {
-          const id = p?.id ?? idx;
+          const id = p?.id;
+          if (id === undefined || id === null) return null;
           const price = priceToText(p);
           return (
             <div
-              key={String(id)}
+              key={String(id ?? idx)}
               className="flex flex-col justify-between gap-3 rounded-2xl border border-black/10 p-5 dark:border-white/10 sm:flex-row sm:items-center"
             >
               <div className="min-w-0">
