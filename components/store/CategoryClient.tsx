@@ -6,6 +6,7 @@ import { asArray, getIn, isRecord } from "@/lib/safe";
 
 type TebexCategory = {
   id?: number | string;
+  category_id?: number | string;
   name?: string;
   packages?: TebexPackage[];
 };
@@ -78,7 +79,10 @@ export function CategoryClient({ categoryId }: { categoryId: string }) {
   const category = useMemo(() => {
     const categories = pickCategories(data);
     return (
-      categories.find((c) => String(c?.id) === String(categoryId)) ?? null
+      categories.find(
+        (c) =>
+          String(c?.id ?? c?.category_id ?? "") === String(categoryId ?? ""),
+      ) ?? null
     );
   }, [data, categoryId]);
 

@@ -6,6 +6,7 @@ import { asArray, getIn, isRecord } from "@/lib/safe";
 
 type TebexCategory = {
   id?: number | string;
+  category_id?: number | string;
   name?: string;
   packages?: TebexPackage[];
 };
@@ -95,8 +96,10 @@ export function StoreClient() {
         <p className="font-semibold text-red-100">Couldn’t load the store.</p>
         <p className="mt-2 text-red-100/80">{error}</p>
         <p className="mt-3 text-red-100/70">
-          If you’re running locally, add Tebex env vars and restart the dev
-          server.
+          If this is a deployed site, check Netlify env vars for{" "}
+          <span className="font-medium">TEBEX_WEBSTORE_TOKEN</span>,{" "}
+          <span className="font-medium">TEBEX_PUBLIC_TOKEN</span>,{" "}
+          <span className="font-medium">TEBEX_PRIVATE_KEY</span>.
         </p>
       </div>
     );
@@ -113,7 +116,7 @@ export function StoreClient() {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {categories.map((c, idx) => {
-        const id = c?.id ?? idx;
+        const id = c?.id ?? c?.category_id ?? idx;
         const name = c?.name ?? "Category";
         const packages = Array.isArray(c?.packages) ? c.packages : [];
 
