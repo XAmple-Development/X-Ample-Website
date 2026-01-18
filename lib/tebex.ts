@@ -57,9 +57,14 @@ async function tebexRequest<T>(url: string, init: TebexFetchInit = {}) {
     cache: "no-store",
   });
 
+  // Use text() first, then JSON.parse — avoids runtime-specific `res.json()` issues.
+  const text = await res.text().catch(() => "");
   const contentType = res.headers.get("content-type") ?? "";
-  const isJson = contentType.includes("application/json");
-  const body = isJson ? await res.json().catch(() => null) : await res.text();
+  const looksJson =
+    contentType.includes("application/json") ||
+    text.trim().startsWith("{") ||
+    text.trim().startsWith("[");
+  const body: unknown = looksJson ? safeJsonParse(text) : text;
 
   if (!res.ok) {
     const msg =
@@ -72,6 +77,14 @@ async function tebexRequest<T>(url: string, init: TebexFetchInit = {}) {
   }
 
   return body as T;
+}
+
+function safeJsonParse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 /**
