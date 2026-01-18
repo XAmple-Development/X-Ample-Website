@@ -4,8 +4,12 @@ export const metadata = {
   title: "Category",
 };
 
-export default function CategoryPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function CategoryPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   return (
     <div className="mx-auto max-w-5xl">
       <CategoryClient categoryId={id} />

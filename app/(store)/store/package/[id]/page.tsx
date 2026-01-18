@@ -4,10 +4,15 @@ export const metadata = {
   title: "Package",
 };
 
-export default function PackagePage({ params }: { params: { id: string } }) {
+export default async function PackagePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   return (
     <div className="mx-auto max-w-5xl">
-      <PackageClient packageId={params.id} />
+      <PackageClient packageId={id} />
     </div>
   );
 }
