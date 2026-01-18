@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Local dev: proxy Netlify Functions through Netlify Dev (default port 8888)
+    // so `/.netlify/functions/*` works while running Vite.
+    proxy: {
+      "/.netlify/functions": {
+        target: "http://localhost:8888",
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [
     react(),

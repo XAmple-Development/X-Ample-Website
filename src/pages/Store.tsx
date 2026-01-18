@@ -35,7 +35,7 @@ const formatPrice = (price: number, currency?: string) => {
   if (!price && price !== 0) return "";
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
-    currency: currency || "USD",
+    currency: currency || "GBP",
   }).format(price);
 };
 
