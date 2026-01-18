@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Netlify Forms</title>
+  </head>
+  <body>
+    <!--
+      Netlify Next.js Runtime v5 requires static HTML form definitions so
+      Netlify can detect and provision forms at build time.
+      This file is not meant to be visited by users.
+    -->
+    <form
+      name="contact"
+      method="POST"
+      action="/contact"
+      data-netlify="true"
+      netlify-honeypot="bot-field"
+    >
+      <input type="hidden" name="form-name" value="contact" />
+      <p style="display:none">
+        <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+      </p>
+      <p><label>Name <input name="name" /></label></p>
+      <p><label>Email <input name="email" type="email" /></label></p>
+      <p><label>Message <textarea name="message"></textarea></label></p>
+      <button type="submit">Send</button>
+    </form>
+  </body>
+</html>
+
