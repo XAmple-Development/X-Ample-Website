@@ -12,16 +12,7 @@ import Services from "./pages/Services";
 import About from "./pages/About";
 import Portfolio from "./pages/Portfolio";
 import Contact from "./pages/Contact";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import UserManagement from "./pages/UserManagement";
 import Team from "./pages/Team";
-import NotFound from "./pages/NotFound";
-import StatusPage from "./pages/StatusPage";
-import DiscordBots from "./pages/DiscordBots";
-import Vacancies from "./pages/Vacancies";
-import AdminVacancies from "./pages/AdminVacancies";
-import License from "./pages/License";
 import Store from "./pages/Store";
 
 
@@ -44,14 +35,6 @@ const App = () => (
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/team" element={<Team />} />
                 <Route path="/store" element={<Store />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/users" element={<UserManagement />} />
-                <Route path="/status" element={<StatusPage />} />
-                <Route path="/bots" element={<DiscordBots />} />
-                <Route path="/licenses" element={<License />} />
-                <Route path="/vacancies" element={<Vacancies />} />
-                <Route path="/admin/vacancies" element={<AdminVacancies />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
