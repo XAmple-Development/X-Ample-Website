@@ -31,7 +31,10 @@ type BasketLine = {
   package?: { name?: string };
 };
 
+type Identity = { label: string };
+
 const LS_KEY = "tebex_basket_ident";
+const LS_IDENTITY_KEY = "tebex_identity_label";
 
 function unwrapData<T>(payload: unknown): T {
   if (payload && typeof payload === "object" && "data" in (payload as any)) {
@@ -104,7 +107,7 @@ function basketTotalText(basket: any): string | null {
   return typeof t === "string" && t.trim() ? t : null;
 }
 
-// strict: numeric id only
+// strict: numeric id only (prevents /undefined)
 function packageIdStr(p: Package): string | null {
   const raw = p.id ?? p.package_id ?? p.package?.id ?? p.package?.package_id;
   if (raw === undefined || raw === null) return null;
@@ -118,6 +121,25 @@ function packageIdStr(p: Package): string | null {
   return String(Math.trunc(n));
 }
 
+function extractIdentity(basket: any): Identity | null {
+  const b = basket?.data ?? basket;
+
+  const candidates = [
+    b?.player?.username,
+    b?.player?.name,
+    b?.customer?.username,
+    b?.customer?.name,
+    b?.username,
+    b?.email,
+  ];
+
+  const label = candidates.find((v: unknown) => typeof v === "string" && v.trim().length > 0) as
+    | string
+    | undefined;
+
+  return label ? { label } : null;
+}
+
 export default function StoreClient() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -126,9 +148,12 @@ export default function StoreClient() {
   const [basketIdent, setBasketIdent] = useState<string | null>(null);
   const [basket, setBasket] = useState<any>(null);
 
+  const [identityLabel, setIdentityLabel] = useState<string | null>(null);
+
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Load categories
   useEffect(() => {
     let cancelled = false;
 
@@ -163,9 +188,13 @@ export default function StoreClient() {
     };
   }, []);
 
+  // Restore basket ident + identity from localStorage
   useEffect(() => {
     const ident = localStorage.getItem(LS_KEY);
     if (ident) setBasketIdent(ident);
+
+    const savedLabel = localStorage.getItem(LS_IDENTITY_KEY);
+    if (savedLabel) setIdentityLabel(savedLabel);
   }, []);
 
   async function refreshBasket(ident: string) {
@@ -175,10 +204,22 @@ export default function StoreClient() {
       throw new Error(`Failed to load basket (${res.status}) ${t}`);
     }
     const json = await res.json();
+
     setBasket(json);
+
+    const identInfo = extractIdentity(json);
+    if (identInfo) {
+      setIdentityLabel(identInfo.label);
+      localStorage.setItem(LS_IDENTITY_KEY, identInfo.label);
+    } else {
+      setIdentityLabel(null);
+      localStorage.removeItem(LS_IDENTITY_KEY);
+    }
+
     return json;
   }
 
+  // Fetch basket when we have ident
   useEffect(() => {
     let cancelled = false;
 
@@ -188,12 +229,25 @@ export default function StoreClient() {
         const res = await fetch(`/api/basket/${encodeURIComponent(basketIdent)}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Basket not found");
         const json = await res.json();
-        if (!cancelled) setBasket(json);
+        if (!cancelled) {
+          setBasket(json);
+
+          const identInfo = extractIdentity(json);
+          if (identInfo) {
+            setIdentityLabel(identInfo.label);
+            localStorage.setItem(LS_IDENTITY_KEY, identInfo.label);
+          } else {
+            setIdentityLabel(null);
+            localStorage.removeItem(LS_IDENTITY_KEY);
+          }
+        }
       } catch {
         localStorage.removeItem(LS_KEY);
+        localStorage.removeItem(LS_IDENTITY_KEY);
         if (!cancelled) {
           setBasketIdent(null);
           setBasket(null);
+          setIdentityLabel(null);
         }
       }
     })();
@@ -202,6 +256,16 @@ export default function StoreClient() {
       cancelled = true;
     };
   }, [basketIdent]);
+
+  // Keep identity in sync if basket changes for any reason
+  useEffect(() => {
+    const identInfo = extractIdentity(basket);
+    const label = identInfo?.label ?? null;
+    setIdentityLabel(label);
+
+    if (label) localStorage.setItem(LS_IDENTITY_KEY, label);
+    else localStorage.removeItem(LS_IDENTITY_KEY);
+  }, [basket]);
 
   const activeCategory = useMemo(() => {
     if (!activeCategoryId) return categories[0] ?? null;
@@ -219,11 +283,7 @@ export default function StoreClient() {
     basket?.checkout_url ??
     null;
 
-  const isAuthenticated =
-    Boolean(basket?.data?.player) ||
-    Boolean(basket?.data?.customer) ||
-    Boolean(basket?.data?.username) ||
-    Boolean(basket?.data?.email);
+  const isAuthenticated = Boolean(identityLabel);
 
   async function ensureBasket() {
     if (basketIdent) return basketIdent;
@@ -267,6 +327,7 @@ export default function StoreClient() {
 
       const authUrl = extractFirstUrlDeep(json);
       if (!authUrl) throw new Error("Auth URL not found in response");
+
       window.location.href = authUrl;
     } finally {
       setBusy(null);
@@ -278,7 +339,7 @@ export default function StoreClient() {
     const pid = packageIdStr(pkg);
 
     if (!pid) {
-      setError("Missing package id (your categories endpoint isn't returning ids for this item).");
+      setError("Missing package id (expected numeric id from Tebex).");
       return;
     }
 
@@ -325,6 +386,15 @@ export default function StoreClient() {
     }
   }
 
+  function logout() {
+    localStorage.removeItem(LS_KEY);
+    localStorage.removeItem(LS_IDENTITY_KEY);
+    setBasketIdent(null);
+    setBasket(null);
+    setIdentityLabel(null);
+    setError(null);
+  }
+
   const basketLines = getBasketLines(basket);
   const basketTotal = basketTotalText(basket);
 
@@ -356,11 +426,18 @@ export default function StoreClient() {
 
         <div className="mt-6 border-t pt-4">
           <div className="text-sm font-medium">Basket</div>
+          <div className="mt-2 text-xs opacity-80 break-all">Ident: {basketIdent ?? "—"}</div>
 
           {basketTotal ? (
-            <div className="mt-2 text-sm font-semibold"></div>
+            <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div>
           ) : (
-            <div className="mt-2 text-xs opacity-70"></div>
+            <div className="mt-2 text-xs opacity-70">Total: —</div>
+          )}
+
+          {identityLabel ? (
+            <div className="mt-2 text-xs opacity-80 break-words">Logged in as: {identityLabel}</div>
+          ) : (
+            <div className="mt-2 text-xs opacity-70">Not logged in</div>
           )}
 
           <div className="mt-3 flex flex-col gap-2">
@@ -377,8 +454,18 @@ export default function StoreClient() {
               disabled={!!busy}
               onClick={startAuth}
             >
-              {busy === "auth" ? "Redirecting…" : isAuthenticated ? "You are Logged in" : "Login via (FiveM)"}
+              {busy === "auth" ? "Redirecting…" : identityLabel ? `Logged in as ${identityLabel}` : "Login (FiveM)"}
             </button>
+
+            {identityLabel ? (
+              <button
+                className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5 disabled:opacity-60"
+                disabled={!!busy}
+                onClick={logout}
+              >
+                Log out
+              </button>
+            ) : null}
 
             {checkoutUrl ? (
               <a className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white" href={checkoutUrl}>
@@ -448,7 +535,13 @@ export default function StoreClient() {
 
               return (
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
-                  <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
+                  {pid ? (
+                    <a href={`/store/package/${pid}`} className="hover:underline">
+                      <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
+                    </a>
+                  ) : (
+                    <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
+                  )}
 
                   {p.description ? (
                     <div className="mt-1 text-xs opacity-80 line-clamp-3">
@@ -476,15 +569,14 @@ export default function StoreClient() {
                       className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
                       disabled={disabledAdd}
                       onClick={() => addToBasket(p)}
+                      title={!pid ? "Missing package id" : !isAuthenticated ? "Login (FiveM) first" : undefined}
                     >
                       {busy === `add:${pid}` ? "Adding…" : "Add"}
                     </button>
                   </div>
 
-                  {!pid ? (
-                    <div className="mt-2 text-xs text-red-600">
-                      This item has no numeric id in the categories response.
-                    </div>
+                  {!isAuthenticated ? (
+                    <div className="mt-2 text-xs opacity-70">Login (FiveM) to add items.</div>
                   ) : null}
                 </div>
               );
