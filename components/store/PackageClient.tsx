@@ -55,6 +55,7 @@ export function PackageClient({ packageId }: { packageId: string }) {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [addedMessage, setAddedMessage] = useState<string | null>(null);
+  const [authWorking, setAuthWorking] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +101,23 @@ export function PackageClient({ packageId }: { packageId: string }) {
     return /auth|authenticate|login|log in|username/i.test(message);
   }
 
+  async function loginFiveM() {
+    try {
+      setAuthWorking(true);
+      setError(null);
+      const ident = await ensureBasketIdent();
+      await redirectToBasketAuth({
+        ident,
+        returnUrl: window.location.href,
+        providerName: "FiveM",
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAuthWorking(false);
+    }
+  }
+
   async function onAdd() {
     try {
       setAdding(true);
@@ -125,7 +143,11 @@ export function PackageClient({ packageId }: { packageId: string }) {
 
       if (ident && isAuthRequiredMessage(message)) {
         // Redirect to Tebex-auth (e.g. CFX/FiveM login) and return here afterwards.
-        await redirectToBasketAuth({ ident, returnUrl: window.location.href });
+        await redirectToBasketAuth({
+          ident,
+          returnUrl: window.location.href,
+          providerName: "FiveM",
+        });
       }
     } finally {
       setAdding(false);
@@ -187,6 +209,21 @@ export function PackageClient({ packageId }: { packageId: string }) {
           dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }}
         />
       ) : null}
+
+      <div className="mt-6 rounded-2xl border border-black/10 bg-black/[.02] p-4 text-sm text-foreground/80 dark:border-white/10 dark:bg-white/[.04]">
+        <p className="font-medium">Step 2 (recommended): Login with FiveM/CFX</p>
+        <p className="mt-1 text-foreground/70">
+          If your Tebex store requires a player identity, login first, then add the package to your basket.
+        </p>
+        <button
+          type="button"
+          disabled={authWorking}
+          onClick={loginFiveM}
+          className="mt-3 inline-flex h-10 items-center justify-center rounded-full border border-black/15 px-5 text-sm font-medium transition-colors hover:bg-black/[.04] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/[.06]"
+        >
+          {authWorking ? "Working..." : "Login (FiveM/CFX)"}
+        </button>
+      </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <button

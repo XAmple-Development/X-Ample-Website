@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
+import { hasTebexEnv, tebexAccountFetch } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ export async function GET(
   try {
     const { ident } = await params;
 
-    const basket = await tebexFetch<unknown>(
+    const basket = await tebexAccountFetch<unknown>(
       `/baskets/${encodeURIComponent(ident)}`,
       { method: "GET" },
     );

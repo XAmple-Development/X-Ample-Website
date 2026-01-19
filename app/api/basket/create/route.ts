@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getSiteUrl, hasTebexEnv, tebexFetch } from "@/lib/tebex";
-import { getIn, getProp, isRecord } from "@/lib/safe";
+import { getSiteUrl, hasTebexEnv, tebexAccountFetch } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
@@ -9,6 +8,10 @@ export const runtime = "nodejs";
 type CreateBasketRequest = {
   complete_url?: string;
   cancel_url?: string;
+};
+
+type TebexCreateBasketResponse = {
+  data?: { ident?: string };
 };
 
 export async function POST(req: Request) {
@@ -41,13 +44,13 @@ export async function POST(req: Request) {
     if (cancel_url) payload.cancel_url = cancel_url;
 
     // account-scoped: /api/accounts/{token}/baskets
-    const basket = await tebexFetch<unknown>("/baskets", {
+    const basket = await tebexAccountFetch<TebexCreateBasketResponse>("/baskets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const ident = extractBasketIdent(basket);
+    const ident = basket?.data?.ident;
     if (ident) {
       const jar = await cookies();
       jar.set("xa_basket", ident, {
@@ -63,29 +66,4 @@ export async function POST(req: Request) {
   } catch (e) {
     return errorJson(e, 502);
   }
-}
-
-function extractBasketIdent(payload: unknown): string | null {
-  const direct = getProp(payload, "ident");
-  if (typeof direct === "string" && direct.length > 0) return direct;
-
-  const dataIdent = getIn(payload, ["data", "ident"]);
-  if (typeof dataIdent === "string" && dataIdent.length > 0) return dataIdent;
-
-  const basketIdent = getIn(payload, ["basket", "ident"]);
-  if (typeof basketIdent === "string" && basketIdent.length > 0)
-    return basketIdent;
-
-  const nestedBasketIdent = getIn(payload, ["data", "basket", "ident"]);
-  if (typeof nestedBasketIdent === "string" && nestedBasketIdent.length > 0)
-    return nestedBasketIdent;
-
-  if (isRecord(payload)) {
-    for (const v of Object.values(payload)) {
-      const found = extractBasketIdent(v);
-      if (found) return found;
-    }
-  }
-
-  return null;
 }

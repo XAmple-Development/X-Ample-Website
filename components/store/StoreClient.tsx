@@ -6,6 +6,7 @@ import { asArray, getIn, isRecord } from "@/lib/safe";
 import {
   addPackageToBasket,
   BasketRequestError,
+  ensureBasketIdent,
   getStoredBasketIdent,
   redirectToBasketAuth,
 } from "@/lib/basketClient";
@@ -57,6 +58,7 @@ export function StoreClient() {
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [authWorking, setAuthWorking] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,6 +93,19 @@ export function StoreClient() {
 
   function isAuthRequiredMessage(message: string): boolean {
     return /auth|authenticate|login|log in|username/i.test(message);
+  }
+
+  async function loginFiveM() {
+    try {
+      setAuthWorking(true);
+      setActionError(null);
+      const ident = await ensureBasketIdent();
+      await redirectToBasketAuth({ ident, returnUrl: window.location.href, providerName: "FiveM" });
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAuthWorking(false);
+    }
   }
 
   if (loading) {
@@ -129,6 +144,22 @@ export function StoreClient() {
 
   return (
     <div>
+      <div className="mb-4 rounded-2xl border border-black/10 bg-black/[.02] p-4 text-sm text-foreground/80 dark:border-white/10 dark:bg-white/[.04]">
+        <p className="font-medium">Step 2 (recommended): Login with FiveM/CFX</p>
+        <p className="mt-1 text-foreground/70">
+          Tebex Headless stores often require a player login (FiveM/CFX) before adding items or changing quantities.
+        </p>
+        <div className="mt-3">
+          <button
+            type="button"
+            disabled={authWorking}
+            onClick={loginFiveM}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-black/15 px-5 text-sm font-medium transition-colors hover:bg-black/[.04] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/[.06]"
+          >
+            {authWorking ? "Working..." : "Login (FiveM/CFX)"}
+          </button>
+        </div>
+      </div>
       {actionError ? (
         <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-200">
           <p className="font-semibold text-red-100">Couldn’t add to cart.</p>
@@ -217,6 +248,7 @@ export function StoreClient() {
                                 await redirectToBasketAuth({
                                   ident,
                                   returnUrl: window.location.href,
+                                  providerName: "FiveM",
                                 });
                               }
                             } finally {

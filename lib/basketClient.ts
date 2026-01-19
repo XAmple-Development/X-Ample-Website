@@ -1,11 +1,6 @@
 "use client";
 
-type CreateBasketResponse = {
-  ident?: string;
-  data?: { ident?: string };
-  basket?: { ident?: string };
-  basketIdent?: string;
-};
+type CreateBasketResponse = { data?: { ident?: string } };
 
 const STORAGE_KEY = "xa_basket_ident";
 
@@ -62,8 +57,7 @@ export async function ensureBasketIdent(): Promise<string> {
     );
   }
 
-  const ident =
-    json?.ident ?? json?.data?.ident ?? json?.basket?.ident ?? json?.basketIdent;
+  const ident = json?.data?.ident;
   if (typeof ident !== "string" || ident.length === 0) {
     throw new BasketRequestError(
       "Basket created but ident was missing in the response.",
@@ -99,27 +93,28 @@ export async function addPackageToBasket(args: {
   return { ident, json };
 }
 
-export async function getBasketAuthUrl(args: {
+type TebexAuthLink = { name?: string; url?: string };
+type TebexAuthLinksResponse = { data?: TebexAuthLink[] };
+
+export async function getBasketAuthLinks(args: {
   ident?: string;
   returnUrl?: string;
-  provider?: string;
-}): Promise<string> {
+}): Promise<TebexAuthLink[]> {
   const ident = args.ident ?? (await ensureBasketIdent());
   const returnUrl =
     args.returnUrl ??
     (typeof window !== "undefined" ? window.location.href : undefined) ??
     "/store/cart";
-  const provider = args.provider ?? "FiveM";
 
   const res = await fetch(
     `/api/basket/${encodeURIComponent(ident)}/auth?returnUrl=${encodeURIComponent(
       returnUrl,
-    )}&provider=${encodeURIComponent(provider)}`,
+    )}`,
     { method: "GET", headers: { Accept: "application/json" } },
   );
 
   const json = (await res.json().catch(() => null)) as
-    | { authUrl?: string; error?: string; message?: string }
+    | (TebexAuthLinksResponse & { error?: string; message?: string })
     | null;
 
   if (!res.ok) {
@@ -129,25 +124,42 @@ export async function getBasketAuthUrl(args: {
     );
   }
 
-  const authUrl = json?.authUrl;
-  if (!authUrl || typeof authUrl !== "string") {
+  const links = json?.data;
+  if (!Array.isArray(links)) {
     throw new BasketRequestError(
-      "Basket auth URL missing from response.",
+      "Basket auth links missing from response.",
       { ident, status: res.status },
     );
   }
 
-  return authUrl;
+  return links;
 }
 
 export async function redirectToBasketAuth(args: {
   ident?: string;
   returnUrl?: string;
-  provider?: string;
+  providerName?: string;
 }) {
-  const authUrl = await getBasketAuthUrl(args);
-  if (typeof window !== "undefined") {
-    window.location.href = authUrl;
+  const providerName = (args.providerName ?? "FiveM").trim().toLowerCase();
+  const links = await getBasketAuthLinks(args);
+  const selected =
+    links.find(
+      (l) =>
+        typeof l.name === "string" &&
+        l.name.trim().toLowerCase() === providerName &&
+        typeof l.url === "string" &&
+        l.url.length > 0,
+    ) ??
+    links.find((l) => typeof l.url === "string" && l.url.length > 0) ??
+    null;
+
+  const authUrl = selected?.url;
+  if (!authUrl) {
+    throw new BasketRequestError("No auth URL returned by Tebex.", {
+      ident: args.ident,
+    });
   }
+
+  if (typeof window !== "undefined") window.location.href = authUrl;
 }
 
