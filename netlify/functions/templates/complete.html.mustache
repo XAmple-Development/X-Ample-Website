@@ -1,0 +1,53 @@
+{{>head.html}}
+<p class="display{{#displayClasses}} {{displayClasses}}{{/displayClasses}}">{{display}}</p>
+<p class="error origin-error" hidden>
+    Couldn't verify you came from an authorized website. To protect your account, you'll need to return to
+    {{>admin-panel-link.html}} and try to log in again.
+</p>
+{{>common-scripts.html}}
+<script>
+    (function() {
+        if (window.opener) {
+            /**
+             * Handle message received from netflify-cms, completing the handshake
+             * @param {MessageEvent} e
+             */
+            function receiveMessage(e) {
+                log('Receiving message:', e);
+                var origin = e.origin === 'null' ? false : e.origin;
+                if (!origin || !origin.match({{{originPattern}}})) {
+                    log('Invalid origin: %s', e.origin);
+                    if (document.getElementsByClassName) {
+                        var display = document.getElementsByClassName('display');
+                        if (display && display.length) {
+                            display[0].hidden = true;
+                        }
+                        var originError = document.getElementsByClassName('origin-error');
+                        if (originError && originError.length) {
+                            originError[0].hidden = false;
+                        }
+                    }
+                    return;
+                }
+
+                // Remove our event listener to avoid an infinite loop
+                window.removeEventListener('message', receiveMessage, false);
+
+                // Send the message to netlify-cms
+                var message = 'authorization:{{{oauthProvider}}}:{{{message}}}:{{{content}}}';
+                log('Sending message:', message);
+                window.opener.postMessage(message, origin);
+            }
+            window.addEventListener('message', receiveMessage, false);
+
+            // Initiate handshake with netlify-cms
+            var handshakeMessage = 'authorizing:{{{oauthProvider}}}';
+            log('Sending message:', handshakeMessage);
+            window.opener.postMessage(handshakeMessage, '*');
+        } else {
+            log('No opener. Not doing anything. Are you lost?');
+        }
+    })();
+</script>
+{{>foot.html}}
+
