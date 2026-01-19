@@ -12,8 +12,6 @@ type Package = {
   image?: string;
   price?: Money;
   total_price?: Money;
-
-  // sometimes Tebex nests a package object
   package?: { id?: number | string; package_id?: number | string; name?: string };
 };
 
@@ -25,7 +23,7 @@ type Category = {
 };
 
 type BasketLine = {
-  id?: number; // basket line id (common)
+  id?: number;
   name?: string;
   quantity?: number;
   price?: Money;
@@ -106,23 +104,13 @@ function basketTotalText(basket: any): string | null {
   return typeof t === "string" && t.trim() ? t : null;
 }
 
-/**
- * Only accept a package id if it is a positive number.
- * This prevents generating /store/package/undefined.
- */
+// strict: numeric id only
 function packageIdStr(p: Package): string | null {
-  const raw =
-    p.id ??
-    p.package_id ??
-    p.package?.id ??
-    p.package?.package_id ??
-    null;
-
-  if (raw === null || raw === undefined) return null;
+  const raw = p.id ?? p.package_id ?? p.package?.id ?? p.package?.package_id;
+  if (raw === undefined || raw === null) return null;
 
   const s = String(raw).trim();
-  if (!s) return null;
-  if (s === "undefined" || s === "null") return null;
+  if (!s || s === "undefined" || s === "null") return null;
 
   const n = Number(s);
   if (!Number.isFinite(n) || n <= 0) return null;
@@ -141,7 +129,6 @@ export default function StoreClient() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load categories
   useEffect(() => {
     let cancelled = false;
 
@@ -161,9 +148,8 @@ export default function StoreClient() {
 
         if (!cancelled) {
           setCategories(cats);
-
           const firstId = cats[0]?.id ?? cats[0]?.category_id ?? null;
-          setActiveCategoryId(firstId !== null && firstId !== undefined ? String(firstId) : null);
+          setActiveCategoryId(firstId != null ? String(firstId) : null);
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load store");
@@ -177,7 +163,6 @@ export default function StoreClient() {
     };
   }, []);
 
-  // Restore basket ident from localStorage
   useEffect(() => {
     const ident = localStorage.getItem(LS_KEY);
     if (ident) setBasketIdent(ident);
@@ -194,7 +179,6 @@ export default function StoreClient() {
     return json;
   }
 
-  // Fetch basket when we have ident
   useEffect(() => {
     let cancelled = false;
 
@@ -251,9 +235,7 @@ export default function StoreClient() {
       const res = await fetch("/api/basket", { method: "POST" });
       const json = await res.json().catch(() => null);
 
-      if (!res.ok) {
-        throw new Error(json?.error ?? `Failed to create basket (${res.status})`);
-      }
+      if (!res.ok) throw new Error(json?.error ?? `Failed to create basket (${res.status})`);
 
       const ident: unknown =
         json?.data?.ident ??
@@ -281,17 +263,10 @@ export default function StoreClient() {
     try {
       const res = await fetch(`/api/basket/auth?ident=${encodeURIComponent(ident)}`, { cache: "no-store" });
       const json = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(json?.error ?? `Auth request failed (${res.status})`);
-      }
+      if (!res.ok) throw new Error(json?.error ?? `Auth request failed (${res.status})`);
 
       const authUrl = extractFirstUrlDeep(json);
-      if (!authUrl) {
-        console.log("AUTH RESPONSE (no url found)", json);
-        throw new Error("Auth URL not found in response (see console)");
-      }
-
+      if (!authUrl) throw new Error("Auth URL not found in response");
       window.location.href = authUrl;
     } finally {
       setBusy(null);
@@ -303,7 +278,7 @@ export default function StoreClient() {
     const pid = packageIdStr(pkg);
 
     if (!pid) {
-      setError("Missing package id (expected a numeric id from Tebex).");
+      setError("Missing package id (your categories endpoint isn't returning ids for this item).");
       return;
     }
 
@@ -311,9 +286,7 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      if (!isAuthenticated) {
-        throw new Error("Please login (FiveM) first, then add items to basket.");
-      }
+      if (!isAuthenticated) throw new Error("Please login (FiveM) first, then add items to basket.");
 
       const res = await fetch(`/api/basket/${encodeURIComponent(ident)}/packages`, {
         method: "POST",
@@ -412,9 +385,7 @@ export default function StoreClient() {
                 Checkout
               </a>
             ) : (
-              <div className="text-xs opacity-70">
-                Checkout link appears after basket is valid and has items (and may require login).
-              </div>
+              <div className="text-xs opacity-70">Checkout appears after items are added.</div>
             )}
 
             <div className="mt-3 border-t pt-3">
@@ -442,7 +413,6 @@ export default function StoreClient() {
                             className="rounded-lg border px-2 py-1 text-xs hover:bg-black/5 disabled:opacity-60"
                             disabled={!lineId || !!busy}
                             onClick={() => lineId && removeFromBasket(lineId)}
-                            title={!lineId ? "Missing basket item id" : undefined}
                           >
                             {busy === `remove:${lineId}` ? "Removing…" : "Remove"}
                           </button>
@@ -474,17 +444,11 @@ export default function StoreClient() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(activeCategory?.packages ?? []).map((p, idx) => {
               const pid = packageIdStr(p);
-              const disabled = !!busy || !isAuthenticated || !pid;
+              const disabledAdd = !!busy || !isAuthenticated || !pid;
 
               return (
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
-                  {pid ? (
-                    <a href={`/store/package/${pid}`} className="hover:underline">
-                      <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
-                    </a>
-                  ) : (
-                    <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
-                  )}
+                  <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
 
                   {p.description ? (
                     <div className="mt-1 text-xs opacity-80 line-clamp-3">
@@ -503,32 +467,23 @@ export default function StoreClient() {
                         View
                       </a>
                     ) : (
-                      <button
-                        className="flex-1 rounded-lg border px-3 py-2 text-center text-sm opacity-60"
-                        disabled
-                        title="Missing numeric package id in API response"
-                      >
+                      <button className="flex-1 rounded-lg border px-3 py-2 text-sm opacity-60" disabled>
                         View
                       </button>
                     )}
 
                     <button
                       className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
-                      disabled={disabled}
+                      disabled={disabledAdd}
                       onClick={() => addToBasket(p)}
-                      title={!pid ? "Missing package id" : !isAuthenticated ? "Login (FiveM) first" : undefined}
                     >
                       {busy === `add:${pid}` ? "Adding…" : "Add"}
                     </button>
                   </div>
 
-                  {!isAuthenticated ? (
-                    <div className="mt-2 text-xs opacity-70">Login (FiveM) to add items.</div>
-                  ) : null}
-
                   {!pid ? (
                     <div className="mt-2 text-xs text-red-600">
-                      Missing numeric package id from Tebex response.
+                      This item has no numeric id in the categories response.
                     </div>
                   ) : null}
                 </div>

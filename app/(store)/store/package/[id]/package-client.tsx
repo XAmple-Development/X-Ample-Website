@@ -2,38 +2,37 @@
 
 import { useEffect, useState } from "react";
 
-type Money = { formatted?: string; value?: number; currency?: string };
-
-function unwrapData<T>(payload: any): T {
-  return (payload?.data ?? payload) as T;
-}
-
-function priceText(p?: Money) {
-  if (!p) return "";
-  if (p.formatted) return p.formatted;
-  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
-  return "";
-}
-
-export default function PackageClient({ id }: { id: string }) {
+export default function PackageClient({ id }: { id?: string }) {
   const [pkg, setPkg] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+
+    const safeId = (id ?? "").trim();
+
+    // Guard: NEVER fetch if id is missing/invalid
+    if (!safeId || safeId === "undefined" || safeId === "null") {
+      setError("Missing package id in URL (check your /store links).");
+      setPkg(null);
+      setLoading(false);
+      return;
+    }
 
     (async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`/api/store/package/${encodeURIComponent(id)}`, { cache: "no-store" });
-        const json = await res.json().catch(() => null);
+        const res = await fetch(`/api/store/package/${encodeURIComponent(safeId)}`, {
+          cache: "no-store",
+        });
 
+        const json = await res.json().catch(() => null);
         if (!res.ok) throw new Error(json?.error ?? `Failed to load package (${res.status})`);
 
-        if (!cancelled) setPkg(unwrapData(json));
+        if (!cancelled) setPkg(json?.data ?? json);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load package");
       } finally {
@@ -53,7 +52,6 @@ export default function PackageClient({ id }: { id: string }) {
   const name = pkg?.name ?? "Package";
   const description = typeof pkg?.description === "string" ? pkg.description : "";
   const image = pkg?.image ?? pkg?.image_url ?? null;
-  const total = pkg?.total_price ?? pkg?.price;
 
   return (
     <div className="rounded-xl border p-5">
@@ -71,14 +69,10 @@ export default function PackageClient({ id }: { id: string }) {
         />
       ) : null}
 
-      <div className="mt-4 text-lg font-semibold">{priceText(total)}</div>
-
       {description ? (
-        <div
-          className="prose prose-sm mt-4 max-w-none"
-          // If you don’t trust HTML from Tebex, swap this for plain text.
-          dangerouslySetInnerHTML={{ __html: description }}
-        />
+        <div className="mt-4 whitespace-pre-wrap text-sm opacity-90">
+          {description.replace(/<[^>]*>/g, "")}
+        </div>
       ) : (
         <div className="mt-4 text-sm opacity-70">No description provided.</div>
       )}
