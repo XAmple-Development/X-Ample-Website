@@ -37,11 +37,12 @@ export async function ensureBasketIdent(): Promise<string> {
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({}),
   });
-  const json = (await res.json().catch(() => null)) as CreateBasketResponse | null;
+  const json = (await res.json().catch(() => null)) as
+    | (CreateBasketResponse & { error?: string; message?: string })
+    | null;
   if (!res.ok) {
     throw new Error(
-      (json && ((json as any).error || (json as any).message)) ||
-        `Request failed (${res.status})`,
+      (json && (json.error || json.message)) || `Request failed (${res.status})`,
     );
   }
 
