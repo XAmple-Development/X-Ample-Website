@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Money = { formatted?: string; value?: number; currency?: string };
 
@@ -10,27 +10,10 @@ type Package = {
   name?: string;
   description?: string;
   image?: string;
-
-  // Tebex can return these in multiple shapes
-  price?: Money | string;
-  total_price?: Money | string;
-  base_price?: Money | string;
-
-  // sometimes nested
-  pricing?: {
-    price?: Money | string;
-    total_price?: Money | string;
-    base_price?: Money | string;
-  };
-
-  package?: {
-    id?: number | string;
-    package_id?: number | string;
-    name?: string;
-    price?: Money | string;
-    total_price?: Money | string;
-    base_price?: Money | string;
-  };
+  price?: Money;
+  base_price?: Money;
+  total_price?: Money;
+  package?: { id?: number | string; package_id?: number | string; name?: string };
 };
 
 type Category = {
@@ -44,8 +27,8 @@ type BasketLine = {
   id?: number;
   name?: string;
   quantity?: number;
-  price?: Money | string;
-  total_price?: Money | string;
+  price?: Money;
+  total_price?: Money;
   package?: { name?: string };
 };
 
@@ -61,42 +44,15 @@ function unwrapData<T>(payload: unknown): T {
   return payload as T;
 }
 
-function priceText(p?: Money | string | null) {
+function moneyText(p?: Money | null) {
   if (!p) return "";
-  if (typeof p === "string") return p;
-
   if (p.formatted) return p.formatted;
-
-  if (typeof p.value === "number") {
-    // Tebex usually uses minor units (pennies)
-    return `£${(p.value / 100).toFixed(2)}`;
-  }
-
+  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
   return "";
-}
-
-function getPackagePrice(p: any): Money | string | null {
-  return (
-    p?.total_price ??
-    p?.price ??
-    p?.base_price ??
-    p?.pricing?.total_price ??
-    p?.pricing?.price ??
-    p?.pricing?.base_price ??
-    p?.package?.total_price ??
-    p?.package?.price ??
-    p?.package?.base_price ??
-    // formatted string fallbacks (in case Money object wasn't returned)
-    p?.price?.formatted ??
-    p?.total_price?.formatted ??
-    p?.base_price?.formatted ??
-    null
-  );
 }
 
 function extractFirstUrlDeep(payload: unknown): string | null {
   const seen = new Set<unknown>();
-
   const walk = (v: unknown): string | null => {
     if (!v || typeof v !== "object") return null;
     if (seen.has(v)) return null;
@@ -106,13 +62,7 @@ function extractFirstUrlDeep(payload: unknown): string | null {
     const direct = anyObj.url;
     if (typeof direct === "string" && /^https?:\/\//i.test(direct)) return direct;
 
-    const candidates = [
-      anyObj.authUrl,
-      anyObj.authenticationUrl,
-      anyObj.redirect,
-      anyObj.redirect_url,
-      anyObj.checkout,
-    ];
+    const candidates = [anyObj.authUrl, anyObj.authenticationUrl, anyObj.redirect, anyObj.redirect_url, anyObj.checkout];
     for (const c of candidates) {
       if (typeof c === "string" && /^https?:\/\//i.test(c)) return c;
     }
@@ -123,7 +73,6 @@ function extractFirstUrlDeep(payload: unknown): string | null {
     }
     return null;
   };
-
   return walk(payload);
 }
 
@@ -147,11 +96,9 @@ function basketTotalText(basket: any): string | null {
     basket?.total_price?.formatted ??
     basket?.total?.formatted ??
     basket?.price?.formatted;
-
   return typeof t === "string" && t.trim() ? t : null;
 }
 
-// strict: numeric id only (prevents /undefined)
 function packageIdStr(p: Package): string | null {
   const raw = p.id ?? p.package_id ?? p.package?.id ?? p.package?.package_id;
   if (raw === undefined || raw === null) return null;
@@ -167,20 +114,8 @@ function packageIdStr(p: Package): string | null {
 
 function extractIdentity(basket: any): Identity | null {
   const b = basket?.data ?? basket;
-
-  const candidates = [
-    b?.player?.username,
-    b?.player?.name,
-    b?.customer?.username,
-    b?.customer?.name,
-    b?.username,
-    b?.email,
-  ];
-
-  const label = candidates.find((v: unknown) => typeof v === "string" && v.trim().length > 0) as
-    | string
-    | undefined;
-
+  const candidates = [b?.player?.username, b?.player?.name, b?.customer?.username, b?.customer?.name, b?.username, b?.email];
+  const label = candidates.find((v: unknown) => typeof v === "string" && v.trim().length > 0) as string | undefined;
   return label ? { label } : null;
 }
 
@@ -191,26 +126,24 @@ export default function StoreClient() {
 
   const [basketIdent, setBasketIdent] = useState<string | null>(null);
   const [basket, setBasket] = useState<any>(null);
-
   const [identityLabel, setIdentityLabel] = useState<string | null>(null);
 
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Cache hydrated packages by id (so we only fetch details once)
+  const pkgCache = useRef(new Map<string, Package>());
+
   // Load categories
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       try {
         setError(null);
         setLoading(true);
 
         const res = await fetch("/api/store/categories?includePackages=1", { cache: "no-store" });
-        if (!res.ok) {
-          const t = await res.text().catch(() => "");
-          throw new Error(`Failed to load categories (${res.status}) ${t}`);
-        }
+        if (!res.ok) throw new Error(`Failed to load categories (${res.status})`);
 
         const json = await res.json();
         const cats = (unwrapData<Category[]>(json) ?? []).filter(Boolean);
@@ -226,7 +159,6 @@ export default function StoreClient() {
         if (!cancelled) setLoading(false);
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -243,12 +175,8 @@ export default function StoreClient() {
 
   async function refreshBasket(ident: string) {
     const res = await fetch(`/api/basket/${encodeURIComponent(ident)}`, { cache: "no-store" });
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      throw new Error(`Failed to load basket (${res.status}) ${t}`);
-    }
+    if (!res.ok) throw new Error(`Failed to load basket (${res.status})`);
     const json = await res.json();
-
     setBasket(json);
 
     const identInfo = extractIdentity(json);
@@ -266,7 +194,6 @@ export default function StoreClient() {
   // Fetch basket when we have ident
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       if (!basketIdent) return;
       try {
@@ -275,7 +202,6 @@ export default function StoreClient() {
         const json = await res.json();
         if (!cancelled) {
           setBasket(json);
-
           const identInfo = extractIdentity(json);
           if (identInfo) {
             setIdentityLabel(identInfo.label);
@@ -295,7 +221,6 @@ export default function StoreClient() {
         }
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -309,6 +234,56 @@ export default function StoreClient() {
       null
     );
   }, [categories, activeCategoryId]);
+
+  // ✅ Hydrate package prices for current category by fetching package details endpoint
+  const [hydratedPackages, setHydratedPackages] = useState<Package[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+
+    const pkgs = activeCategory?.packages ?? [];
+    setHydratedPackages(pkgs);
+
+    (async () => {
+      const updates: Package[] = [];
+      for (const p of pkgs) {
+        const pid = packageIdStr(p);
+        if (!pid) continue;
+
+        // Already cached with a price? use it
+        const cached = pkgCache.current.get(pid);
+        if (cached?.price || cached?.total_price || cached?.base_price) {
+          updates.push({ ...p, ...cached });
+          continue;
+        }
+
+        try {
+          const res = await fetch(`/api/store/package/${encodeURIComponent(pid)}`, { cache: "no-store" });
+          const json = await res.json().catch(() => null);
+          if (!res.ok) continue;
+
+          const full = (json?.data ?? json) as Package;
+          pkgCache.current.set(pid, full);
+          updates.push({ ...p, ...full });
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!cancelled && updates.length) {
+        // Merge updates back into original order
+        const byId = new Map(updates.map((x) => [packageIdStr(x)!, x]));
+        const merged = pkgs.map((p) => {
+          const pid = packageIdStr(p);
+          return pid && byId.has(pid) ? (byId.get(pid) as Package) : p;
+        });
+        setHydratedPackages(merged);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategoryId]); // intentionally tied to category selection
 
   const checkoutUrl =
     basket?.data?.links?.checkout ??
@@ -328,7 +303,6 @@ export default function StoreClient() {
     try {
       const res = await fetch("/api/basket", { method: "POST" });
       const json = await res.json().catch(() => null);
-
       if (!res.ok) throw new Error(json?.error ?? `Failed to create basket (${res.status})`);
 
       const ident: unknown =
@@ -373,7 +347,7 @@ export default function StoreClient() {
     const pid = packageIdStr(pkg);
 
     if (!pid) {
-      setError("Missing package id (expected numeric id from Tebex).");
+      setError("Missing package id.");
       return;
     }
 
@@ -464,7 +438,7 @@ export default function StoreClient() {
           {basketTotal ? (
             <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div>
           ) : (
-            <div className="mt-2 text-xs opacity-70"></div>
+            <div className="mt-2 text-xs opacity-70">Total: —</div>
           )}
 
           {identityLabel ? (
@@ -474,17 +448,20 @@ export default function StoreClient() {
           )}
 
           <div className="mt-3 flex flex-col gap-2">
+            <button
+              className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5 disabled:opacity-60"
+              disabled={!!busy}
+              onClick={ensureBasket}
+            >
+              {busy === "basket" ? "Creating…" : basketIdent ? "Basket Ready" : "Create Basket"}
+            </button>
 
             <button
               className="rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
               disabled={!!busy}
               onClick={startAuth}
             >
-              {busy === "auth"
-                ? "Redirecting…"
-                : identityLabel
-                  ? `Logged in as ${identityLabel}`
-                  : "Login (FiveM)"}
+              {busy === "auth" ? "Redirecting…" : identityLabel ? `Logged in as ${identityLabel}` : "Login (FiveM)"}
             </button>
 
             {identityLabel ? (
@@ -559,11 +536,11 @@ export default function StoreClient() {
           <div className="mt-4 text-sm opacity-60">Loading packages…</div>
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(activeCategory?.packages ?? []).map((p, idx) => {
+            {(hydratedPackages ?? activeCategory?.packages ?? []).map((p, idx) => {
               const pid = packageIdStr(p);
               const disabledAdd = !!busy || !isAuthenticated || !pid;
 
-              const price = priceText(getPackagePrice(p));
+              const price = moneyText((p.total_price ?? p.price ?? p.base_price) as Money | undefined);
 
               return (
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
@@ -582,7 +559,7 @@ export default function StoreClient() {
                   ) : null}
 
                   <div className="mt-3 text-sm">
-                    {price ? price : <span className="opacity-70">Price unavailable</span>}
+                    {price ? price : <span className="opacity-70">Loading price…</span>}
                   </div>
 
                   <div className="mt-3 flex gap-2">
