@@ -102,17 +102,19 @@ export async function addPackageToBasket(args: {
 export async function getBasketAuthUrl(args: {
   ident?: string;
   returnUrl?: string;
+  provider?: string;
 }): Promise<string> {
   const ident = args.ident ?? (await ensureBasketIdent());
   const returnUrl =
     args.returnUrl ??
     (typeof window !== "undefined" ? window.location.href : undefined) ??
     "/store/cart";
+  const provider = args.provider ?? "FiveM";
 
   const res = await fetch(
     `/api/basket/${encodeURIComponent(ident)}/auth?returnUrl=${encodeURIComponent(
       returnUrl,
-    )}`,
+    )}&provider=${encodeURIComponent(provider)}`,
     { method: "GET", headers: { Accept: "application/json" } },
   );
 
@@ -141,6 +143,7 @@ export async function getBasketAuthUrl(args: {
 export async function redirectToBasketAuth(args: {
   ident?: string;
   returnUrl?: string;
+  provider?: string;
 }) {
   const authUrl = await getBasketAuthUrl(args);
   if (typeof window !== "undefined") {

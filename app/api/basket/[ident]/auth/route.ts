@@ -5,6 +5,8 @@ import { isRecord } from "@/lib/safe";
 
 export const runtime = "nodejs";
 
+type TebexAuthLink = { name?: string; url?: string };
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ ident: string }> },
@@ -24,6 +26,7 @@ export async function GET(
     const url = new URL(req.url);
 
     const rawReturnUrl = url.searchParams.get("returnUrl") ?? "";
+    const provider = (url.searchParams.get("provider") ?? "").trim();
     const returnUrl = normalizeReturnUrl({
       returnUrl: rawReturnUrl,
       requestOrigin: url.origin,
@@ -38,7 +41,7 @@ export async function GET(
       { method: "GET" },
     );
 
-    const authUrl = extractAuthUrl(authPayload);
+    const authUrl = extractAuthUrl(authPayload, provider || "FiveM");
     if (!authUrl) {
       return NextResponse.json(
         {
@@ -50,7 +53,10 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ authUrl, tebex: authPayload }, { status: 200 });
+    return NextResponse.json(
+      { authUrl, provider: provider || "FiveM", returnUrl, tebex: authPayload },
+      { status: 200 },
+    );
   } catch (e) {
     return errorJson(e, 502);
   }
@@ -91,41 +97,52 @@ function normalizeReturnUrl(args: {
   return parsed.origin === allowedOrigin ? parsed.toString() : safeDefault;
 }
 
-function extractAuthUrl(payload: unknown): string | null {
-  if (typeof payload === "string") {
-    return looksLikeAuthUrl(payload) ? payload : null;
+function extractAuthUrl(payload: unknown, preferredProvider: string): string | null {
+  // Tebex docs: response is an array of { name, url } objects:
+  // https://docs.tebex.io/developers/headless-api/endpoints#get-authentication-links-for-a-basket
+  const links = flattenAuthLinks(payload);
+
+  const preferred = preferredProvider.trim().toLowerCase();
+  if (preferred) {
+    const match = links.find(
+      (l) =>
+        typeof l.name === "string" &&
+        l.name.trim().toLowerCase() === preferred &&
+        typeof l.url === "string" &&
+        looksLikeUrl(l.url),
+    );
+    if (match?.url) return match.url;
   }
 
-  if (Array.isArray(payload)) {
-    for (const v of payload) {
-      const found = extractAuthUrl(v);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  if (!isRecord(payload)) return null;
-
-  // Prefer any obvious "url" field.
-  for (const [k, v] of Object.entries(payload)) {
-    if (typeof v === "string" && k.toLowerCase().includes("url")) {
-      if (looksLikeAuthUrl(v)) return v;
-    }
-  }
-
-  for (const v of Object.values(payload)) {
-    const found = extractAuthUrl(v);
-    if (found) return found;
-  }
-
-  return null;
+  const first = links.find((l) => typeof l.url === "string" && looksLikeUrl(l.url));
+  return first?.url ?? null;
 }
 
-function looksLikeAuthUrl(url: string): boolean {
+function flattenAuthLinks(payload: unknown): TebexAuthLink[] {
+  if (Array.isArray(payload)) {
+    return payload.flatMap((v) => flattenAuthLinks(v));
+  }
+  if (isRecord(payload)) {
+    const url = payload.url;
+    const name = payload.name;
+    if (typeof url === "string") {
+      return [{ url, name: typeof name === "string" ? name : undefined }];
+    }
+    return Object.values(payload).flatMap((v) => flattenAuthLinks(v));
+  }
+  return [];
+}
+
+function looksLikeUrl(url: string): boolean {
   const s = url.trim();
   if (!/^https?:\/\//i.test(s)) return false;
-  // Tebex auth URLs are hosted by Tebex; avoid returning arbitrary URLs.
-  if (!/tebex/i.test(s)) return false;
-  return true;
+  // Basic sanity; URL is provided by Tebex API response.
+  try {
+    // eslint-disable-next-line no-new
+    new URL(s);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
