@@ -105,7 +105,17 @@ async function tebexRequestNoBody(url: string, init: TebexFetchInit = {}) {
     cache: "no-store",
   });
 
-  if (res.ok) return;
+  if (res.ok) {
+    // Important: abort/cancel body consumption. Some runtimes will continue to
+    // download large responses unless explicitly canceled, which can lead to
+    // serverless crashes/timeouts.
+    try {
+      res.body?.cancel?.();
+    } catch {
+      // ignore
+    }
+    return;
+  }
 
   const text = await res.text().catch(() => "");
   const contentType = res.headers.get("content-type") ?? "";
