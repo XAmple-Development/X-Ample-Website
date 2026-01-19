@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     const ident = extractBasketIdent(basket);
     if (ident) {
-      const jar = cookies();
+      const jar = await cookies(); // <-- FIX
       jar.set("xa_basket", ident, {
         httpOnly: true,
         sameSite: "lax",
