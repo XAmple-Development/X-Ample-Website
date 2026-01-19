@@ -1,8 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+
+function pickIdFromPath(pathname: string | null): string | null {
+  if (!pathname) return null;
+  const parts = pathname.split("/").filter(Boolean);
+  const last = parts[parts.length - 1] ?? "";
+  const id = last.trim();
+
+  if (!id || id === "undefined" || id === "null") return null;
+  return id;
+}
 
 export default function PackageClient({ id }: { id?: string }) {
+  const pathname = usePathname();
+
+  // Prefer prop if it exists, else parse from URL.
+  const effectiveId = useMemo(() => {
+    const fromProp = (id ?? "").trim();
+    if (fromProp && fromProp !== "undefined" && fromProp !== "null") return fromProp;
+    return pickIdFromPath(pathname);
+  }, [id, pathname]);
+
   const [pkg, setPkg] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -10,10 +30,7 @@ export default function PackageClient({ id }: { id?: string }) {
   useEffect(() => {
     let cancelled = false;
 
-    const safeId = (id ?? "").trim();
-
-    // Guard: NEVER fetch if id is missing/invalid
-    if (!safeId || safeId === "undefined" || safeId === "null") {
+    if (!effectiveId) {
       setError("Missing package id in URL (check your /store links).");
       setPkg(null);
       setLoading(false);
@@ -25,7 +42,7 @@ export default function PackageClient({ id }: { id?: string }) {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`/api/store/package/${encodeURIComponent(safeId)}`, {
+        const res = await fetch(`/api/store/package/${encodeURIComponent(effectiveId)}`, {
           cache: "no-store",
         });
 
@@ -43,7 +60,7 @@ export default function PackageClient({ id }: { id?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [effectiveId]);
 
   if (loading) return <div className="text-sm opacity-60">Loading…</div>;
   if (error) return <div className="text-sm text-red-600">{error}</div>;
@@ -62,11 +79,7 @@ export default function PackageClient({ id }: { id?: string }) {
       <div className="mt-3 text-2xl font-semibold">{name}</div>
 
       {image ? (
-        <img
-          src={image}
-          alt={name}
-          className="mt-4 w-full rounded-xl border object-cover"
-        />
+        <img src={image} alt={name} className="mt-4 w-full rounded-xl border object-cover" />
       ) : null}
 
       {description ? (
