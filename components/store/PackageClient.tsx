@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import DOMPurify from "dompurify";
 import { getIn, isRecord } from "@/lib/safe";
-import { addPackageToBasket, ensureBasketIdent, getStoredBasketIdent } from "@/lib/basketClient";
+import {
+  addPackageToBasket,
+  BasketRequestError,
+  ensureBasketIdent,
+  getStoredBasketIdent,
+  redirectToBasketAuth,
+} from "@/lib/basketClient";
 
 type TebexPackage = {
   id?: number | string;
@@ -90,6 +96,10 @@ export function PackageClient({ packageId }: { packageId: string }) {
     });
   }, [pkg?.description]);
 
+  function isAuthRequiredMessage(message: string): boolean {
+    return /auth|authenticate|login|log in|username/i.test(message);
+  }
+
   async function onAdd() {
     try {
       setAdding(true);
@@ -105,7 +115,18 @@ export function PackageClient({ packageId }: { packageId: string }) {
       });
       setAddedMessage("Added to cart.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+
+      const ident =
+        e instanceof BasketRequestError
+          ? e.ident ?? getStoredBasketIdent()
+          : getStoredBasketIdent();
+
+      if (ident && isAuthRequiredMessage(message)) {
+        // Redirect to Tebex-auth (e.g. CFX/FiveM login) and return here afterwards.
+        await redirectToBasketAuth({ ident, returnUrl: window.location.href });
+      }
     } finally {
       setAdding(false);
     }

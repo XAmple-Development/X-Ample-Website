@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getIn, isRecord } from "@/lib/safe";
-import { ensureBasketIdent } from "@/lib/basketClient";
+import { ensureBasketIdent, redirectToBasketAuth } from "@/lib/basketClient";
 
 type BasketPackage = {
   id?: number | string;
@@ -165,6 +165,19 @@ export function CartClient() {
     }
   }
 
+  async function authenticateBasket() {
+    if (!ident) return;
+    try {
+      setWorking(true);
+      setError(null);
+      await redirectToBasketAuth({ ident, returnUrl: window.location.href });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setWorking(false);
+    }
+  }
+
   const total =
     basket?.total_price ?? basket?.price ?? basket?.base_price ?? null;
   const totalText = priceToText(total);
@@ -278,6 +291,14 @@ export function CartClient() {
           >
             Continue shopping
           </Link>
+          <button
+            type="button"
+            disabled={working}
+            onClick={authenticateBasket}
+            className="inline-flex h-11 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-medium transition-colors hover:bg-black/[.04] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/[.06]"
+          >
+            {working ? "Working..." : "Login (FiveM/CFX)"}
+          </button>
           <button
             type="button"
             disabled={working}

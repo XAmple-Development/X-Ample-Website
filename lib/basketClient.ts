@@ -9,6 +9,21 @@ type CreateBasketResponse = {
 
 const STORAGE_KEY = "xa_basket_ident";
 
+export class BasketRequestError extends Error {
+  ident?: string;
+  status?: number;
+
+  constructor(
+    message: string,
+    opts: { ident?: string; status?: number } = {},
+  ) {
+    super(message);
+    this.name = "BasketRequestError";
+    this.ident = opts.ident;
+    this.status = opts.status;
+  }
+}
+
 export function getStoredBasketIdent(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -41,15 +56,19 @@ export async function ensureBasketIdent(): Promise<string> {
     | (CreateBasketResponse & { error?: string; message?: string })
     | null;
   if (!res.ok) {
-    throw new Error(
+    throw new BasketRequestError(
       (json && (json.error || json.message)) || `Request failed (${res.status})`,
+      { status: res.status },
     );
   }
 
   const ident =
     json?.ident ?? json?.data?.ident ?? json?.basket?.ident ?? json?.basketIdent;
   if (typeof ident !== "string" || ident.length === 0) {
-    throw new Error("Basket created but ident was missing in the response.");
+    throw new BasketRequestError(
+      "Basket created but ident was missing in the response.",
+      { status: res.status },
+    );
   }
 
   setStoredBasketIdent(ident);
@@ -72,10 +91,60 @@ export async function addPackageToBasket(args: {
   });
   const json = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(
+    throw new BasketRequestError(
       (json && (json.error || json.message)) || `Request failed (${res.status})`,
+      { ident, status: res.status },
     );
   }
   return { ident, json };
+}
+
+export async function getBasketAuthUrl(args: {
+  ident?: string;
+  returnUrl?: string;
+}): Promise<string> {
+  const ident = args.ident ?? (await ensureBasketIdent());
+  const returnUrl =
+    args.returnUrl ??
+    (typeof window !== "undefined" ? window.location.href : undefined) ??
+    "/store/cart";
+
+  const res = await fetch(
+    `/api/basket/${encodeURIComponent(ident)}/auth?returnUrl=${encodeURIComponent(
+      returnUrl,
+    )}`,
+    { method: "GET", headers: { Accept: "application/json" } },
+  );
+
+  const json = (await res.json().catch(() => null)) as
+    | { authUrl?: string; error?: string; message?: string }
+    | null;
+
+  if (!res.ok) {
+    throw new BasketRequestError(
+      (json && (json.error || json.message)) || `Request failed (${res.status})`,
+      { ident, status: res.status },
+    );
+  }
+
+  const authUrl = json?.authUrl;
+  if (!authUrl || typeof authUrl !== "string") {
+    throw new BasketRequestError(
+      "Basket auth URL missing from response.",
+      { ident, status: res.status },
+    );
+  }
+
+  return authUrl;
+}
+
+export async function redirectToBasketAuth(args: {
+  ident?: string;
+  returnUrl?: string;
+}) {
+  const authUrl = await getBasketAuthUrl(args);
+  if (typeof window !== "undefined") {
+    window.location.href = authUrl;
+  }
 }
 

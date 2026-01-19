@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { asArray, getIn, isRecord } from "@/lib/safe";
-import { addPackageToBasket } from "@/lib/basketClient";
+import {
+  addPackageToBasket,
+  BasketRequestError,
+  getStoredBasketIdent,
+  redirectToBasketAuth,
+} from "@/lib/basketClient";
 
 type TebexCategory = {
   id?: number | string;
@@ -83,6 +88,10 @@ export function StoreClient() {
   }, []);
 
   const categories = useMemo(() => pickCategories(data), [data]);
+
+  function isAuthRequiredMessage(message: string): boolean {
+    return /auth|authenticate|login|log in|username/i.test(message);
+  }
 
   if (loading) {
     return (
@@ -196,7 +205,20 @@ export function StoreClient() {
                               // Clear the "Added" state after a moment.
                               window.setTimeout(() => setAddedId(null), 1500);
                             } catch (e) {
-                              setActionError(e instanceof Error ? e.message : String(e));
+                              const message = e instanceof Error ? e.message : String(e);
+                              setActionError(message);
+
+                              const ident =
+                                e instanceof BasketRequestError
+                                  ? e.ident ?? getStoredBasketIdent()
+                                  : getStoredBasketIdent();
+
+                              if (ident && isAuthRequiredMessage(message)) {
+                                await redirectToBasketAuth({
+                                  ident,
+                                  returnUrl: window.location.href,
+                                });
+                              }
                             } finally {
                               setAddingId(null);
                             }
