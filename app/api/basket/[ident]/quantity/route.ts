@@ -51,7 +51,11 @@ async function handler(
       },
     );
 
-    return NextResponse.json(updated, { status: 200 });
+    // Avoid returning large Tebex payloads; client will refresh basket.
+    return NextResponse.json(
+      { ok: true, ident, updated: true },
+      { status: 200 },
+    );
   } catch (e) {
     return errorJson(e, 502);
   }

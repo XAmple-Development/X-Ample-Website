@@ -45,7 +45,13 @@ export async function POST(
       },
     );
 
-    return NextResponse.json(added, { status: 200 });
+    // Don't return the full Tebex basket payload here (can be very large and may
+    // cause edge/serverless 502s). The client should refresh the basket via
+    // GET /api/basket/{ident}.
+    return NextResponse.json(
+      { ok: true, ident, added: true },
+      { status: 200 },
+    );
   } catch (e) {
     return errorJson(e, 502);
   }

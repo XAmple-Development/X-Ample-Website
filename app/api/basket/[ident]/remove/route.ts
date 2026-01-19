@@ -43,7 +43,8 @@ export async function POST(
       },
     );
 
-    return NextResponse.json(removed, { status: 200 });
+    // Avoid returning large Tebex payloads; client will refresh basket.
+    return NextResponse.json({ ok: true, ident, removed: true }, { status: 200 });
   } catch (e) {
     return errorJson(e, 502);
   }
