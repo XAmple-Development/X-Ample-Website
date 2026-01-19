@@ -23,7 +23,7 @@ export function getSiteUrl() {
   return getEnv("SITE_URL") ?? "";
 }
 
-function getBasicAuthHeader() {
+export function getBasicAuthHeader() {
   const user = getEnv("TEBEX_PUBLIC_TOKEN");
   const pass = getEnv("TEBEX_PRIVATE_KEY");
   if (!user || !pass) return null;
@@ -36,7 +36,7 @@ function getBasicAuthHeader() {
   return `Basic ${encoded}`;
 }
 
-function getWebstoreToken() {
+export function getWebstoreToken() {
   return getEnv("TEBEX_WEBSTORE_TOKEN");
 }
 
