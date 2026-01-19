@@ -11,25 +11,17 @@ type Package = {
   description?: string;
   image?: string;
 
-  // Tebex can return these in multiple shapes
-  price?: Money | string;
-  total_price?: Money | string;
-  base_price?: Money | string;
-
-  // sometimes nested
-  pricing?: {
-    price?: Money | string;
-    total_price?: Money | string;
-    base_price?: Money | string;
-  };
+  price?: Money;
+  total_price?: Money;
+  base_price?: Money;
 
   package?: {
     id?: number | string;
     package_id?: number | string;
     name?: string;
-    price?: Money | string;
-    total_price?: Money | string;
-    base_price?: Money | string;
+    price?: Money;
+    total_price?: Money;
+    base_price?: Money;
   };
 };
 
@@ -44,8 +36,8 @@ type BasketLine = {
   id?: number;
   name?: string;
   quantity?: number;
-  price?: Money | string;
-  total_price?: Money | string;
+  price?: Money;
+  total_price?: Money;
   package?: { name?: string };
 };
 
@@ -54,49 +46,15 @@ type Identity = { label: string };
 const LS_KEY = "tebex_basket_ident";
 const LS_IDENTITY_KEY = "tebex_identity_label";
 
-function unwrapData<T>(payload: unknown): T {
-  if (payload && typeof payload === "object" && "data" in (payload as any)) {
-    return (payload as any).data as T;
-  }
-  return payload as T;
-}
-
-function priceText(p?: Money | string | null) {
+function priceText(p?: Money | null) {
   if (!p) return "";
-  if (typeof p === "string") return p;
-
   if (p.formatted) return p.formatted;
-
-  if (typeof p.value === "number") {
-    // Tebex usually uses minor units (pennies)
-    return `£${(p.value / 100).toFixed(2)}`;
-  }
-
+  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
   return "";
-}
-
-function getPackagePrice(p: any): Money | string | null {
-  return (
-    p?.total_price ??
-    p?.price ??
-    p?.base_price ??
-    p?.pricing?.total_price ??
-    p?.pricing?.price ??
-    p?.pricing?.base_price ??
-    p?.package?.total_price ??
-    p?.package?.price ??
-    p?.package?.base_price ??
-    // formatted string fallbacks (in case Money object wasn't returned)
-    p?.price?.formatted ??
-    p?.total_price?.formatted ??
-    p?.base_price?.formatted ??
-    null
-  );
 }
 
 function extractFirstUrlDeep(payload: unknown): string | null {
   const seen = new Set<unknown>();
-
   const walk = (v: unknown): string | null => {
     if (!v || typeof v !== "object") return null;
     if (seen.has(v)) return null;
@@ -123,7 +81,6 @@ function extractFirstUrlDeep(payload: unknown): string | null {
     }
     return null;
   };
-
   return walk(payload);
 }
 
@@ -151,7 +108,6 @@ function basketTotalText(basket: any): string | null {
   return typeof t === "string" && t.trim() ? t : null;
 }
 
-// strict: numeric id only (prevents /undefined)
 function packageIdStr(p: Package): string | null {
   const raw = p.id ?? p.package_id ?? p.package?.id ?? p.package?.package_id;
   if (raw === undefined || raw === null) return null;
@@ -167,7 +123,6 @@ function packageIdStr(p: Package): string | null {
 
 function extractIdentity(basket: any): Identity | null {
   const b = basket?.data ?? basket;
-
   const candidates = [
     b?.player?.username,
     b?.player?.name,
@@ -176,63 +131,50 @@ function extractIdentity(basket: any): Identity | null {
     b?.username,
     b?.email,
   ];
-
   const label = candidates.find((v: unknown) => typeof v === "string" && v.trim().length > 0) as
     | string
     | undefined;
-
   return label ? { label } : null;
+}
+
+/**
+ * Tebex category endpoint can return:
+ * - { data: Category[] }
+ * - { data: { categories: Category[] } }
+ * - { categories: Category[] }
+ */
+function extractCategories(payload: any): Category[] {
+  if (!payload) return [];
+
+  // data: [...]
+  if (Array.isArray(payload?.data)) return payload.data as Category[];
+
+  // data: { categories: [...] }
+  if (Array.isArray(payload?.data?.categories)) return payload.data.categories as Category[];
+
+  // categories: [...]
+  if (Array.isArray(payload?.categories)) return payload.categories as Category[];
+
+  // plain array
+  if (Array.isArray(payload)) return payload as Category[];
+
+  return [];
 }
 
 export default function StoreClient() {
   const [loading, setLoading] = useState(true);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
   const [basketIdent, setBasketIdent] = useState<string | null>(null);
   const [basket, setBasket] = useState<any>(null);
-
   const [identityLabel, setIdentityLabel] = useState<string | null>(null);
 
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load categories
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        setError(null);
-        setLoading(true);
-
-        const res = await fetch("/api/store/categories?includePackages=1", { cache: "no-store" });
-        if (!res.ok) {
-          const t = await res.text().catch(() => "");
-          throw new Error(`Failed to load categories (${res.status}) ${t}`);
-        }
-
-        const json = await res.json();
-        const cats = (unwrapData<Category[]>(json) ?? []).filter(Boolean);
-
-        if (!cancelled) {
-          setCategories(cats);
-          const firstId = cats[0]?.id ?? cats[0]?.category_id ?? null;
-          setActiveCategoryId(firstId != null ? String(firstId) : null);
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load store");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Restore basket ident + identity from localStorage
+  // Restore basket ident + identity from localStorage first
   useEffect(() => {
     const ident = localStorage.getItem(LS_KEY);
     if (ident) setBasketIdent(ident);
@@ -243,10 +185,7 @@ export default function StoreClient() {
 
   async function refreshBasket(ident: string) {
     const res = await fetch(`/api/basket/${encodeURIComponent(ident)}`, { cache: "no-store" });
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      throw new Error(`Failed to load basket (${res.status}) ${t}`);
-    }
+    if (!res.ok) throw new Error(`Failed to load basket (${res.status})`);
     const json = await res.json();
 
     setBasket(json);
@@ -263,64 +202,16 @@ export default function StoreClient() {
     return json;
   }
 
-  // Fetch basket when we have ident
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      if (!basketIdent) return;
-      try {
-        const res = await fetch(`/api/basket/${encodeURIComponent(basketIdent)}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Basket not found");
-        const json = await res.json();
-        if (!cancelled) {
-          setBasket(json);
-
-          const identInfo = extractIdentity(json);
-          if (identInfo) {
-            setIdentityLabel(identInfo.label);
-            localStorage.setItem(LS_IDENTITY_KEY, identInfo.label);
-          } else {
-            setIdentityLabel(null);
-            localStorage.removeItem(LS_IDENTITY_KEY);
-          }
-        }
-      } catch {
-        localStorage.removeItem(LS_KEY);
-        localStorage.removeItem(LS_IDENTITY_KEY);
-        if (!cancelled) {
-          setBasketIdent(null);
-          setBasket(null);
-          setIdentityLabel(null);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [basketIdent]);
-
-  const activeCategory = useMemo(() => {
-    if (!activeCategoryId) return categories[0] ?? null;
-    return (
-      categories.find((c) => String(c.id ?? c.category_id ?? "") === activeCategoryId) ??
-      categories[0] ??
-      null
-    );
-  }, [categories, activeCategoryId]);
-
-  const checkoutUrl =
-    basket?.data?.links?.checkout ??
-    basket?.links?.checkout ??
-    basket?.data?.checkout_url ??
-    basket?.checkout_url ??
-    null;
-
-  const isAuthenticated = Boolean(identityLabel);
-
-  async function ensureBasket() {
+  async function ensureBasket(): Promise<string> {
+    // if state already has it, use it
     if (basketIdent) return basketIdent;
+
+    // if LS has it but state hasn't updated yet, use it
+    const lsIdent = localStorage.getItem(LS_KEY);
+    if (lsIdent) {
+      setBasketIdent(lsIdent);
+      return lsIdent;
+    }
 
     setBusy("basket");
     setError(null);
@@ -328,7 +219,6 @@ export default function StoreClient() {
     try {
       const res = await fetch("/api/basket", { method: "POST" });
       const json = await res.json().catch(() => null);
-
       if (!res.ok) throw new Error(json?.error ?? `Failed to create basket (${res.status})`);
 
       const ident: unknown =
@@ -348,6 +238,98 @@ export default function StoreClient() {
       setBusy(null);
     }
   }
+
+  // Fetch basket when we have ident
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      if (!basketIdent) return;
+      try {
+        const res = await fetch(`/api/basket/${encodeURIComponent(basketIdent)}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("Basket not found");
+        const json = await res.json();
+        if (!cancelled) setBasket(json);
+
+        const identInfo = extractIdentity(json);
+        if (identInfo) {
+          setIdentityLabel(identInfo.label);
+          localStorage.setItem(LS_IDENTITY_KEY, identInfo.label);
+        } else {
+          setIdentityLabel(null);
+          localStorage.removeItem(LS_IDENTITY_KEY);
+        }
+      } catch {
+        localStorage.removeItem(LS_KEY);
+        localStorage.removeItem(LS_IDENTITY_KEY);
+        if (!cancelled) {
+          setBasketIdent(null);
+          setBasket(null);
+          setIdentityLabel(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [basketIdent]);
+
+  // Load categories AFTER we have (or have created) a basket ident
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setError(null);
+        setLoading(true);
+
+        const ident = await ensureBasket();
+
+        const res = await fetch(
+          `/api/store/categories?includePackages=1&basketIdent=${encodeURIComponent(ident)}`,
+          { cache: "no-store" },
+        );
+
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          throw new Error(`Failed to load categories (${res.status}) ${t}`);
+        }
+
+        const json = await res.json();
+        const cats = extractCategories(json);
+
+        if (!cancelled) {
+          setCategories(cats);
+          const firstId = cats[0]?.id ?? cats[0]?.category_id ?? null;
+          setActiveCategoryId(firstId != null ? String(firstId) : null);
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load store");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const activeCategory = useMemo(() => {
+    if (!activeCategoryId) return categories[0] ?? null;
+    return categories.find((c) => String(c.id ?? c.category_id ?? "") === activeCategoryId) ?? categories[0] ?? null;
+  }, [categories, activeCategoryId]);
+
+  const checkoutUrl =
+    basket?.data?.links?.checkout ??
+    basket?.links?.checkout ??
+    basket?.data?.checkout_url ??
+    basket?.checkout_url ??
+    null;
+
+  const isAuthenticated = Boolean(identityLabel);
 
   async function startAuth() {
     const ident = await ensureBasket();
@@ -373,7 +355,7 @@ export default function StoreClient() {
     const pid = packageIdStr(pkg);
 
     if (!pid) {
-      setError("Missing package id (expected numeric id from Tebex).");
+      setError("Missing package id.");
       return;
     }
 
@@ -461,11 +443,7 @@ export default function StoreClient() {
         <div className="mt-6 border-t pt-4">
           <div className="text-sm font-medium">Basket</div>
 
-          {basketTotal ? (
-            <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div>
-          ) : (
-            <div className="mt-2 text-xs opacity-70"></div>
-          )}
+          {basketTotal ? <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div> : null}
 
           {identityLabel ? (
             <div className="mt-2 text-xs opacity-80 break-words">Logged in as: {identityLabel}</div>
@@ -477,7 +455,7 @@ export default function StoreClient() {
             <button
               className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5 disabled:opacity-60"
               disabled={!!busy}
-              onClick={ensureBasket}
+              onClick={() => ensureBasket()}
             >
               {busy === "basket" ? "Creating…" : basketIdent ? "Basket Ready" : "Create Basket"}
             </button>
@@ -487,11 +465,7 @@ export default function StoreClient() {
               disabled={!!busy}
               onClick={startAuth}
             >
-              {busy === "auth"
-                ? "Redirecting…"
-                : identityLabel
-                  ? `Logged in as ${identityLabel}`
-                  : "Login (FiveM)"}
+              {busy === "auth" ? "Redirecting…" : identityLabel ? `Logged in as ${identityLabel}` : "Login (FiveM)"}
             </button>
 
             {identityLabel ? (
@@ -570,7 +544,7 @@ export default function StoreClient() {
               const pid = packageIdStr(p);
               const disabledAdd = !!busy || !isAuthenticated || !pid;
 
-              const price = priceText(getPackagePrice(p));
+              const price = priceText((p.total_price ?? p.price ?? p.base_price) ?? null);
 
               return (
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
