@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasTebexAuthEnv, getBasicAuthHeader, getWebstoreToken } from "@/lib/tebex";
+import { hasTebexAuthEnv, getBasicAuthHeader } from "@/lib/tebex";
 
 export const runtime = "nodejs";
 
@@ -38,17 +38,21 @@ export async function PUT(
     return NextResponse.json({ error: "Missing required fields: package_id, quantity" }, { status: 400 });
   }
 
-  const token = getWebstoreToken();
   const auth = getBasicAuthHeader();
 
-  // Tebex Headless: PUT /api/accounts/{token}/baskets/{ident}/packages/{packageId}
-  const url = `https://headless.tebex.io/api/accounts/${encodeURIComponent(token!)}/baskets/${encodeURIComponent(ident)}/packages/${encodeURIComponent(String(body.package_id))}`;
-
-  let res: Response;
-  let text: string;
-
   try {
-    res = await fetch(url, {
+    const pkgId = Number(body.package_id);
+    if (!Number.isFinite(pkgId) || pkgId <= 0) {
+      return NextResponse.json(
+        { error: `Invalid package_id: ${String(body.package_id)}` },
+        { status: 400 },
+      );
+    }
+
+    // Tebex Headless (basket-scoped): PUT /api/baskets/{ident}/packages/{packageId}
+    const url = `https://headless.tebex.io/api/baskets/${encodeURIComponent(ident)}/packages/${encodeURIComponent(String(pkgId))}`;
+
+    const res = await fetch(url, {
       method: "PUT",
       headers: {
         Authorization: auth!,
@@ -57,23 +61,26 @@ export async function PUT(
       },
       body: JSON.stringify({ quantity: body.quantity }),
     });
-    text = await res.text();
-  } catch (e) {
-    return NextResponse.json({ error: "Tebex fetch failed", detail: String(e) }, { status: 502 });
-  }
 
-  if (!res.ok) {
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return NextResponse.json(
+        {
+          error: `Tebex returned ${res.status}`,
+          tebex_status: res.status,
+          tebex_response: text.slice(0, 500),
+        },
+        { status: 502 },
+      );
+    }
+
+    res.body?.cancel?.();
+    return NextResponse.json({ ok: true, ident }, { status: 200 });
+  } catch (e) {
     return NextResponse.json(
-      { error: `Tebex returned ${res.status}`, tebex_status: res.status, tebex_response: text.slice(0, 500) },
+      { error: "Tebex fetch failed", detail: e instanceof Error ? e.message : String(e) },
       { status: 502 },
     );
-  }
-
-  try {
-    const json = JSON.parse(text);
-    return NextResponse.json(json, { status: 200 });
-  } catch {
-    return NextResponse.json({ raw: text }, { status: 200 });
   }
 }
 

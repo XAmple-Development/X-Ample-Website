@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasTebexAuthEnv, getBasicAuthHeader, getWebstoreToken } from "@/lib/tebex";
+import { hasTebexAuthEnv, getBasicAuthHeader } from "@/lib/tebex";
 
 export const runtime = "nodejs";
 
@@ -50,33 +50,33 @@ export async function POST(
     );
   }
 
-  const token = getWebstoreToken();
   const auth = getBasicAuthHeader();
 
-  if (!token) {
-    return NextResponse.json({ error: "Missing TEBEX_WEBSTORE_TOKEN" }, { status: 500 });
-  }
   if (!auth) {
     return NextResponse.json({ error: "Missing auth header" }, { status: 500 });
   }
 
-  // Tebex Headless: POST /api/accounts/{token}/baskets/{ident}/packages
-  const url = `https://headless.tebex.io/api/accounts/${encodeURIComponent(token)}/baskets/${encodeURIComponent(ident)}/packages`;
+  const pkgId = Number(body.package_id);
+  if (!Number.isFinite(pkgId) || pkgId <= 0) {
+    return NextResponse.json(
+      { error: `Invalid package_id: ${String(body.package_id)}` },
+      { status: 400 },
+    );
+  }
 
+  // Tebex Headless (basket-scoped): POST /api/baskets/{ident}/packages
+  const url = `https://headless.tebex.io/api/baskets/${encodeURIComponent(ident)}/packages`;
   const payload = {
-    package_id: Number(body.package_id),
+    package_id: pkgId,
     quantity: typeof body.quantity === "number" ? body.quantity : 1,
   };
 
-  // Add timeout via AbortController
+  // Timeout via AbortController
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-  let res: Response;
-  let text: string;
-
   try {
-    res = await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: auth,
@@ -86,33 +86,30 @@ export async function POST(
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
-    clearTimeout(timeoutId);
-    text = await res.text();
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return NextResponse.json(
+        {
+          error: `Tebex returned ${res.status}`,
+          tebex_status: res.status,
+          tebex_response: text.slice(0, 500),
+        },
+        { status: 502 },
+      );
+    }
+
+    // Keep response tiny to avoid Netlify/edge issues.
+    res.body?.cancel?.();
+    return NextResponse.json({ ok: true, ident }, { status: 200 });
   } catch (e) {
-    clearTimeout(timeoutId);
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json(
-      { error: "Tebex fetch failed", detail: msg, url: url.replace(token, "***") },
+      { error: "Tebex fetch failed", detail: msg },
       { status: 502 },
     );
-  }
-
-  if (!res.ok) {
-    return NextResponse.json(
-      {
-        error: `Tebex returned ${res.status}`,
-        tebex_status: res.status,
-        tebex_response: text.slice(0, 500),
-      },
-      { status: 502 },
-    );
-  }
-
-  try {
-    const json = JSON.parse(text);
-    return NextResponse.json(json, { status: 200 });
-  } catch {
-    return NextResponse.json({ raw: text }, { status: 200 });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
