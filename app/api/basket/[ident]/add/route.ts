@@ -53,13 +53,24 @@ export async function POST(
   const token = getWebstoreToken();
   const auth = getBasicAuthHeader();
 
+  if (!token) {
+    return NextResponse.json({ error: "Missing TEBEX_WEBSTORE_TOKEN" }, { status: 500 });
+  }
+  if (!auth) {
+    return NextResponse.json({ error: "Missing auth header" }, { status: 500 });
+  }
+
   // Tebex Headless: POST /api/accounts/{token}/baskets/{ident}/packages
-  const url = `https://headless.tebex.io/api/accounts/${encodeURIComponent(token!)}/baskets/${encodeURIComponent(ident)}/packages`;
+  const url = `https://headless.tebex.io/api/accounts/${encodeURIComponent(token)}/baskets/${encodeURIComponent(ident)}/packages`;
 
   const payload = {
     package_id: Number(body.package_id),
     quantity: typeof body.quantity === "number" ? body.quantity : 1,
   };
+
+  // Add timeout via AbortController
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   let res: Response;
   let text: string;
@@ -68,16 +79,20 @@ export async function POST(
     res = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: auth!,
+        Authorization: auth,
         "Content-Type": "application/json",
         Accept: "application/json",
       },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     text = await res.text();
   } catch (e) {
+    clearTimeout(timeoutId);
+    const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json(
-      { error: "Tebex fetch failed", detail: String(e) },
+      { error: "Tebex fetch failed", detail: msg, url: url.replace(token, "***") },
       { status: 502 },
     );
   }
