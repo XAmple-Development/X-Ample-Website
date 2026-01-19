@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { hasTebexAuthEnv, tebexBasketFetch } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
@@ -10,7 +10,7 @@ type AddRequest = {
 };
 
 export async function POST(
-  req: NextRequest,
+  req: Request,
   { params }: { params: Promise<{ ident: string }> },
 ) {
   if (!hasTebexAuthEnv()) {
