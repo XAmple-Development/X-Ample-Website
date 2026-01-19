@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import DOMPurify from "dompurify";
 import { getIn, isRecord } from "@/lib/safe";
+import { addPackageToBasket, ensureBasketIdent, getStoredBasketIdent } from "@/lib/basketClient";
 
 type TebexPackage = {
   id?: number | string;
@@ -40,42 +41,6 @@ function priceToText(pkg: TebexPackage): string | null {
     if (typeof value === "number") return `${value}`;
   }
   return null;
-}
-
-async function createBasket(): Promise<string> {
-  const res = await fetch("/api/basket/create", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({}),
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(
-      (json && (json.error || json.message)) || `Request failed (${res.status})`,
-    );
-  }
-
-  const ident =
-    json?.ident ?? json?.data?.ident ?? json?.basket?.ident ?? json?.basketIdent;
-  if (typeof ident !== "string" || ident.length === 0) {
-    throw new Error("Basket created but ident was missing in the response.");
-  }
-  return ident;
-}
-
-async function addToBasket(ident: string, packageId: string) {
-  const res = await fetch(`/api/basket/${encodeURIComponent(ident)}/add`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ package_id: packageId, quantity: 1 }),
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(
-      (json && (json.error || json.message)) || `Request failed (${res.status})`,
-    );
-  }
-  return json;
 }
 
 export function PackageClient({ packageId }: { packageId: string }) {
@@ -131,13 +96,13 @@ export function PackageClient({ packageId }: { packageId: string }) {
       setAddedMessage(null);
       setError(null);
 
-      const key = "xa_basket_ident";
-      const existing =
-        typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
-      const ident = existing && existing.length > 0 ? existing : await createBasket();
-      if (!existing) window.localStorage.setItem(key, ident);
-
-      await addToBasket(ident, String(pkg?.id ?? packageId));
+      const existing = getStoredBasketIdent();
+      const ident = existing ?? (await ensureBasketIdent());
+      await addPackageToBasket({
+        ident,
+        packageId: String(pkg?.id ?? packageId),
+        quantity: 1,
+      });
       setAddedMessage("Added to cart.");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

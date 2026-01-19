@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getIn, isRecord } from "@/lib/safe";
+import { ensureBasketIdent } from "@/lib/basketClient";
 
 type BasketPackage = {
   id?: number | string;
@@ -43,33 +44,6 @@ function priceToText(value: unknown): string | null {
     if (typeof innerValue === "number") return `${innerValue}`;
   }
   return null;
-}
-
-async function ensureBasketIdent(): Promise<string> {
-  const key = "xa_basket_ident";
-  const existing =
-    typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
-  if (existing && existing.length > 0) return existing;
-
-  const res = await fetch("/api/basket/create", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({}),
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(
-      (json && (json.error || json.message)) || `Request failed (${res.status})`,
-    );
-  }
-
-  const ident =
-    json?.ident ?? json?.data?.ident ?? json?.basket?.ident ?? json?.basketIdent;
-  if (typeof ident !== "string" || ident.length === 0) {
-    throw new Error("Basket created but ident was missing in the response.");
-  }
-  window.localStorage.setItem(key, ident);
-  return ident;
 }
 
 export function CartClient() {

@@ -8,6 +8,7 @@ const nav = [
   { href: "/blog", label: "Blog" },
   { href: "/store", label: "Store" },
   { href: "/contact", label: "Contact" },
+  { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord" },
 ];
 
 export function Navbar() {
