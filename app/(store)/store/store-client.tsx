@@ -3,15 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Money = { formatted?: string; value?: number; currency?: string };
+
+// Tebex can return package id as `id` or `package_id` depending on endpoint.
 type Package = {
-  id: number;
-  name: string;
+  id?: number | string;
+  package_id?: number | string;
+  name?: string;
   description?: string;
   image?: string;
   price?: Money;
   total_price?: Money;
 };
-type Category = { id: number; name: string; packages?: Package[] };
+
+type Category = {
+  id?: number | string;
+  category_id?: number | string;
+  name?: string;
+  packages?: Package[];
+};
 
 type BasketLine = {
   id?: number; // basket line id (common)
@@ -95,10 +104,17 @@ function basketTotalText(basket: any): string | null {
   return typeof t === "string" && t.trim() ? t : null;
 }
 
+function packageIdStr(p: Package): string | null {
+  const v = p.id ?? p.package_id;
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+}
+
 export default function StoreClient() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
   const [basketIdent, setBasketIdent] = useState<string | null>(null);
   const [basket, setBasket] = useState<any>(null);
@@ -126,7 +142,9 @@ export default function StoreClient() {
 
         if (!cancelled) {
           setCategories(cats);
-          setActiveCategoryId(cats[0]?.id ?? null);
+
+          const firstId = cats[0]?.id ?? cats[0]?.category_id ?? null;
+          setActiveCategoryId(firstId !== null && firstId !== undefined ? String(firstId) : null);
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load store");
@@ -182,10 +200,14 @@ export default function StoreClient() {
     };
   }, [basketIdent]);
 
-  const activeCategory = useMemo(
-    () => categories.find((c) => c.id === activeCategoryId) ?? null,
-    [categories, activeCategoryId],
-  );
+  const activeCategory = useMemo(() => {
+    if (!activeCategoryId) return categories[0] ?? null;
+    return (
+      categories.find((c) => String(c.id ?? c.category_id ?? "") === activeCategoryId) ??
+      categories[0] ??
+      null
+    );
+  }, [categories, activeCategoryId]);
 
   const checkoutUrl =
     basket?.data?.links?.checkout ??
@@ -260,7 +282,13 @@ export default function StoreClient() {
   async function addToBasket(pkg: Package) {
     const ident = await ensureBasket();
 
-    setBusy(`add:${pkg.id}`);
+    const pid = packageIdStr(pkg);
+    if (!pid) {
+      setError("This package is missing an id in the API response.");
+      return;
+    }
+
+    setBusy(`add:${pid}`);
     setError(null);
 
     try {
@@ -271,7 +299,7 @@ export default function StoreClient() {
       const res = await fetch(`/api/basket/${encodeURIComponent(ident)}/packages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId: pkg.id, quantity: 1 }),
+        body: JSON.stringify({ packageId: Number(pid), quantity: 1 }),
       });
 
       const json = await res.json().catch(() => null);
@@ -317,28 +345,30 @@ export default function StoreClient() {
           <div className="mt-3 text-sm opacity-60">Loading…</div>
         ) : (
           <div className="mt-3 space-y-1">
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
-                  c.id === activeCategoryId ? "bg-black text-white" : "hover:bg-black/5"
-                }`}
-                onClick={() => setActiveCategoryId(c.id)}
-              >
-                {c.name}
-              </button>
-            ))}
+            {categories.map((c, idx) => {
+              const cid = String(c.id ?? c.category_id ?? idx);
+              return (
+                <button
+                  key={cid}
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
+                    cid === activeCategoryId ? "bg-black text-white" : "hover:bg-black/5"
+                  }`}
+                  onClick={() => setActiveCategoryId(cid)}
+                >
+                  {c.name ?? "Category"}
+                </button>
+              );
+            })}
           </div>
         )}
 
         <div className="mt-6 border-t pt-4">
-          <div className="text-sm font-medium">Basket</div>
-          <div className="mt-2 text-xs opacity-80 break-all">Ident: {basketIdent ?? "—"}</div>
+          <div className="text-sm font-medium">Your Basket</div>
 
           {basketTotal ? (
-            <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div>
+            <div className="mt-2 text-sm font-semibold"></div>
           ) : (
-            <div className="mt-2 text-xs opacity-70">Total: —</div>
+            <div className="mt-2 text-xs opacity-70"></div>
           )}
 
           <div className="mt-3 flex flex-col gap-2">
@@ -355,7 +385,7 @@ export default function StoreClient() {
               disabled={!!busy}
               onClick={startAuth}
             >
-              {busy === "auth" ? "Redirecting…" : isAuthenticated ? "Logged in (FiveM)" : "Login (FiveM)"}
+              {busy === "auth" ? "Redirecting…" : isAuthenticated ? "You are Logged in" : "Login via (FiveM)"}
             </button>
 
             {checkoutUrl ? (
@@ -364,7 +394,7 @@ export default function StoreClient() {
               </a>
             ) : (
               <div className="text-xs opacity-70">
-                Checkout link appears after basket is valid and has items (and may require login).
+                Checkout button appears after basket is valid and has items (and may require login).
               </div>
             )}
 
@@ -423,43 +453,64 @@ export default function StoreClient() {
           <div className="mt-4 text-sm opacity-60">Loading packages…</div>
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(activeCategory?.packages ?? []).map((p) => {
-              const disabled = !!busy || !isAuthenticated;
+            {(activeCategory?.packages ?? []).map((p, idx) => {
+              const pid = packageIdStr(p);
+              const disabled = !!busy || !isAuthenticated || !pid;
 
               return (
-                <div key={p.id} className="rounded-xl border p-4">
-                  <a href={`/store/package/${p.id}`} className="hover:underline">
-                    <div className="text-sm font-semibold">{p.name}</div>
-                  </a>
+                <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
+                  {pid ? (
+                    <a href={`/store/package/${pid}`} className="hover:underline">
+                      <div className="text-sm font-semibold">{p.name ?? "Package"}</div>
+                    </a>
+                  ) : (
+                    <div className="text-sm font-semibold">{p.name ?? "Package"}</div>
+                  )}
 
                   {p.description ? (
                     <div className="mt-1 text-xs opacity-80 line-clamp-3">
-                      {p.description.replace(/<[^>]*>/g, "")}
+                      {String(p.description).replace(/<[^>]*>/g, "")}
                     </div>
                   ) : null}
 
                   <div className="mt-3 text-sm">{priceText(p.total_price ?? p.price)}</div>
 
                   <div className="mt-3 flex gap-2">
-                    <a
-                      className="flex-1 rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5"
-                      href={`/store/package/${p.id}`}
-                    >
-                      View
-                    </a>
+                    {pid ? (
+                      <a
+                        className="flex-1 rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5"
+                        href={`/store/package/${pid}`}
+                      >
+                        View
+                      </a>
+                    ) : (
+                      <button
+                        className="flex-1 rounded-lg border px-3 py-2 text-center text-sm opacity-60"
+                        disabled
+                        title="Missing package id in API response"
+                      >
+                        View
+                      </button>
+                    )}
 
                     <button
                       className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
                       disabled={disabled}
                       onClick={() => addToBasket(p)}
-                      title={!isAuthenticated ? "Login (FiveM) first" : undefined}
+                      title={!pid ? "Missing package id" : !isAuthenticated ? "Login (FiveM) first" : undefined}
                     >
-                      {busy === `add:${p.id}` ? "Adding…" : "Add"}
+                      {busy === `add:${pid}` ? "Adding…" : "Add"}
                     </button>
                   </div>
 
                   {!isAuthenticated ? (
                     <div className="mt-2 text-xs opacity-70">Login (FiveM) to add items.</div>
+                  ) : null}
+
+                  {!pid ? (
+                    <div className="mt-2 text-xs text-red-600">
+                      Package id missing (expected <code>id</code> or <code>package_id</code>).
+                    </div>
                   ) : null}
                 </div>
               );

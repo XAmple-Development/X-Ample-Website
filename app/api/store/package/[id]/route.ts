@@ -9,8 +9,12 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const token = tebexAccountToken();
 
+  if (!id || id === "undefined" || id === "null") {
+    return NextResponse.json({ error: "Missing package id" }, { status: 400 });
+  }
+
+  const token = tebexAccountToken();
   const data = await tebexFetch<unknown>(
     `/accounts/${encodeURIComponent(token)}/packages/${encodeURIComponent(id)}`,
     { method: "GET" },
