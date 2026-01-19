@@ -28,7 +28,7 @@ export function Navbar() {
           ))}
         </nav>
         <span className="inline-flex h-9 items-center justify-center rounded-full border border-black/15 px-4 text-sm font-medium text-foreground/80 dark:border-white/15">
-          X-Ample Development
+          FiveM Store
         </span>
       </div>
     </header>
