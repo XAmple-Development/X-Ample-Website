@@ -226,6 +226,18 @@ export function CartClient() {
       <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-sm text-red-200">
         <p className="font-semibold text-red-100">Couldn’t load cart.</p>
         <p className="mt-2 text-red-100/80">{error}</p>
+        {ident ? (
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={working}
+              onClick={authenticateBasket}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-white/15 px-6 text-sm font-medium text-red-100/90 transition-colors hover:bg-white/[.06] disabled:opacity-60"
+            >
+              {working ? "Working..." : "Login (FiveM/CFX)"}
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -233,11 +245,29 @@ export function CartClient() {
   if (!packages.length) {
     return (
       <div className="rounded-2xl border border-black/10 p-5 text-sm text-foreground/75 dark:border-white/10">
-        Your cart is empty.{" "}
-        <Link className="underline" href="/store">
-          Browse the store
-        </Link>
-        .
+        <p>
+          Your cart is empty.{" "}
+          <Link className="underline" href="/store">
+            Browse the store
+          </Link>
+          .
+        </p>
+        {ident ? (
+          <div className="mt-4">
+            <p className="text-xs text-foreground/60">
+              Some Tebex stores require you to login (e.g. FiveM/CFX) before you
+              can add items or change quantities.
+            </p>
+            <button
+              type="button"
+              disabled={working}
+              onClick={authenticateBasket}
+              className="mt-3 inline-flex h-11 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-medium transition-colors hover:bg-black/[.04] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/[.06]"
+            >
+              {working ? "Working..." : "Login (FiveM/CFX)"}
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
