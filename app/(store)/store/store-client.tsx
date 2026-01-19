@@ -10,9 +10,27 @@ type Package = {
   name?: string;
   description?: string;
   image?: string;
-  price?: Money;
-  total_price?: Money;
-  package?: { id?: number | string; package_id?: number | string; name?: string };
+
+  // Tebex can return these in multiple shapes
+  price?: Money | string;
+  total_price?: Money | string;
+  base_price?: Money | string;
+
+  // sometimes nested
+  pricing?: {
+    price?: Money | string;
+    total_price?: Money | string;
+    base_price?: Money | string;
+  };
+
+  package?: {
+    id?: number | string;
+    package_id?: number | string;
+    name?: string;
+    price?: Money | string;
+    total_price?: Money | string;
+    base_price?: Money | string;
+  };
 };
 
 type Category = {
@@ -26,8 +44,8 @@ type BasketLine = {
   id?: number;
   name?: string;
   quantity?: number;
-  price?: Money;
-  total_price?: Money;
+  price?: Money | string;
+  total_price?: Money | string;
   package?: { name?: string };
 };
 
@@ -43,11 +61,37 @@ function unwrapData<T>(payload: unknown): T {
   return payload as T;
 }
 
-function priceText(p?: Money) {
+function priceText(p?: Money | string | null) {
   if (!p) return "";
+  if (typeof p === "string") return p;
+
   if (p.formatted) return p.formatted;
-  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
+
+  if (typeof p.value === "number") {
+    // Tebex usually uses minor units (pennies)
+    return `£${(p.value / 100).toFixed(2)}`;
+  }
+
   return "";
+}
+
+function getPackagePrice(p: any): Money | string | null {
+  return (
+    p?.total_price ??
+    p?.price ??
+    p?.base_price ??
+    p?.pricing?.total_price ??
+    p?.pricing?.price ??
+    p?.pricing?.base_price ??
+    p?.package?.total_price ??
+    p?.package?.price ??
+    p?.package?.base_price ??
+    // formatted string fallbacks (in case Money object wasn't returned)
+    p?.price?.formatted ??
+    p?.total_price?.formatted ??
+    p?.base_price?.formatted ??
+    null
+  );
 }
 
 function extractFirstUrlDeep(payload: unknown): string | null {
@@ -257,16 +301,6 @@ export default function StoreClient() {
     };
   }, [basketIdent]);
 
-  // Keep identity in sync if basket changes for any reason
-  useEffect(() => {
-    const identInfo = extractIdentity(basket);
-    const label = identInfo?.label ?? null;
-    setIdentityLabel(label);
-
-    if (label) localStorage.setItem(LS_IDENTITY_KEY, label);
-    else localStorage.removeItem(LS_IDENTITY_KEY);
-  }, [basket]);
-
   const activeCategory = useMemo(() => {
     if (!activeCategoryId) return categories[0] ?? null;
     return (
@@ -426,12 +460,11 @@ export default function StoreClient() {
 
         <div className="mt-6 border-t pt-4">
           <div className="text-sm font-medium">Basket</div>
-          <div className="mt-2 text-xs opacity-80 break-all">Ident: {basketIdent ?? "—"}</div>
 
           {basketTotal ? (
             <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div>
           ) : (
-            <div className="mt-2 text-xs opacity-70">Total: —</div>
+            <div className="mt-2 text-xs opacity-70"></div>
           )}
 
           {identityLabel ? (
@@ -441,20 +474,17 @@ export default function StoreClient() {
           )}
 
           <div className="mt-3 flex flex-col gap-2">
-            <button
-              className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5 disabled:opacity-60"
-              disabled={!!busy}
-              onClick={ensureBasket}
-            >
-              {busy === "basket" ? "Creating…" : basketIdent ? "Basket Ready" : "Create Basket"}
-            </button>
 
             <button
               className="rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
               disabled={!!busy}
               onClick={startAuth}
             >
-              {busy === "auth" ? "Redirecting…" : identityLabel ? `Logged in as ${identityLabel}` : "Login (FiveM)"}
+              {busy === "auth"
+                ? "Redirecting…"
+                : identityLabel
+                  ? `Logged in as ${identityLabel}`
+                  : "Login (FiveM)"}
             </button>
 
             {identityLabel ? (
@@ -533,6 +563,8 @@ export default function StoreClient() {
               const pid = packageIdStr(p);
               const disabledAdd = !!busy || !isAuthenticated || !pid;
 
+              const price = priceText(getPackagePrice(p));
+
               return (
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
                   {pid ? (
@@ -549,7 +581,9 @@ export default function StoreClient() {
                     </div>
                   ) : null}
 
-                  <div className="mt-3 text-sm">{priceText(p.total_price ?? p.price)}</div>
+                  <div className="mt-3 text-sm">
+                    {price ? price : <span className="opacity-70">Price unavailable</span>}
+                  </div>
 
                   <div className="mt-3 flex gap-2">
                     {pid ? (
