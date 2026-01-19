@@ -10,7 +10,7 @@ export default function CartPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">Cart</h1>
         <p className="text-foreground/75">
-          Review your basket and continue to Tebex checkout.
+          Review your basket and continue to checkout.
         </p>
       </div>
 
