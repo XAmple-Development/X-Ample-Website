@@ -117,13 +117,20 @@ async function tebexRequestNoBody(url: string, init: TebexFetchInit = {}) {
     return;
   }
 
-  const text = await res.text().catch(() => "");
+  // On error, read only a small snippet (avoid buffering huge bodies).
+  const snippet = await readBodySnippet(res, 8_192);
+  try {
+    res.body?.cancel?.();
+  } catch {
+    // ignore
+  }
+
   const contentType = res.headers.get("content-type") ?? "";
   const looksJson =
     contentType.includes("application/json") ||
-    text.trim().startsWith("{") ||
-    text.trim().startsWith("[");
-  const body: unknown = looksJson ? safeJsonParse(text) : text;
+    snippet.trim().startsWith("{") ||
+    snippet.trim().startsWith("[");
+  const body: unknown = looksJson ? safeJsonParse(snippet) : snippet;
 
   const msg =
     typeof body === "string"
@@ -132,6 +139,37 @@ async function tebexRequestNoBody(url: string, init: TebexFetchInit = {}) {
         ? JSON.stringify(body)
         : "Unknown error";
   throw new Error(`Tebex error ${res.status}: ${msg}`);
+}
+
+async function readBodySnippet(res: Response, maxChars: number): Promise<string> {
+  // Prefer streaming read to avoid buffering. Works in Node (undici) and edge.
+  const body = res.body;
+  if (body && typeof (body as any).getReader === "function") {
+    const reader = (body as any).getReader();
+    const decoder = new TextDecoder();
+    let out = "";
+    try {
+      while (out.length < maxChars) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) out += decoder.decode(value, { stream: true });
+      }
+      out += decoder.decode();
+      return out.slice(0, maxChars);
+    } catch {
+      return out.slice(0, maxChars);
+    } finally {
+      try {
+        reader.releaseLock?.();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  // Fallback: text() (may buffer, but should be rare).
+  const text = await res.text().catch(() => "");
+  return text.slice(0, maxChars);
 }
 
 function safeJsonParse(text: string): unknown {
