@@ -7,6 +7,7 @@ const nav = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/blog", label: "Blog" },
   { href: "/store", label: "Store" },
+  { href: "/store/cart", label: "Cart" },
   { href: "/contact", label: "Contact" },
   { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord" },
 ];

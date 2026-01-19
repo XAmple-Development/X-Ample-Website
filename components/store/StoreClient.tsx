@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { asArray, getIn, isRecord } from "@/lib/safe";
+import { addPackageToBasket } from "@/lib/basketClient";
 
 type TebexCategory = {
   id?: number | string;
@@ -46,15 +47,18 @@ function priceToText(pkg: TebexPackage): string | null {
 
 export function StoreClient() {
   const [data, setData] = useState<unknown>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [addingId, setAddingId] = useState<string | null>(null);
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         setLoading(true);
-        setError(null);
+        setLoadError(null);
         const res = await fetch("/api/store/categories", {
           headers: { Accept: "application/json" },
         });
@@ -67,7 +71,8 @@ export function StoreClient() {
         }
         if (!cancelled) setData(json);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+        if (!cancelled)
+          setLoadError(e instanceof Error ? e.message : String(e));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -90,11 +95,11 @@ export function StoreClient() {
     );
   }
 
-  if (error) {
+  if (loadError) {
     return (
       <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-sm text-red-200">
         <p className="font-semibold text-red-100">Couldn’t load the store.</p>
-        <p className="mt-2 text-red-100/80">{error}</p>
+        <p className="mt-2 text-red-100/80">{loadError}</p>
         <p className="mt-3 text-red-100/70">
           If this is a deployed site, check Netlify env vars for{" "}
           <span className="font-medium">TEBEX_WEBSTORE_TOKEN</span>,{" "}
@@ -114,7 +119,14 @@ export function StoreClient() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div>
+      {actionError ? (
+        <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-200">
+          <p className="font-semibold text-red-100">Couldn’t add to cart.</p>
+          <p className="mt-1 text-red-100/80">{actionError}</p>
+        </div>
+      ) : null}
+      <div className="grid gap-4 sm:grid-cols-2">
       {categories.map((c, idx) => {
         const id = c?.id ?? c?.category_id ?? idx;
         const name = c?.name ?? "Category";
@@ -146,27 +158,57 @@ export function StoreClient() {
                   const pid = p?.id;
                   const pname = p?.name ?? "Package";
                   const price = priceToText(p);
+                  const pidText =
+                    pid === undefined || pid === null ? null : String(pid);
                   return (
                     <div
                       key={String(pid ?? pname)}
                       className="flex items-center justify-between gap-4 rounded-xl bg-black/[.03] px-3 py-2 text-sm dark:bg-white/[.06]"
                     >
-                      {pid === undefined || pid === null ? (
-                        <span className="truncate font-medium">{pname}</span>
-                      ) : (
-                        <Link
-                          href={`/store/package/${encodeURIComponent(
-                            String(pid),
-                          )}`}
-                          className="truncate font-medium"
+                      <div className="min-w-0">
+                        {pidText ? (
+                          <Link
+                            href={`/store/package/${encodeURIComponent(pidText)}`}
+                            className="truncate font-medium"
+                          >
+                            {pname}
+                          </Link>
+                        ) : (
+                          <span className="truncate font-medium">{pname}</span>
+                        )}
+                        {price ? (
+                          <div className="mt-0.5 text-xs text-foreground/70">
+                            {price}
+                          </div>
+                        ) : null}
+                      </div>
+                      {pidText ? (
+                        <button
+                          type="button"
+                          disabled={addingId === pidText}
+                          onClick={async () => {
+                            try {
+                              setAddingId(pidText);
+                              setAddedId(null);
+                              setActionError(null);
+                              await addPackageToBasket({ packageId: pidText, quantity: 1 });
+                              setAddedId(pidText);
+                              // Clear the "Added" state after a moment.
+                              window.setTimeout(() => setAddedId(null), 1500);
+                            } catch (e) {
+                              setActionError(e instanceof Error ? e.message : String(e));
+                            } finally {
+                              setAddingId(null);
+                            }
+                          }}
+                          className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-black/15 px-4 text-xs font-medium transition-colors hover:bg-black/[.04] disabled:opacity-60 dark:border-white/15 dark:hover:bg-white/[.06]"
                         >
-                          {pname}
-                        </Link>
-                      )}
-                      {price ? (
-                        <span className="shrink-0 text-foreground/70">
-                          {price}
-                        </span>
+                          {addedId === pidText
+                            ? "Added"
+                            : addingId === pidText
+                              ? "Adding..."
+                              : "Add"}
+                        </button>
                       ) : null}
                     </div>
                   );
@@ -176,6 +218,7 @@ export function StoreClient() {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
