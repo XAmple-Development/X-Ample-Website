@@ -13,13 +13,6 @@ type Package = {
 };
 type Category = { id: number; name: string; packages?: Package[] };
 
-type TebexVariable = {
-  id: number;
-  name: string;
-  description?: string;
-  required?: boolean;
-};
-
 const LS_KEY = "tebex_basket_ident";
 
 function unwrapData<T>(payload: unknown): T {
@@ -44,10 +37,12 @@ function extractFirstUrlDeep(payload: unknown): string | null {
     if (seen.has(v)) return null;
     seen.add(v);
 
+    // If object has a url string, try to return it (common Tebex patterns)
     const anyObj = v as Record<string, unknown>;
     const direct = anyObj.url;
     if (typeof direct === "string" && /^https?:\/\//i.test(direct)) return direct;
 
+    // Also try known common keys
     const candidates = [
       anyObj.authUrl,
       anyObj.authenticationUrl,
@@ -59,6 +54,7 @@ function extractFirstUrlDeep(payload: unknown): string | null {
       if (typeof c === "string" && /^https?:\/\//i.test(c)) return c;
     }
 
+    // Recurse
     for (const key of Object.keys(anyObj)) {
       const found = walk(anyObj[key]);
       if (found) return found;
@@ -67,62 +63,6 @@ function extractFirstUrlDeep(payload: unknown): string | null {
   };
 
   return walk(payload);
-}
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return !!v && typeof v === "object" && !Array.isArray(v);
-}
-
-/**
- * Best-effort extraction of package variables from Tebex package detail payload.
- * Tebex response shapes vary; this covers the common ones.
- */
-function extractVariables(pkgPayload: unknown): TebexVariable[] {
-  const root = unwrapData<any>(pkgPayload);
-
-  const candidates: unknown[] = [];
-
-  if (isRecord(root)) {
-    if (Array.isArray((root as any).variables)) candidates.push((root as any).variables);
-    if (Array.isArray((root as any).package_variables)) candidates.push((root as any).package_variables);
-    if (isRecord((root as any).package) && Array.isArray((root as any).package.variables)) {
-      candidates.push((root as any).package.variables);
-    }
-  }
-
-  for (const c of candidates) {
-    if (!Array.isArray(c)) continue;
-
-    const vars = c
-      .map((x: any) => {
-        const id = Number(x?.id ?? x?.variable_id);
-        const name = String(x?.name ?? x?.label ?? x?.identifier ?? "");
-        const description =
-          typeof x?.description === "string"
-            ? x.description
-            : typeof x?.help === "string"
-              ? x.help
-              : undefined;
-
-        const required =
-          typeof x?.required === "boolean"
-            ? x.required
-            : typeof x?.is_required === "boolean"
-              ? x.is_required
-              : typeof x?.mandatory === "boolean"
-                ? x.mandatory
-                : undefined;
-
-        if (!Number.isFinite(id) || id <= 0 || !name) return null;
-
-        return { id, name, description, required };
-      })
-      .filter(Boolean) as TebexVariable[];
-
-    if (vars.length) return vars;
-  }
-
-  return [];
 }
 
 export default function StoreClient() {
@@ -136,12 +76,6 @@ export default function StoreClient() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Variable prompt modal state
-  const [varModalOpen, setVarModalOpen] = useState(false);
-  const [varModalPkg, setVarModalPkg] = useState<Package | null>(null);
-  const [varModalVars, setVarModalVars] = useState<TebexVariable[]>([]);
-  const [varValues, setVarValues] = useState<Record<string, string>>({});
-
   // Load categories
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +85,10 @@ export default function StoreClient() {
         setError(null);
         setLoading(true);
 
-        const res = await fetch("/api/store/categories?includePackages=1", { cache: "no-store" });
+        const res = await fetch("/api/store/categories?includePackages=1", {
+          cache: "no-store",
+        });
+
         if (!res.ok) {
           const t = await res.text().catch(() => "");
           throw new Error(`Failed to load categories (${res.status}) ${t}`);
@@ -261,7 +198,9 @@ export default function StoreClient() {
       localStorage.setItem(LS_KEY, ident);
       setBasketIdent(ident);
 
+      // eagerly load basket
       await refreshBasket(ident);
+
       return ident;
     } finally {
       setBusy(null);
@@ -274,14 +213,19 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/basket/auth?ident=${encodeURIComponent(ident)}`, { cache: "no-store" });
+      const res = await fetch(`/api/basket/auth?ident=${encodeURIComponent(ident)}`, {
+        cache: "no-store",
+      });
+
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
         throw new Error(json?.error ?? `Auth request failed (${res.status})`);
       }
 
+      // Robust extraction: find the first https:// URL anywhere in the payload.
       const authUrl = extractFirstUrlDeep(json);
+
       if (!authUrl) {
         console.log("AUTH RESPONSE (no url found)", json);
         throw new Error("Auth URL not found in response (see console)");
@@ -293,89 +237,15 @@ export default function StoreClient() {
     }
   }
 
-  async function fetchPackageVariables(packageId: number): Promise<TebexVariable[]> {
-    const res = await fetch(`/api/store/package/${encodeURIComponent(String(packageId))}`, {
-      cache: "no-store",
-    });
-
-    const json = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      throw new Error(json?.error ?? `Failed to load package details (${res.status})`);
-    }
-
-    const vars = extractVariables(json);
-    return vars;
-  }
-
-  function openVariableModal(pkg: Package, vars: TebexVariable[], message?: string) {
-    setError(message ?? null);
-    setVarModalPkg(pkg);
-    setVarModalVars(vars);
-
-    // reset values (or keep previous if you want)
-    const initial: Record<string, string> = {};
-    for (const v of vars) initial[String(v.id)] = "";
-    setVarValues(initial);
-
-    setVarModalOpen(true);
-  }
-
-  async function submitVariableModal() {
-    if (!varModalPkg) return;
-
-    const ident = await ensureBasket();
-
-    // Validate required
-    for (const v of varModalVars) {
-      const val = (varValues[String(v.id)] ?? "").trim();
-      if ((v.required ?? true) && !val) {
-        setError(`Please fill: ${v.name}`);
-        return;
-      }
-    }
-
-    setBusy(`add:${varModalPkg.id}`);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/basket/${encodeURIComponent(ident)}/packages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packageId: varModalPkg.id,
-          quantity: 1,
-          variableValues: varValues,
-        }),
-      });
-
-      const json = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        const msg =
-          json?.tebexBody?.detail ??
-          json?.error ??
-          `Failed to add package (${res.status})`;
-        throw new Error(msg);
-      }
-
-      setVarModalOpen(false);
-      setVarModalPkg(null);
-      setVarModalVars([]);
-      setVarValues({});
-
-      await refreshBasket(ident);
-    } finally {
-      setBusy(null);
-    }
-  }
-
   async function addToBasket(pkg: Package) {
     const ident = await ensureBasket();
+
     setBusy(`add:${pkg.id}`);
     setError(null);
 
     try {
+      // Strongly recommended for FiveM: require auth before adding.
+      // If your store allows adding before auth, remove this guard.
       if (!isAuthenticated) {
         throw new Error("Please login (FiveM) first, then add items to basket.");
       }
@@ -387,35 +257,7 @@ export default function StoreClient() {
       });
 
       const json = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        // If Tebex is asking for variables, open modal
-        const detail: string | undefined = json?.tebexBody?.detail;
-        const isVariableError =
-          res.status === 400 &&
-          typeof detail === "string" &&
-          /Please enter/i.test(detail) &&
-          /Variable/i.test(detail);
-
-        if (isVariableError) {
-          const vars = await fetchPackageVariables(pkg.id);
-
-          // If we couldn't parse variables, still show the Tebex message so you can adjust extraction.
-          if (!vars.length) {
-            console.log("PACKAGE DETAIL (no vars parsed)", { packageId: pkg.id, json });
-            throw new Error(detail);
-          }
-
-          openVariableModal(pkg, vars, detail);
-          return; // stop here; user will submit modal
-        }
-
-        const msg =
-          json?.tebexBody?.detail ??
-          json?.error ??
-          `Failed to add package (${res.status})`;
-        throw new Error(msg);
-      }
+      if (!res.ok) throw new Error(json?.error ?? `Failed to add package (${res.status})`);
 
       await refreshBasket(ident);
     } finally {
@@ -423,71 +265,8 @@ export default function StoreClient() {
     }
   }
 
-  const disabledAddByAuth = !isAuthenticated;
-
   return (
     <div className="grid gap-6 md:grid-cols-[260px_1fr]">
-      {/* Variable Modal */}
-      {varModalOpen && varModalPkg ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
-            <div className="text-lg font-semibold">Extra info required</div>
-            <div className="mt-1 text-sm opacity-80">
-              {varModalPkg.name} needs additional details before it can be added to your basket.
-            </div>
-
-            {error ? <div className="mt-3 text-sm text-red-600">{error}</div> : null}
-
-            <div className="mt-4 space-y-3">
-              {varModalVars.map((v) => {
-                const key = String(v.id);
-                return (
-                  <label key={key} className="block">
-                    <div className="text-sm font-medium">
-                      {v.name} {(v.required ?? true) ? <span className="text-red-600">*</span> : null}
-                    </div>
-                    {v.description ? (
-                      <div className="mt-1 text-xs opacity-70">{v.description}</div>
-                    ) : null}
-                    <input
-                      className="mt-2 w-full rounded-lg border px-3 py-2 text-sm"
-                      value={varValues[key] ?? ""}
-                      onChange={(e) =>
-                        setVarValues((prev) => ({ ...prev, [key]: e.target.value }))
-                      }
-                      placeholder="Enter value…"
-                    />
-                  </label>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <button
-                className="flex-1 rounded-lg border px-3 py-2 text-sm hover:bg-black/5"
-                disabled={!!busy}
-                onClick={() => {
-                  setVarModalOpen(false);
-                  setVarModalPkg(null);
-                  setVarModalVars([]);
-                  setVarValues({});
-                  setError(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
-                disabled={!!busy}
-                onClick={submitVariableModal}
-              >
-                {busy?.startsWith("add:") ? "Adding…" : "Add to basket"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       <aside className="rounded-xl border p-4">
         <div className="text-sm font-medium">Categories</div>
 
@@ -531,7 +310,10 @@ export default function StoreClient() {
             </button>
 
             {checkoutUrl ? (
-              <a className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white" href={checkoutUrl}>
+              <a
+                className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white"
+                href={checkoutUrl}
+              >
                 Checkout
               </a>
             ) : (
@@ -555,7 +337,7 @@ export default function StoreClient() {
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(activeCategory?.packages ?? []).map((p) => {
-              const disabled = !!busy || disabledAddByAuth;
+              const disabled = !!busy || !isAuthenticated;
 
               return (
                 <div key={p.id} className="rounded-xl border p-4">
@@ -563,6 +345,7 @@ export default function StoreClient() {
 
                   {p.description ? (
                     <div className="mt-1 text-xs opacity-80 line-clamp-3">
+                      {/* Tebex descriptions can contain HTML; keep it as text for safety */}
                       {p.description.replace(/<[^>]*>/g, "")}
                     </div>
                   ) : null}
