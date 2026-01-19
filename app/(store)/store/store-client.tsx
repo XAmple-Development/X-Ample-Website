@@ -83,6 +83,18 @@ function getLineId(line: BasketLine): number | null {
   return Number.isFinite(alt) && alt > 0 ? alt : null;
 }
 
+function basketTotalText(basket: any): string | null {
+  const t =
+    basket?.data?.total_price?.formatted ??
+    basket?.data?.total?.formatted ??
+    basket?.data?.price?.formatted ??
+    basket?.total_price?.formatted ??
+    basket?.total?.formatted ??
+    basket?.price?.formatted;
+
+  return typeof t === "string" && t.trim() ? t : null;
+}
+
 export default function StoreClient() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -294,6 +306,7 @@ export default function StoreClient() {
   }
 
   const basketLines = getBasketLines(basket);
+  const basketTotal = basketTotalText(basket);
 
   return (
     <div className="grid gap-6 md:grid-cols-[260px_1fr]">
@@ -321,6 +334,12 @@ export default function StoreClient() {
         <div className="mt-6 border-t pt-4">
           <div className="text-sm font-medium">Basket</div>
           <div className="mt-2 text-xs opacity-80 break-all">Ident: {basketIdent ?? "—"}</div>
+
+          {basketTotal ? (
+            <div className="mt-2 text-sm font-semibold">Total: {basketTotal}</div>
+          ) : (
+            <div className="mt-2 text-xs opacity-70">Total: —</div>
+          )}
 
           <div className="mt-3 flex flex-col gap-2">
             <button
@@ -409,7 +428,9 @@ export default function StoreClient() {
 
               return (
                 <div key={p.id} className="rounded-xl border p-4">
-                  <div className="text-sm font-semibold">{p.name}</div>
+                  <a href={`/store/package/${p.id}`} className="hover:underline">
+                    <div className="text-sm font-semibold">{p.name}</div>
+                  </a>
 
                   {p.description ? (
                     <div className="mt-1 text-xs opacity-80 line-clamp-3">
@@ -419,14 +440,23 @@ export default function StoreClient() {
 
                   <div className="mt-3 text-sm">{priceText(p.total_price ?? p.price)}</div>
 
-                  <button
-                    className="mt-3 w-full rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
-                    disabled={disabled}
-                    onClick={() => addToBasket(p)}
-                    title={!isAuthenticated ? "Login (FiveM) first" : undefined}
-                  >
-                    {busy === `add:${p.id}` ? "Adding…" : "Add to basket"}
-                  </button>
+                  <div className="mt-3 flex gap-2">
+                    <a
+                      className="flex-1 rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5"
+                      href={`/store/package/${p.id}`}
+                    >
+                      View
+                    </a>
+
+                    <button
+                      className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
+                      disabled={disabled}
+                      onClick={() => addToBasket(p)}
+                      title={!isAuthenticated ? "Login (FiveM) first" : undefined}
+                    >
+                      {busy === `add:${p.id}` ? "Adding…" : "Add"}
+                    </button>
+                  </div>
 
                   {!isAuthenticated ? (
                     <div className="mt-2 text-xs opacity-70">Login (FiveM) to add items.</div>
