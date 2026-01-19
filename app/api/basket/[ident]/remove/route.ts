@@ -34,11 +34,13 @@ export async function POST(
       );
     }
 
-    const pkgId = encodeURIComponent(String(body.package_id));
-
+    // Tebex docs: POST /baskets/{basketIdent}/packages/remove with { package_id }
     const removed = await tebexBasketFetch<unknown>(
-      `/baskets/${encodeURIComponent(ident)}/packages/${pkgId}`,
-      { method: "DELETE" },
+      `/baskets/${encodeURIComponent(ident)}/packages/remove`,
+      {
+        method: "POST",
+        body: JSON.stringify({ package_id: body.package_id }),
+      },
     );
 
     return NextResponse.json(removed, { status: 200 });

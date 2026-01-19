@@ -7,8 +7,11 @@ import { ensureBasketIdent, redirectToBasketAuth } from "@/lib/basketClient";
 
 type BasketPackage = {
   id?: number | string;
+  package_id?: number | string;
+  package?: { id?: number | string; name?: string };
   name?: string;
   quantity?: number;
+  qty?: number;
   price?: unknown;
   total_price?: unknown;
   base_price?: unknown;
@@ -44,6 +47,32 @@ function priceToText(value: unknown): string | null {
     if (typeof innerValue === "number") return `${innerValue}`;
   }
   return null;
+}
+
+function getPackageApiId(p: BasketPackage): string | null {
+  const id =
+    p.id ??
+    p.package_id ??
+    p.package?.id ??
+    // Some Tebex payloads use "package" as a nested object only
+    null;
+  if (id === null || id === undefined) return null;
+  const s = String(id);
+  return s.length > 0 ? s : null;
+}
+
+function getPackageLabel(p: BasketPackage): string {
+  return p.name ?? p.package?.name ?? "Package";
+}
+
+function getPackageQty(p: BasketPackage): number {
+  const q =
+    typeof p.quantity === "number"
+      ? p.quantity
+      : typeof p.qty === "number"
+        ? p.qty
+        : 1;
+  return Number.isFinite(q) && q > 0 ? q : 1;
 }
 
 export function CartClient() {
@@ -218,20 +247,21 @@ export function CartClient() {
       <div className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
         <div className="flex flex-col gap-4">
           {packages.map((p, idx) => {
-            const pid = String(p.id ?? idx);
-            const qty = typeof p.quantity === "number" ? p.quantity : 1;
+            const apiId = getPackageApiId(p);
+            const key = apiId ?? String(idx);
+            const qty = getPackageQty(p);
             const price =
               p.total_price ?? p.price ?? p.base_price ?? undefined;
             const priceText = priceToText(price);
 
             return (
               <div
-                key={pid}
+                key={key}
                 className="flex flex-col justify-between gap-3 rounded-xl bg-black/[.03] p-4 dark:bg-white/[.06] sm:flex-row sm:items-center"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
-                    {p.name ?? "Package"}
+                    {getPackageLabel(p)}
                   </p>
                   {priceText ? (
                     <p className="mt-1 text-sm text-foreground/70">
@@ -243,8 +273,10 @@ export function CartClient() {
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    disabled={working || qty <= 1}
-                    onClick={() => updateQuantity(pid, Math.max(1, qty - 1))}
+                    disabled={working || !apiId || qty <= 1}
+                    onClick={() =>
+                      apiId ? updateQuantity(apiId, Math.max(1, qty - 1)) : null
+                    }
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/15 text-sm font-medium transition-colors hover:bg-black/[.04] disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/[.06]"
                     aria-label="Decrease quantity"
                   >
@@ -255,8 +287,8 @@ export function CartClient() {
                   </span>
                   <button
                     type="button"
-                    disabled={working}
-                    onClick={() => updateQuantity(pid, qty + 1)}
+                    disabled={working || !apiId}
+                    onClick={() => (apiId ? updateQuantity(apiId, qty + 1) : null)}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/15 text-sm font-medium transition-colors hover:bg-black/[.04] disabled:opacity-50 dark:border-white/15 dark:hover:bg-white/[.06]"
                     aria-label="Increase quantity"
                   >
@@ -264,12 +296,17 @@ export function CartClient() {
                   </button>
                   <button
                     type="button"
-                    disabled={working}
-                    onClick={() => removeItem(pid)}
+                    disabled={working || !apiId}
+                    onClick={() => (apiId ? removeItem(apiId) : null)}
                     className="inline-flex h-9 items-center justify-center rounded-full border border-red-500/40 px-4 text-sm font-medium text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-50 dark:text-red-300"
                   >
                     Remove
                   </button>
+                  {!apiId ? (
+                    <span className="text-xs text-foreground/60">
+                      (Can’t edit this item: missing package id)
+                    </span>
+                  ) : null}
                 </div>
               </div>
             );

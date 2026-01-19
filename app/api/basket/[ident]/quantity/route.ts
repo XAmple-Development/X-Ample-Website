@@ -9,7 +9,7 @@ type QuantityRequest = {
   quantity: number;
 };
 
-export async function POST(
+async function handler(
   req: Request,
   { params }: { params: Promise<{ ident: string }> },
 ) {
@@ -55,4 +55,19 @@ export async function POST(
   } catch (e) {
     return errorJson(e, 502);
   }
+}
+
+// CartClient sends PUT; keep POST for backwards compatibility.
+export async function PUT(
+  req: Request,
+  ctx: { params: Promise<{ ident: string }> },
+) {
+  return handler(req, ctx);
+}
+
+export async function POST(
+  req: Request,
+  ctx: { params: Promise<{ ident: string }> },
+) {
+  return handler(req, ctx);
 }
