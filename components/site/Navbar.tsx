@@ -6,8 +6,6 @@ const nav = [
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/blog", label: "Blog" },
-  { href: "/store", label: "Store" },
-  { href: "/store/cart", label: "Cart" },
   { href: "/contact", label: "Contact" },
   { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord" },
 ];
@@ -28,12 +26,9 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <Link
-          href="/store"
-          className="inline-flex h-9 items-center justify-center rounded-full bg-foreground px-4 text-sm font-medium text-background transition-colors hover:opacity-90"
-        >
-          Browse Store
-        </Link>
+        <span className="inline-flex h-9 items-center justify-center rounded-full border border-black/15 px-4 text-sm font-medium text-foreground/80 dark:border-white/15">
+          X-Ample Development
+        </span>
       </div>
     </header>
   );

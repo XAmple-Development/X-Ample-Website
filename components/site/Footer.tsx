@@ -23,12 +23,6 @@ export function Footer() {
             </Link>
             <Link
               className="text-foreground/80 hover:text-foreground"
-              href="/store"
-            >
-              Store
-            </Link>
-            <Link
-              className="text-foreground/80 hover:text-foreground"
               href="/contact"
             >
               Contact
