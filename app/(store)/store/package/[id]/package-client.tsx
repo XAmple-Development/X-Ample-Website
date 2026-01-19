@@ -24,7 +24,6 @@ function priceText(p?: Money) {
 
 function safeHtmlFromTebex(html: string): string {
   return sanitizeHtml(html, {
-    // keep pretty much all common formatting Tebex emits
     allowedTags: sanitizeHtml.defaults.allowedTags.concat([
       "img",
       "h1",
@@ -47,7 +46,6 @@ function safeHtmlFromTebex(html: string): string {
       "*": ["class", "style"],
     },
     allowedSchemes: ["http", "https", "mailto"],
-    // don’t allow weird URLs in img/src/href
     allowProtocolRelative: false,
   });
 }
@@ -55,7 +53,6 @@ function safeHtmlFromTebex(html: string): string {
 export default function PackageClient({ id }: { id?: string }) {
   const pathname = usePathname();
 
-  // Prefer prop if it exists, else parse from URL.
   const effectiveId = useMemo(() => {
     const fromProp = (id ?? "").trim();
     if (fromProp && fromProp !== "undefined" && fromProp !== "null") return fromProp;
@@ -65,6 +62,18 @@ export default function PackageClient({ id }: { id?: string }) {
   const [pkg, setPkg] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // ✅ Derive display values safely (even when pkg is null) BEFORE any returns
+  const name = (pkg?.name ?? "Package") as string;
+  const image = (pkg?.image ?? pkg?.image_url ?? null) as string | null;
+  const total = (pkg?.total_price ?? pkg?.price) as Money | undefined;
+  const description = (typeof pkg?.description === "string" ? pkg.description : "") as string;
+
+  // ✅ Hook runs on every render (no conditional hook usage)
+  const descriptionHtml = useMemo(() => {
+    if (!description) return "";
+    return safeHtmlFromTebex(description);
+  }, [description]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,17 +114,6 @@ export default function PackageClient({ id }: { id?: string }) {
   if (error) return <div className="text-sm text-red-600">{error}</div>;
   if (!pkg) return <div className="text-sm opacity-60">Not found.</div>;
 
-  const name = pkg?.name ?? "Package";
-  const description = typeof pkg?.description === "string" ? pkg.description : "";
-  const image = pkg?.image ?? pkg?.image_url ?? null;
-  const total = pkg?.total_price ?? pkg?.price;
-
-  // Tebex usually returns HTML; we sanitize then render it.
-  const descriptionHtml = useMemo(() => {
-    if (!description) return "";
-    return safeHtmlFromTebex(description);
-  }, [description]);
-
   return (
     <div className="rounded-xl border p-5">
       <a className="text-sm opacity-70 hover:underline" href="/store">
@@ -127,11 +125,7 @@ export default function PackageClient({ id }: { id?: string }) {
       {total ? <div className="mt-2 text-sm font-semibold">{priceText(total)}</div> : null}
 
       {image ? (
-        <img
-          src={image}
-          alt={name}
-          className="mt-4 w-full rounded-xl border object-cover"
-        />
+        <img src={image} alt={name} className="mt-4 w-full rounded-xl border object-cover" />
       ) : null}
 
       {descriptionHtml ? (
