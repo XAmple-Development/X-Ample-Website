@@ -2,7 +2,7 @@ backend:
   name: github
   repo: XAmple-Development/X-Ample-Website
   branch: tebex
-  auth_endpoint: /.netlify/functions/oauth-begin
+  auth_endpoint: https://x-ampledevelopment.co.uk/.netlify/functions/oauth-begin
 
 media_folder: public/uploads
 public_folder: /uploads
