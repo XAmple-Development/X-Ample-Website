@@ -13,6 +13,15 @@ type Package = {
 };
 type Category = { id: number; name: string; packages?: Package[] };
 
+type BasketLine = {
+  id?: number; // basket line id (common)
+  name?: string;
+  quantity?: number;
+  price?: Money;
+  total_price?: Money;
+  package?: { name?: string };
+};
+
 const LS_KEY = "tebex_basket_ident";
 
 function unwrapData<T>(payload: unknown): T {
@@ -37,12 +46,10 @@ function extractFirstUrlDeep(payload: unknown): string | null {
     if (seen.has(v)) return null;
     seen.add(v);
 
-    // If object has a url string, try to return it (common Tebex patterns)
     const anyObj = v as Record<string, unknown>;
     const direct = anyObj.url;
     if (typeof direct === "string" && /^https?:\/\//i.test(direct)) return direct;
 
-    // Also try known common keys
     const candidates = [
       anyObj.authUrl,
       anyObj.authenticationUrl,
@@ -54,7 +61,6 @@ function extractFirstUrlDeep(payload: unknown): string | null {
       if (typeof c === "string" && /^https?:\/\//i.test(c)) return c;
     }
 
-    // Recurse
     for (const key of Object.keys(anyObj)) {
       const found = walk(anyObj[key]);
       if (found) return found;
@@ -63,6 +69,18 @@ function extractFirstUrlDeep(payload: unknown): string | null {
   };
 
   return walk(payload);
+}
+
+function getBasketLines(basket: any): BasketLine[] {
+  return basket?.data?.packages ?? basket?.data?.basket?.packages ?? basket?.packages ?? [];
+}
+
+function getLineId(line: BasketLine): number | null {
+  const id = Number(line.id);
+  if (Number.isFinite(id) && id > 0) return id;
+
+  const alt = Number((line as any).basket_package_id ?? (line as any).basketPackageId);
+  return Number.isFinite(alt) && alt > 0 ? alt : null;
 }
 
 export default function StoreClient() {
@@ -85,10 +103,7 @@ export default function StoreClient() {
         setError(null);
         setLoading(true);
 
-        const res = await fetch("/api/store/categories?includePackages=1", {
-          cache: "no-store",
-        });
-
+        const res = await fetch("/api/store/categories?includePackages=1", { cache: "no-store" });
         if (!res.ok) {
           const t = await res.text().catch(() => "");
           throw new Error(`Failed to load categories (${res.status}) ${t}`);
@@ -198,9 +213,7 @@ export default function StoreClient() {
       localStorage.setItem(LS_KEY, ident);
       setBasketIdent(ident);
 
-      // eagerly load basket
       await refreshBasket(ident);
-
       return ident;
     } finally {
       setBusy(null);
@@ -213,19 +226,14 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/basket/auth?ident=${encodeURIComponent(ident)}`, {
-        cache: "no-store",
-      });
-
+      const res = await fetch(`/api/basket/auth?ident=${encodeURIComponent(ident)}`, { cache: "no-store" });
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
         throw new Error(json?.error ?? `Auth request failed (${res.status})`);
       }
 
-      // Robust extraction: find the first https:// URL anywhere in the payload.
       const authUrl = extractFirstUrlDeep(json);
-
       if (!authUrl) {
         console.log("AUTH RESPONSE (no url found)", json);
         throw new Error("Auth URL not found in response (see console)");
@@ -244,8 +252,6 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      // Strongly recommended for FiveM: require auth before adding.
-      // If your store allows adding before auth, remove this guard.
       if (!isAuthenticated) {
         throw new Error("Please login (FiveM) first, then add items to basket.");
       }
@@ -264,6 +270,30 @@ export default function StoreClient() {
       setBusy(null);
     }
   }
+
+  async function removeFromBasket(basketPackageId: number) {
+    if (!basketIdent) return;
+
+    setBusy(`remove:${basketPackageId}`);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/basket/${encodeURIComponent(basketIdent)}/packages/remove`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ basketPackageId }),
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error ?? `Failed to remove (${res.status})`);
+
+      await refreshBasket(basketIdent);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const basketLines = getBasketLines(basket);
 
   return (
     <div className="grid gap-6 md:grid-cols-[260px_1fr]">
@@ -310,10 +340,7 @@ export default function StoreClient() {
             </button>
 
             {checkoutUrl ? (
-              <a
-                className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white"
-                href={checkoutUrl}
-              >
+              <a className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white" href={checkoutUrl}>
                 Checkout
               </a>
             ) : (
@@ -321,6 +348,47 @@ export default function StoreClient() {
                 Checkout link appears after basket is valid and has items (and may require login).
               </div>
             )}
+
+            <div className="mt-3 border-t pt-3">
+              <div className="text-sm font-medium">Items</div>
+
+              {basketIdent ? (
+                <div className="mt-2 space-y-2">
+                  {basketLines.length ? (
+                    basketLines.map((line, idx) => {
+                      const lineId = getLineId(line);
+                      const name = line.name ?? line.package?.name ?? `Item ${idx + 1}`;
+                      const qty = line.quantity ?? 1;
+
+                      return (
+                        <div
+                          key={`${name}-${idx}`}
+                          className="flex items-center justify-between gap-2 rounded-lg border p-2"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate text-xs font-medium">{name}</div>
+                            <div className="text-[11px] opacity-70">Qty: {qty}</div>
+                          </div>
+
+                          <button
+                            className="rounded-lg border px-2 py-1 text-xs hover:bg-black/5 disabled:opacity-60"
+                            disabled={!lineId || !!busy}
+                            onClick={() => lineId && removeFromBasket(lineId)}
+                            title={!lineId ? "Missing basket item id" : undefined}
+                          >
+                            {busy === `remove:${lineId}` ? "Removing…" : "Remove"}
+                          </button>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-xs opacity-70">No items yet.</div>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-2 text-xs opacity-70">Create a basket to see items.</div>
+              )}
+            </div>
 
             {error ? <div className="text-xs text-red-600">{error}</div> : null}
           </div>
@@ -345,7 +413,6 @@ export default function StoreClient() {
 
                   {p.description ? (
                     <div className="mt-1 text-xs opacity-80 line-clamp-3">
-                      {/* Tebex descriptions can contain HTML; keep it as text for safety */}
                       {p.description.replace(/<[^>]*>/g, "")}
                     </div>
                   ) : null}
