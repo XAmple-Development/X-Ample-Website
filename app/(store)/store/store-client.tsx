@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 type Money = { formatted?: string; value?: number; currency?: string };
 
-// Tebex can return package id as `id` or `package_id` depending on endpoint.
 type Package = {
   id?: number | string;
   package_id?: number | string;
@@ -13,6 +12,9 @@ type Package = {
   image?: string;
   price?: Money;
   total_price?: Money;
+
+  // sometimes Tebex nests a package object
+  package?: { id?: number | string; package_id?: number | string; name?: string };
 };
 
 type Category = {
@@ -104,11 +106,28 @@ function basketTotalText(basket: any): string | null {
   return typeof t === "string" && t.trim() ? t : null;
 }
 
+/**
+ * Only accept a package id if it is a positive number.
+ * This prevents generating /store/package/undefined.
+ */
 function packageIdStr(p: Package): string | null {
-  const v = p.id ?? p.package_id;
-  if (v === undefined || v === null) return null;
-  const s = String(v).trim();
-  return s ? s : null;
+  const raw =
+    p.id ??
+    p.package_id ??
+    p.package?.id ??
+    p.package?.package_id ??
+    null;
+
+  if (raw === null || raw === undefined) return null;
+
+  const s = String(raw).trim();
+  if (!s) return null;
+  if (s === "undefined" || s === "null") return null;
+
+  const n = Number(s);
+  if (!Number.isFinite(n) || n <= 0) return null;
+
+  return String(Math.trunc(n));
 }
 
 export default function StoreClient() {
@@ -281,10 +300,10 @@ export default function StoreClient() {
 
   async function addToBasket(pkg: Package) {
     const ident = await ensureBasket();
-
     const pid = packageIdStr(pkg);
+
     if (!pid) {
-      setError("This package is missing an id in the API response.");
+      setError("Missing package id (expected a numeric id from Tebex).");
       return;
     }
 
@@ -363,7 +382,7 @@ export default function StoreClient() {
         )}
 
         <div className="mt-6 border-t pt-4">
-          <div className="text-sm font-medium">Your Basket</div>
+          <div className="text-sm font-medium">Basket</div>
 
           {basketTotal ? (
             <div className="mt-2 text-sm font-semibold"></div>
@@ -394,7 +413,7 @@ export default function StoreClient() {
               </a>
             ) : (
               <div className="text-xs opacity-70">
-                Checkout button appears after basket is valid and has items (and may require login).
+                Checkout link appears after basket is valid and has items (and may require login).
               </div>
             )}
 
@@ -461,10 +480,10 @@ export default function StoreClient() {
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
                   {pid ? (
                     <a href={`/store/package/${pid}`} className="hover:underline">
-                      <div className="text-sm font-semibold">{p.name ?? "Package"}</div>
+                      <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
                     </a>
                   ) : (
-                    <div className="text-sm font-semibold">{p.name ?? "Package"}</div>
+                    <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
                   )}
 
                   {p.description ? (
@@ -487,7 +506,7 @@ export default function StoreClient() {
                       <button
                         className="flex-1 rounded-lg border px-3 py-2 text-center text-sm opacity-60"
                         disabled
-                        title="Missing package id in API response"
+                        title="Missing numeric package id in API response"
                       >
                         View
                       </button>
@@ -509,7 +528,7 @@ export default function StoreClient() {
 
                   {!pid ? (
                     <div className="mt-2 text-xs text-red-600">
-                      Package id missing (expected <code>id</code> or <code>package_id</code>).
+                      Missing numeric package id from Tebex response.
                     </div>
                   ) : null}
                 </div>
