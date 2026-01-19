@@ -2,15 +2,54 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import sanitizeHtml from "sanitize-html";
+
+type Money = { formatted?: string; value?: number; currency?: string };
 
 function pickIdFromPath(pathname: string | null): string | null {
   if (!pathname) return null;
   const parts = pathname.split("/").filter(Boolean);
   const last = parts[parts.length - 1] ?? "";
   const id = last.trim();
-
   if (!id || id === "undefined" || id === "null") return null;
   return id;
+}
+
+function priceText(p?: Money) {
+  if (!p) return "";
+  if (p.formatted) return p.formatted;
+  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
+  return "";
+}
+
+function safeHtmlFromTebex(html: string): string {
+  return sanitizeHtml(html, {
+    // keep pretty much all common formatting Tebex emits
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+      "img",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "span",
+      "br",
+      "hr",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+    ]),
+    allowedAttributes: {
+      a: ["href", "name", "target", "rel"],
+      img: ["src", "alt", "title", "width", "height"],
+      "*": ["class", "style"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+    // don’t allow weird URLs in img/src/href
+    allowProtocolRelative: false,
+  });
 }
 
 export default function PackageClient({ id }: { id?: string }) {
@@ -69,6 +108,13 @@ export default function PackageClient({ id }: { id?: string }) {
   const name = pkg?.name ?? "Package";
   const description = typeof pkg?.description === "string" ? pkg.description : "";
   const image = pkg?.image ?? pkg?.image_url ?? null;
+  const total = pkg?.total_price ?? pkg?.price;
+
+  // Tebex usually returns HTML; we sanitize then render it.
+  const descriptionHtml = useMemo(() => {
+    if (!description) return "";
+    return safeHtmlFromTebex(description);
+  }, [description]);
 
   return (
     <div className="rounded-xl border p-5">
@@ -78,14 +124,21 @@ export default function PackageClient({ id }: { id?: string }) {
 
       <div className="mt-3 text-2xl font-semibold">{name}</div>
 
+      {total ? <div className="mt-2 text-sm font-semibold">{priceText(total)}</div> : null}
+
       {image ? (
-        <img src={image} alt={name} className="mt-4 w-full rounded-xl border object-cover" />
+        <img
+          src={image}
+          alt={name}
+          className="mt-4 w-full rounded-xl border object-cover"
+        />
       ) : null}
 
-      {description ? (
-        <div className="mt-4 whitespace-pre-wrap text-sm opacity-90">
-          {description.replace(/<[^>]*>/g, "")}
-        </div>
+      {descriptionHtml ? (
+        <div
+          className="prose prose-invert prose-sm mt-4 max-w-none"
+          dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+        />
       ) : (
         <div className="mt-4 text-sm opacity-70">No description provided.</div>
       )}
