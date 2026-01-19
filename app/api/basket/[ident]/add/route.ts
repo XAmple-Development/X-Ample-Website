@@ -11,7 +11,7 @@ type AddRequest = {
 
 export async function POST(
   req: Request,
-  { params }: { params: { ident: string } },
+  { params }: { params: Promise<{ ident: string }> },
 ) {
   if (!hasTebexEnv()) {
     return NextResponse.json(
@@ -24,9 +24,9 @@ export async function POST(
   }
 
   try {
-    const { ident } = params;
-    const body = (await req.json().catch(() => null)) as AddRequest | null;
+    const { ident } = await params;
 
+    const body = (await req.json().catch(() => null)) as AddRequest | null;
     if (!body?.package_id) {
       return NextResponse.json(
         { error: "Missing required field: package_id" },
@@ -37,7 +37,6 @@ export async function POST(
     const quantity =
       typeof body.quantity === "number" && body.quantity > 0 ? body.quantity : 1;
 
-    // basket-scoped: /api/baskets/{ident}/packages
     const added = await tebexBasketFetch<unknown>(
       `/baskets/${encodeURIComponent(ident)}/packages`,
       {

@@ -11,7 +11,7 @@ type QuantityRequest = {
 
 export async function POST(
   req: Request,
-  { params }: { params: { ident: string } },
+  { params }: { params: Promise<{ ident: string }> },
 ) {
   if (!hasTebexEnv()) {
     return NextResponse.json(
@@ -24,7 +24,8 @@ export async function POST(
   }
 
   try {
-    const { ident } = params;
+    const { ident } = await params;
+
     const body = (await req.json().catch(() => null)) as QuantityRequest | null;
 
     if (!body?.package_id) {
@@ -42,7 +43,6 @@ export async function POST(
 
     const pkgId = encodeURIComponent(String(body.package_id));
 
-    // basket-scoped update
     const updated = await tebexBasketFetch<unknown>(
       `/baskets/${encodeURIComponent(ident)}/packages/${pkgId}`,
       {

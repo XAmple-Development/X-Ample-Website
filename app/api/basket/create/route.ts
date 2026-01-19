@@ -23,7 +23,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const siteUrl = getSiteUrl();
+    const rawSiteUrl = getSiteUrl();
+    const siteUrl = rawSiteUrl ? rawSiteUrl.replace(/\/$/, "") : "";
+
     const body = (await req.json().catch(() => ({}))) as CreateBasketRequest;
 
     const complete_url =
@@ -41,12 +43,13 @@ export async function POST(req: Request) {
     // account-scoped: /api/accounts/{token}/baskets
     const basket = await tebexFetch<unknown>("/baskets", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     const ident = extractBasketIdent(basket);
     if (ident) {
-      const jar = await cookies(); // <-- FIX
+      const jar = await cookies();
       jar.set("xa_basket", ident, {
         httpOnly: true,
         sameSite: "lax",
@@ -83,5 +86,6 @@ function extractBasketIdent(payload: unknown): string | null {
       if (found) return found;
     }
   }
+
   return null;
 }

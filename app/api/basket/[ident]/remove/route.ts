@@ -10,7 +10,7 @@ type RemoveRequest = {
 
 export async function POST(
   req: Request,
-  { params }: { params: { ident: string } },
+  { params }: { params: Promise<{ ident: string }> },
 ) {
   if (!hasTebexEnv()) {
     return NextResponse.json(
@@ -23,7 +23,8 @@ export async function POST(
   }
 
   try {
-    const { ident } = params;
+    const { ident } = await params;
+
     const body = (await req.json().catch(() => null)) as RemoveRequest | null;
 
     if (!body?.package_id) {

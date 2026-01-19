@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(
   _req: Request,
-  { params }: { params: { ident: string } },
+  { params }: { params: Promise<{ ident: string }> },
 ) {
   if (!hasTebexEnv()) {
     return NextResponse.json(
@@ -19,7 +19,7 @@ export async function GET(
   }
 
   try {
-    const { ident } = params;
+    const { ident } = await params;
 
     const basket = await tebexFetch<unknown>(
       `/baskets/${encodeURIComponent(ident)}`,
