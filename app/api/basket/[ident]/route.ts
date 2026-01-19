@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { hasTebexEnv, tebexFetch } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ ident: string }> },
+  _req: Request,
+  { params }: { params: { ident: string } },
 ) {
   if (!hasTebexEnv()) {
     return NextResponse.json(
@@ -19,13 +19,15 @@ export async function GET(
   }
 
   try {
-    const { ident } = await params;
-    const data = await tebexFetch<unknown>(
+    const { ident } = params;
+
+    const basket = await tebexFetch<unknown>(
       `/baskets/${encodeURIComponent(ident)}`,
+      { method: "GET" },
     );
-    return NextResponse.json(data, { status: 200 });
+
+    return NextResponse.json(basket, { status: 200 });
   } catch (e) {
     return errorJson(e, 502);
   }
 }
-

@@ -38,14 +38,15 @@ export async function POST(req: Request) {
     if (complete_url) payload.complete_url = complete_url;
     if (cancel_url) payload.cancel_url = cancel_url;
 
+    // account-scoped: /api/accounts/{token}/baskets
     const basket = await tebexFetch<unknown>("/baskets", {
       method: "POST",
       body: JSON.stringify(payload),
     });
 
     const ident = extractBasketIdent(basket);
-    if (typeof ident === "string" && ident.length > 0) {
-      const jar = await cookies();
+    if (ident) {
+      const jar = cookies();
       jar.set("xa_basket", ident, {
         httpOnly: true,
         sameSite: "lax",
@@ -76,14 +77,11 @@ function extractBasketIdent(payload: unknown): string | null {
   if (typeof nestedBasketIdent === "string" && nestedBasketIdent.length > 0)
     return nestedBasketIdent;
 
-  // sometimes Tebex responses wrap in arrays/objects; try one more shape
   if (isRecord(payload)) {
     for (const v of Object.values(payload)) {
       const found = extractBasketIdent(v);
       if (found) return found;
     }
   }
-
   return null;
 }
-
