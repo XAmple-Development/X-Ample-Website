@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasTebexEnv, tebexBasketFetch } from "@/lib/tebex";
+import { hasTebexEnv, tebexBasketRequestNoBody } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
@@ -35,12 +35,9 @@ export async function POST(
     }
 
     // Tebex docs: POST /baskets/{basketIdent}/packages/remove with { package_id }
-    const removed = await tebexBasketFetch<unknown>(
+    await tebexBasketRequestNoBody(
       `/baskets/${encodeURIComponent(ident)}/packages/remove`,
-      {
-        method: "POST",
-        body: JSON.stringify({ package_id: body.package_id }),
-      },
+      { method: "POST", body: JSON.stringify({ package_id: body.package_id }) },
     );
 
     // Avoid returning large Tebex payloads; client will refresh basket.

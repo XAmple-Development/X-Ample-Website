@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasTebexEnv, tebexBasketFetch } from "@/lib/tebex";
+import { hasTebexEnv, tebexBasketRequestNoBody } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
@@ -43,12 +43,9 @@ async function handler(
 
     const pkgId = encodeURIComponent(String(body.package_id));
 
-    const updated = await tebexBasketFetch<unknown>(
+    await tebexBasketRequestNoBody(
       `/baskets/${encodeURIComponent(ident)}/packages/${pkgId}`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ quantity: body.quantity }),
-      },
+      { method: "PUT", body: JSON.stringify({ quantity: body.quantity }) },
     );
 
     // Avoid returning large Tebex payloads; client will refresh basket.

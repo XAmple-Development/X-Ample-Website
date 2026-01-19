@@ -79,6 +79,51 @@ async function tebexRequest<T>(url: string, init: TebexFetchInit = {}) {
   return body as T;
 }
 
+/**
+ * Tebex request helper for endpoints that return very large bodies.
+ *
+ * For many basket mutation endpoints, Tebex returns a full basket payload that
+ * can include long HTML descriptions/media, which can crash serverless/edge
+ * environments when buffering/parsing the response.
+ *
+ * This helper only reads/parses the body on error.
+ */
+async function tebexRequestNoBody(url: string, init: TebexFetchInit = {}) {
+  const auth = getBasicAuthHeader();
+  if (!auth) {
+    throw new Error("Missing env vars: TEBEX_PUBLIC_TOKEN / TEBEX_PRIVATE_KEY");
+  }
+
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      Authorization: auth,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(init.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+
+  if (res.ok) return;
+
+  const text = await res.text().catch(() => "");
+  const contentType = res.headers.get("content-type") ?? "";
+  const looksJson =
+    contentType.includes("application/json") ||
+    text.trim().startsWith("{") ||
+    text.trim().startsWith("[");
+  const body: unknown = looksJson ? safeJsonParse(text) : text;
+
+  const msg =
+    typeof body === "string"
+      ? body
+      : body && typeof body === "object"
+        ? JSON.stringify(body)
+        : "Unknown error";
+  throw new Error(`Tebex error ${res.status}: ${msg}`);
+}
+
 function safeJsonParse(text: string): unknown {
   try {
     return JSON.parse(text);
@@ -117,6 +162,20 @@ export async function tebexBasketFetch<T>(
     path.startsWith("/") ? path : `/${path}`
   }`;
   return tebexRequest<T>(url, init);
+}
+
+/**
+ * Basket-scoped request that does NOT read the body on success.
+ * Use for basket mutations (add/remove/update qty) to avoid serverless crashes.
+ */
+export async function tebexBasketRequestNoBody(
+  path: string,
+  init: TebexFetchInit = {},
+) {
+  const url = `https://headless.tebex.io/api${
+    path.startsWith("/") ? path : `/${path}`
+  }`;
+  return tebexRequestNoBody(url, init);
 }
 
 // Backwards-compatible name (account-scoped).

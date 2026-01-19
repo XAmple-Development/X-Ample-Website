@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasTebexEnv, tebexBasketFetch } from "@/lib/tebex";
+import { hasTebexEnv, tebexBasketRequestNoBody } from "@/lib/tebex";
 import { errorJson } from "@/lib/apiError";
 
 export const runtime = "nodejs";
@@ -37,13 +37,10 @@ export async function POST(
     const quantity =
       typeof body.quantity === "number" && body.quantity > 0 ? body.quantity : 1;
 
-    const added = await tebexBasketFetch<unknown>(
-      `/baskets/${encodeURIComponent(ident)}/packages`,
-      {
-        method: "POST",
-        body: JSON.stringify({ package_id: body.package_id, quantity }),
-      },
-    );
+    await tebexBasketRequestNoBody(`/baskets/${encodeURIComponent(ident)}/packages`, {
+      method: "POST",
+      body: JSON.stringify({ package_id: body.package_id, quantity }),
+    });
 
     // Don't return the full Tebex basket payload here (can be very large and may
     // cause edge/serverless 502s). The client should refresh the basket via
