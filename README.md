@@ -5,6 +5,7 @@ Full-stack Next.js site for **X-Ample Development / X-Ample Studios** with:
 - **Marketing pages** (CMS-editable)
 - **Blog** (MDX from repo)
 - **Tebex store integration** (Headless API, server-side only)
+- **User dashboard** (FiveM login → purchases, tickets, profile settings, admin)
 - Deploy-ready for **Netlify**
 
 ### Local development
@@ -29,6 +30,30 @@ npm run dev
 - **`TEBEX_PUBLIC_TOKEN`**: Tebex Headless API Basic Auth username
 - **`TEBEX_PRIVATE_KEY`**: Tebex Headless API Basic Auth password (server-only)
 - **`SITE_URL`**: used to form Tebex basket `complete_url` / `cancel_url` (production: `https://x-ampledevelopment.co.uk`)
+
+### Dashboard setup (Supabase)
+
+The dashboard lives under `/dashboard/*` and is protected by an HttpOnly session cookie created after the Tebex/FiveM auth redirect.
+
+1) Create a Supabase project and apply the schema:
+
+- Run the SQL in `supabase/schema.sql` in the Supabase SQL editor.
+
+2) Set env vars:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only)
+- `SESSION_SECRET` (long random string)
+- `ADMIN_ALLOWLIST` (comma-separated Tebex customer ids)
+
+3) Configure Tebex webhook (recommended for purchases):
+
+- Create a webhook endpoint in Tebex pointing at `/api/tebex/webhook`
+- Set `TEBEX_WEBHOOK_SECRET` to match the secret configured in Tebex
+
+Notes:
+- Purchases show up in `/dashboard/purchases` after webhooks are received.
+- Support tickets are stored in Supabase (`tickets`, `ticket_messages`).
 
 ### CMS (Decap / Netlify CMS)
 

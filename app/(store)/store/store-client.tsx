@@ -397,7 +397,11 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/basket/auth?ident=${encodeURIComponent(ident)}`, { cache: "no-store" });
+      const returnUrl = `${window.location.origin}/dashboard/auth?ident=${ident}`;
+      const res = await fetch(
+        `/api/basket/auth?ident=${encodeURIComponent(ident)}&returnUrl=${encodeURIComponent(returnUrl)}`,
+        { cache: "no-store" },
+      );
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error ?? `Auth request failed (${res.status})`);
 
