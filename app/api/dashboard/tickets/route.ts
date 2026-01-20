@@ -23,6 +23,7 @@ async function readField(req: NextRequest, field: string): Promise<string> {
   }
 
   if (ct.includes("application/x-www-form-urlencoded")) {
+    // NOTE: do not use this helper for multiple fields; urlencoded bodies can only be read once.
     const text = await req.text();
     const params = new URLSearchParams(text);
     const v = params.get(field);
@@ -35,6 +36,46 @@ async function readField(req: NextRequest, field: string): Promise<string> {
     return typeof v === "string" ? v : "";
   } catch {
     return "";
+  }
+}
+
+async function readTicketCreatePayload(req: NextRequest): Promise<{ subject: string; message: string; isFormPost: boolean }> {
+  const ct = req.headers.get("content-type") ?? "";
+  const isFormPost = ct.includes("application/x-www-form-urlencoded") || ct.includes("multipart/form-data");
+
+  if (ct.includes("application/json")) {
+    const json = (await req.json().catch(() => null)) as any;
+    return {
+      subject: typeof json?.subject === "string" ? String(json.subject) : "",
+      message: typeof json?.message === "string" ? String(json.message) : "",
+      isFormPost,
+    };
+  }
+
+  if (ct.includes("application/x-www-form-urlencoded")) {
+    const text = await req.text();
+    const params = new URLSearchParams(text);
+    return {
+      subject: params.get("subject") ?? "",
+      message: params.get("message") ?? "",
+      isFormPost: true,
+    };
+  }
+
+  try {
+    const form = await req.formData();
+    return {
+      subject: typeof form.get("subject") === "string" ? String(form.get("subject")) : "",
+      message: typeof form.get("message") === "string" ? String(form.get("message")) : "",
+      isFormPost,
+    };
+  } catch {
+    // Fallback: try single-field reads (may still fail if body was already consumed elsewhere)
+    return {
+      subject: await readField(req, "subject"),
+      message: await readField(req, "message"),
+      isFormPost,
+    };
   }
 }
 
@@ -58,11 +99,11 @@ export async function POST(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const ct = req.headers.get("content-type") ?? "";
-  const isFormPost = ct.includes("application/x-www-form-urlencoded") || ct.includes("multipart/form-data");
+  const payload = await readTicketCreatePayload(req);
+  const isFormPost = payload.isFormPost;
 
-  let subject = (await readField(req, "subject")).trim();
-  let message = (await readField(req, "message")).trim();
+  let subject = payload.subject.trim();
+  let message = payload.message.trim();
 
   subject = subject.trim();
   message = message.trim();
