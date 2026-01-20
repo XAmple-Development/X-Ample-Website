@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import { getSessionFromRequest, isAdminForCustomerId } from "@/lib/auth";
 import { isAdminForSession } from "@/lib/admin";
 
+const FALLBACK_CANONICAL = "https://x-ampledevelopment.co.uk";
+
 function canonicalOrigin(): string | null {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "";
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || FALLBACK_CANONICAL;
   try {
     const u = new URL(raw);
     return `${u.protocol}//${u.host}`;

@@ -397,7 +397,11 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const hardCanonical = "https://x-ampledevelopment.co.uk";
+      const base =
+        window.location.host.endsWith(".netlify.app")
+          ? hardCanonical
+          : process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const returnUrl = `${base.replace(/\/+$/, "")}/dashboard/auth?ident=${ident}`;
       const res = await fetch(
         `/api/basket/auth?ident=${encodeURIComponent(ident)}&returnUrl=${encodeURIComponent(returnUrl)}`,

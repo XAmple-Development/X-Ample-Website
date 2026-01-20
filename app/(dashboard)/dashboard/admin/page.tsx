@@ -40,6 +40,12 @@ export default async function AdminPage() {
       <h1 className="text-xl font-semibold">Admin</h1>
       <p className="mt-2 text-sm opacity-75">Recent activity across tickets and purchases.</p>
 
+      <form className="mt-4" action="/api/dashboard/admin/sync-purchases" method="post">
+        <button className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" type="submit">
+          Sync purchases (Plugin API)
+        </button>
+      </form>
+
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border p-4">
           <div className="flex items-baseline justify-between gap-3">
