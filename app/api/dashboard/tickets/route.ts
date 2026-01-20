@@ -6,7 +6,11 @@ import { supabaseAdmin } from "@/lib/supabase";
 export const runtime = "nodejs";
 
 function wantsHtml(req: NextRequest) {
+  // Accept header isn't always reliable in Safari; treat navigations/form-posts as HTML.
   const accept = req.headers.get("accept") ?? "";
+  const dest = req.headers.get("sec-fetch-dest") ?? "";
+  const mode = req.headers.get("sec-fetch-mode") ?? "";
+  if (dest === "document" || mode === "navigate") return true;
   return accept.includes("text/html");
 }
 
@@ -54,12 +58,18 @@ export async function POST(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const ct = req.headers.get("content-type") ?? "";
+  const isFormPost = ct.includes("application/x-www-form-urlencoded") || ct.includes("multipart/form-data");
+
   let subject = (await readField(req, "subject")).trim();
   let message = (await readField(req, "message")).trim();
 
   subject = subject.trim();
   message = message.trim();
   if (!subject || !message) {
+    if (wantsHtml(req) || isFormPost) {
+      return NextResponse.redirect(new URL("/dashboard/tickets/new?error=missing_fields", req.url), 303);
+    }
     return NextResponse.json({ error: "Subject and message are required" }, { status: 400 });
   }
 
@@ -80,6 +90,9 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (ticketIns.error || !ticketIns.data?.id) {
+    if (wantsHtml(req) || isFormPost) {
+      return NextResponse.redirect(new URL("/dashboard/tickets/new?error=create_failed", req.url), 303);
+    }
     return NextResponse.json(
       {
         error: "Failed to create ticket",
@@ -106,6 +119,9 @@ export async function POST(req: NextRequest) {
   });
 
   if (msgIns.error) {
+    if (wantsHtml(req) || isFormPost) {
+      return NextResponse.redirect(new URL(`/dashboard/tickets/${encodeURIComponent(ticketId)}?error=message_failed`, req.url), 303);
+    }
     return NextResponse.json(
       {
         error: "Failed to create first message",
@@ -121,7 +137,7 @@ export async function POST(req: NextRequest) {
   }
 
   // For HTML form POSTs, redirect to the new ticket page.
-  if (wantsHtml(req)) {
+  if (wantsHtml(req) || isFormPost) {
     return NextResponse.redirect(new URL(`/dashboard/tickets/${encodeURIComponent(ticketId)}`, req.url), 303);
   }
 
