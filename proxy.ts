@@ -6,7 +6,8 @@ export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
   // Allow auth callback without an existing session.
-  if (pathname === "/dashboard/auth") return NextResponse.next();
+  // Use startsWith to handle trailing slashes.
+  if (pathname.startsWith("/dashboard/auth")) return NextResponse.next();
 
   const session = await getSessionFromRequest(req);
   if (!session) {
