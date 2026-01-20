@@ -1,5 +1,6 @@
 import { getSessionFromCookies } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase";
+import { formatCurrency } from "@/lib/money";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,7 @@ export default async function PurchasesPage() {
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <div className="text-sm font-semibold">Payment: {p.tebex_payment_id}</div>
                   <div className="text-sm opacity-80">
-                    {p.total != null ? `${p.currency ?? ""} ${p.total}` : "Total unavailable"}
+                    {p.total != null ? formatCurrency(Number(p.total), p.currency ?? null) : "Total unavailable"}
                   </div>
                 </div>
                 <div className="mt-1 text-xs opacity-70">{new Date(p.created_at).toLocaleString()}</div>
@@ -50,7 +51,7 @@ export default async function PurchasesPage() {
                           {it.name ?? "Item"} {it.quantity ? <span className="opacity-70">×{it.quantity}</span> : null}
                         </span>
                         <span className="shrink-0 opacity-80">
-                          {it.price != null ? `${it.currency ?? ""} ${it.price}` : ""}
+                          {it.price != null ? formatCurrency(Number(it.price), it.currency ?? p.currency ?? null) : ""}
                         </span>
                       </li>
                     ))}

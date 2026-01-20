@@ -48,6 +48,48 @@ export default async function TicketDetailPage({
         {new Date(ticketRes.data.updated_at).toLocaleString()}
       </div>
 
+      {isAdmin ? (
+        <form
+          className="mt-4 rounded-xl border p-4"
+          action={`/api/dashboard/admin/tickets/${encodeURIComponent(ticketId)}`}
+          method="post"
+        >
+          <div className="text-sm font-semibold">Admin actions</div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <div className="text-sm font-medium">Status</div>
+              <select
+                name="status"
+                defaultValue={ticketRes.data.status}
+                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm"
+              >
+                <option value="open">open</option>
+                <option value="pending">pending</option>
+                <option value="closed">closed</option>
+              </select>
+            </label>
+            <label className="block">
+              <div className="text-sm font-medium">Priority</div>
+              <select
+                name="priority"
+                defaultValue={ticketRes.data.priority}
+                className="mt-1 w-full rounded-lg border bg-background px-3 py-2 text-sm"
+              >
+                <option value="low">low</option>
+                <option value="normal">normal</option>
+                <option value="high">high</option>
+              </select>
+            </label>
+          </div>
+          <button
+            className="mt-3 rounded-lg bg-black px-4 py-2 text-sm text-white hover:opacity-90"
+            type="submit"
+          >
+            Update ticket
+          </button>
+        </form>
+      ) : null}
+
       <div className="mt-6 space-y-2">
         {messages.length ? (
           messages.map((m) => {
