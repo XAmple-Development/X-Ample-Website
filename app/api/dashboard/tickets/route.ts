@@ -10,6 +10,30 @@ function wantsHtml(req: NextRequest) {
   return accept.includes("text/html");
 }
 
+async function readField(req: NextRequest, field: string): Promise<string> {
+  const ct = req.headers.get("content-type") ?? "";
+
+  if (ct.includes("application/json")) {
+    const json = (await req.json().catch(() => null)) as any;
+    return typeof json?.[field] === "string" ? String(json[field]) : "";
+  }
+
+  if (ct.includes("application/x-www-form-urlencoded")) {
+    const text = await req.text();
+    const params = new URLSearchParams(text);
+    const v = params.get(field);
+    return typeof v === "string" ? v : "";
+  }
+
+  try {
+    const form = await req.formData();
+    const v = form.get(field);
+    return typeof v === "string" ? v : "";
+  } catch {
+    return "";
+  }
+}
+
 export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -30,19 +54,8 @@ export async function POST(req: NextRequest) {
   const session = await getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const ct = req.headers.get("content-type") ?? "";
-  let subject = "";
-  let message = "";
-
-  if (ct.includes("application/json")) {
-    const json = (await req.json().catch(() => null)) as any;
-    subject = typeof json?.subject === "string" ? json.subject : "";
-    message = typeof json?.message === "string" ? json.message : "";
-  } else {
-    const form = await req.formData();
-    subject = typeof form.get("subject") === "string" ? String(form.get("subject")) : "";
-    message = typeof form.get("message") === "string" ? String(form.get("message")) : "";
-  }
+  let subject = (await readField(req, "subject")).trim();
+  let message = (await readField(req, "message")).trim();
 
   subject = subject.trim();
   message = message.trim();

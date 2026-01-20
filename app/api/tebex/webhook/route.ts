@@ -127,16 +127,32 @@ function extractWebhookItems(payload: any): Array<{ packageId?: string; name?: s
 function verifyTebexSignatureOrThrow(rawBody: Buffer, incomingSig: string) {
   const secret = mustEnv("TEBEX_WEBHOOK_SECRET");
 
-  // Tebex spec: signature = HMAC_SHA256(secret, SHA256(raw_body_bytes))
-  // Where the inner SHA256 is the *raw digest bytes*, not the hex string.
-  const bodyHash = crypto.createHash("sha256").update(rawBody).digest(); // Buffer
-  const expectedHex = crypto.createHmac("sha256", secret).update(bodyHash).digest("hex");
+  const normalized = String(incomingSig)
+    .trim()
+    .toLowerCase()
+    .replace(/^sha256=/, "");
 
-  const a = Buffer.from(expectedHex, "utf8");
-  const b = Buffer.from(String(incomingSig).trim().toLowerCase(), "utf8");
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
-    throw new Error("Invalid signature");
-  }
+  // Variant A (per docs): HMAC(secret, SHA256(raw_body_bytes) [raw digest bytes])
+  const bodyHash = crypto.createHash("sha256").update(rawBody).digest(); // Buffer
+  const expectedA = crypto.createHmac("sha256", secret).update(bodyHash).digest("hex");
+
+  // Variant B (seen in the wild): HMAC(secret, SHA256(raw_body_bytes) as hex string)
+  const bodyHashHex = crypto.createHash("sha256").update(rawBody).digest("hex");
+  const expectedB = crypto.createHmac("sha256", secret).update(bodyHashHex).digest("hex");
+
+  const ok = timingSafeEqHex(normalized, expectedA) || timingSafeEqHex(normalized, expectedB);
+  if (!ok) throw new Error("Invalid signature");
+}
+
+function timingSafeEqHex(a: string, b: string) {
+  const aa = Buffer.from(a, "utf8");
+  const bb = Buffer.from(b, "utf8");
+  return aa.length === bb.length && crypto.timingSafeEqual(aa, bb);
+}
+
+export async function GET() {
+  // Tebex \"Validate\" may probe endpoints; respond 200.
+  return NextResponse.json({ ok: true }, { status: 200 });
 }
 
 export async function POST(req: Request) {
@@ -151,14 +167,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
+  if (!raw.length) {
+    // If Tebex validates with an empty body, accept after signature verification.
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
   const text = raw.toString("utf8");
   const payload = safeJsonParse(text);
-  if (!payload) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!payload) {
+    // Validation/ping payloads should not fail the endpoint; accept after signature verification.
+    return NextResponse.json({ ok: true }, { status: 200 });
+  }
 
   const tebexCustomerId = extractWebhookCustomerId(payload);
   const tebexPaymentId = extractWebhookPaymentId(payload);
   if (!tebexCustomerId || !tebexPaymentId) {
-    return NextResponse.json({ error: "Missing customer/payment id" }, { status: 400 });
+    // Tebex validation/ping events may not include purchase identifiers.
+    return NextResponse.json({ ok: true }, { status: 200 });
   }
 
   const { total, currency } = extractWebhookMoney(payload);
