@@ -127,12 +127,13 @@ function extractWebhookItems(payload: any): Array<{ packageId?: string; name?: s
 function verifyTebexSignatureOrThrow(rawBody: Buffer, incomingSig: string) {
   const secret = mustEnv("TEBEX_WEBHOOK_SECRET");
 
-  // Tebex spec (2026): signature = HMAC_SHA256(secret, SHA256(raw_body_hex))
-  const bodyHashHex = crypto.createHash("sha256").update(rawBody).digest("hex");
-  const expectedHex = crypto.createHmac("sha256", secret).update(bodyHashHex).digest("hex");
+  // Tebex spec: signature = HMAC_SHA256(secret, SHA256(raw_body_bytes))
+  // Where the inner SHA256 is the *raw digest bytes*, not the hex string.
+  const bodyHash = crypto.createHash("sha256").update(rawBody).digest(); // Buffer
+  const expectedHex = crypto.createHmac("sha256", secret).update(bodyHash).digest("hex");
 
   const a = Buffer.from(expectedHex, "utf8");
-  const b = Buffer.from(incomingSig, "utf8");
+  const b = Buffer.from(String(incomingSig).trim().toLowerCase(), "utf8");
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
     throw new Error("Invalid signature");
   }
