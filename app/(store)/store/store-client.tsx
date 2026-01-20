@@ -414,6 +414,24 @@ export default function StoreClient() {
     }
   }
 
+  async function goToDashboard() {
+    const ident = await ensureBasket();
+    setBusy("dashboard");
+    setError(null);
+    try {
+      const res = await fetch("/api/session/from-basket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ident }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error ?? `Failed to start dashboard session (${res.status})`);
+      window.location.href = "/dashboard";
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function addToBasket(pkg: Package) {
     const ident = await ensureBasket();
     const pid = packageIdStr(pkg);
@@ -531,6 +549,16 @@ export default function StoreClient() {
             >
               {busy === "auth" ? "Redirecting…" : identityLabel ? `Logged in as ${identityLabel}` : "Login (FiveM)"}
             </button>
+
+            {identityLabel ? (
+              <button
+                className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5 disabled:opacity-60"
+                disabled={!!busy}
+                onClick={goToDashboard}
+              >
+                {busy === "dashboard" ? "Opening…" : "Open Dashboard"}
+              </button>
+            ) : null}
 
             {identityLabel ? (
               <button
