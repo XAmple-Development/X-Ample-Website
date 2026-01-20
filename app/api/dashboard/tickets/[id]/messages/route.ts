@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionFromRequest, isAdminForCustomerId } from "@/lib/auth";
+import { getSessionFromRequest } from "@/lib/auth";
+import { isAdminForSession } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -58,7 +59,7 @@ export async function GET(
 
   if (ticket.error || !ticket.data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isAdmin = isAdminForCustomerId(session.tebexCustomerId);
+  const isAdmin = await isAdminForSession(session);
   if (!isAdmin && ticket.data.user_id !== session.userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -93,7 +94,7 @@ export async function POST(
   const ticket = await sb.from("tickets").select("id, user_id").eq("id", ticketId).maybeSingle();
   if (ticket.error || !ticket.data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const isAdmin = isAdminForCustomerId(session.tebexCustomerId);
+  const isAdmin = await isAdminForSession(session);
   if (!isAdmin && ticket.data.user_id !== session.userId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

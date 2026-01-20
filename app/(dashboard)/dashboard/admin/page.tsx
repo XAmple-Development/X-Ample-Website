@@ -1,5 +1,5 @@
 import { getSessionFromCookies } from "@/lib/session";
-import { isAdminForCustomerId } from "@/lib/auth";
+import { isAdminForSession } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/money";
@@ -10,7 +10,7 @@ export default async function AdminPage() {
   const session = await getSessionFromCookies();
   if (!session) return null;
 
-  const isAdmin = isAdminForCustomerId(session.tebexCustomerId);
+  const isAdmin = await isAdminForSession(session);
 
   if (!isAdmin) {
     return (

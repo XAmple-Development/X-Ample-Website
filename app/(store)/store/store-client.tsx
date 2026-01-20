@@ -397,7 +397,8 @@ export default function StoreClient() {
     setError(null);
 
     try {
-      const returnUrl = `${window.location.origin}/dashboard/auth?ident=${ident}`;
+      const base = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const returnUrl = `${base.replace(/\/+$/, "")}/dashboard/auth?ident=${ident}`;
       const res = await fetch(
         `/api/basket/auth?ident=${encodeURIComponent(ident)}&returnUrl=${encodeURIComponent(returnUrl)}`,
         { cache: "no-store" },

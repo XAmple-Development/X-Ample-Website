@@ -1,9 +1,32 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSessionFromRequest, isAdminForCustomerId } from "@/lib/auth";
+import { isAdminForSession } from "@/lib/admin";
+
+function canonicalOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "";
+  try {
+    const u = new URL(raw);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return null;
+  }
+}
 
 export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
+
+  // If a user lands on a Netlify deploy-preview domain, force them onto the canonical domain.
+  // Otherwise cookies like `xa_session` won't exist on the new host and it looks like a sign-out.
+  const host = req.headers.get("host") ?? "";
+  const canonical = canonicalOrigin();
+  if (canonical && host.endsWith(".netlify.app")) {
+    const next = new URL(req.nextUrl.toString());
+    const canon = new URL(canonical);
+    next.protocol = canon.protocol;
+    next.host = canon.host;
+    return NextResponse.redirect(next, 308);
+  }
 
   // Allow auth callback without an existing session.
   // Use startsWith to handle trailing slashes.
@@ -20,7 +43,7 @@ export async function proxy(req: NextRequest) {
 
   // Admin gating
   const isAdminPath = pathname.startsWith("/dashboard/admin") || pathname.startsWith("/api/dashboard/admin");
-  if (isAdminPath && !isAdminForCustomerId(session.tebexCustomerId)) {
+  if (isAdminPath && !(await isAdminForSession(session))) {
     const url = req.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
@@ -34,6 +57,7 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/dashboard/:path*"],
+  // Apply to all routes so deploy-preview domains can't break auth/session.
+  matcher: ["/:path*"],
 };
 

@@ -1,6 +1,6 @@
 import { getSessionFromCookies } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase";
-import { isAdminForCustomerId } from "@/lib/auth";
+import { isAdminForSession } from "@/lib/admin";
 
 export const runtime = "nodejs";
 
@@ -26,7 +26,7 @@ export default async function TicketDetailPage({
     return <div className="text-sm opacity-70">Ticket not found.</div>;
   }
 
-  const isAdmin = isAdminForCustomerId(session.tebexCustomerId);
+  const isAdmin = await isAdminForSession(session);
   if (!isAdmin && ticketRes.data.user_id !== session.userId) {
     return <div className="text-sm text-red-600">You don’t have access to this ticket.</div>;
   }
