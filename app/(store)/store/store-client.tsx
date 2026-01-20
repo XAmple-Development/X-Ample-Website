@@ -49,7 +49,7 @@ const LS_IDENTITY_KEY = "tebex_identity_label";
 function formatMoneyMajor(amountMajor: number, currency?: string) {
   if (typeof currency === "string" && /^[A-Z]{3}$/i.test(currency.trim())) {
     try {
-      return new Intl.NumberFormat("en-GB", {
+      return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: currency.trim().toUpperCase(),
       }).format(amountMajor);
