@@ -47,17 +47,18 @@ const LS_KEY = "tebex_basket_ident";
 const LS_IDENTITY_KEY = "tebex_identity_label";
 
 function formatMoneyMajor(amountMajor: number, currency?: string) {
-  if (typeof currency === "string" && /^[A-Z]{3}$/i.test(currency.trim())) {
-    try {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency.trim().toUpperCase(),
-      }).format(amountMajor);
-    } catch {
-      // fall through to GBP symbol formatting
-    }
+  const c =
+    typeof currency === "string" && /^[A-Z]{3}$/i.test(currency.trim())
+      ? currency.trim().toUpperCase()
+      : "USD";
+
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: c }).format(amountMajor);
+  } catch {
+    // fall through to "$" formatting
   }
-  return `£${amountMajor.toFixed(2)}`;
+
+  return `$${amountMajor.toFixed(2)}`;
 }
 
 function priceText(p?: unknown): string {
@@ -68,7 +69,7 @@ function priceText(p?: unknown): string {
 
   // Sometimes APIs return a plain number (major units).
   if (typeof p === "number" && Number.isFinite(p)) {
-    return formatMoneyMajor(p, undefined);
+    return formatMoneyMajor(p, "USD");
   }
 
   if (typeof p !== "object") return "";
@@ -106,7 +107,7 @@ function priceText(p?: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) {
     // Heuristic: integer values ≥ 100 are probably minor units (cents/pence).
     const amountMajor = Number.isInteger(value) && Math.abs(value) >= 100 ? value / 100 : value;
-    return formatMoneyMajor(amountMajor, currencyStr);
+    return formatMoneyMajor(amountMajor, currencyStr ?? "USD");
   }
 
   return "";

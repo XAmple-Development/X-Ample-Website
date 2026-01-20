@@ -18,7 +18,15 @@ function pickIdFromPath(pathname: string | null): string | null {
 function priceText(p?: Money) {
   if (!p) return "";
   if (p.formatted) return p.formatted;
-  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
+  if (typeof p.value === "number") {
+    const currency =
+      typeof p.currency === "string" && /^[A-Z]{3}$/i.test(p.currency.trim()) ? p.currency.trim().toUpperCase() : "USD";
+    try {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(p.value / 100);
+    } catch {
+      return `$${(p.value / 100).toFixed(2)}`;
+    }
+  }
   return "";
 }
 
