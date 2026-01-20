@@ -46,10 +46,69 @@ type Identity = { label: string };
 const LS_KEY = "tebex_basket_ident";
 const LS_IDENTITY_KEY = "tebex_identity_label";
 
-function priceText(p?: Money | null) {
-  if (!p) return "";
-  if (p.formatted) return p.formatted;
-  if (typeof p.value === "number") return `£${(p.value / 100).toFixed(2)}`;
+function formatMoneyMajor(amountMajor: number, currency?: string) {
+  if (typeof currency === "string" && /^[A-Z]{3}$/i.test(currency.trim())) {
+    try {
+      return new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: currency.trim().toUpperCase(),
+      }).format(amountMajor);
+    } catch {
+      // fall through to GBP symbol formatting
+    }
+  }
+  return `£${amountMajor.toFixed(2)}`;
+}
+
+function priceText(p?: unknown): string {
+  if (p === null || p === undefined) return "";
+
+  // Sometimes APIs return an already-formatted string.
+  if (typeof p === "string") return p.trim();
+
+  // Sometimes APIs return a plain number (major units).
+  if (typeof p === "number" && Number.isFinite(p)) {
+    return formatMoneyMajor(p, undefined);
+  }
+
+  if (typeof p !== "object") return "";
+  const m = p as any;
+
+  const formatted =
+    m.formatted ??
+    m.formatted_with_currency ??
+    m.formatted_with_symbol ??
+    m.formattedValue ??
+    m.display ??
+    m.text;
+  if (typeof formatted === "string" && formatted.trim()) return formatted.trim();
+
+  const currency: unknown = m.currency ?? m.currency_code ?? m.iso_currency ?? m.iso;
+  const currencyStr = typeof currency === "string" ? currency : undefined;
+
+  // Tebex typically uses `value` (often minor units), but other shapes exist.
+  let value: unknown =
+    m.value ??
+    m.amount ??
+    m.raw ??
+    m.cents ??
+    m.cent_amount ??
+    m.minor ??
+    m.minor_amount ??
+    m.major ??
+    m.major_amount;
+
+  if (typeof value === "string" && value.trim()) {
+    const n = Number(value);
+    if (Number.isFinite(n)) value = n;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    // Heuristic: integer values ≥ 100 are probably minor units (cents/pence).
+    const amountMajor = Number.isInteger(value) && Math.abs(value) >= 100 ? value / 100 : value;
+    return formatMoneyMajor(amountMajor, currencyStr);
+  }
+
   return "";
 }
 
@@ -544,7 +603,15 @@ export default function StoreClient() {
               const pid = packageIdStr(p);
               const disabledAdd = !!busy || !isAuthenticated || !pid;
 
-              const price = priceText((p.total_price ?? p.price ?? p.base_price) ?? null);
+              const priceSource =
+                p.total_price ??
+                p.price ??
+                p.base_price ??
+                p.package?.total_price ??
+                p.package?.price ??
+                p.package?.base_price;
+
+              const price = priceText(priceSource);
 
               return (
                 <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
