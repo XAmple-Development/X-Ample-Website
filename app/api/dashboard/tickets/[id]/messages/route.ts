@@ -105,9 +105,36 @@ export async function POST(
     body,
     created_at: now,
   });
-  if (ins.error) return NextResponse.json({ error: "Failed to create message" }, { status: 500 });
+  if (ins.error) {
+    return NextResponse.json(
+      {
+        error: "Failed to create message",
+        supabase: {
+          message: ins.error.message,
+          code: ins.error.code,
+          details: ins.error.details,
+          hint: ins.error.hint,
+        },
+      },
+      { status: 500 },
+    );
+  }
 
-  await sb.from("tickets").update({ updated_at: now }).eq("id", ticketId);
+  const upd = await sb.from("tickets").update({ updated_at: now }).eq("id", ticketId);
+  if (upd.error) {
+    return NextResponse.json(
+      {
+        error: "Failed to update ticket timestamp",
+        supabase: {
+          message: upd.error.message,
+          code: upd.error.code,
+          details: upd.error.details,
+          hint: upd.error.hint,
+        },
+      },
+      { status: 500 },
+    );
+  }
 
   if (wantsHtml(req)) {
     return NextResponse.redirect(new URL(`/dashboard/tickets/${encodeURIComponent(ticketId)}`, req.url), 303);

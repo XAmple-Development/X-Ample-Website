@@ -157,14 +157,28 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const sig = header(req, "x-signature");
-  if (!sig) return NextResponse.json({ error: "Missing X-Signature" }, { status: 401 });
+  if (!sig) {
+    return NextResponse.json(
+      {
+        error: "Missing X-Signature",
+        hint: "Tebex validation should include X-Signature. If it doesn't, check you're using the Tebex Webhooks feature (not Login Webhooks) and that the endpoint type matches.",
+      },
+      { status: 401 },
+    );
+  }
 
   const raw = Buffer.from(await req.arrayBuffer());
 
   try {
     verifyTebexSignatureOrThrow(raw, sig);
   } catch {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Invalid signature",
+        hint: "Most commonly: TEBEX_WEBHOOK_SECRET is missing on the deployed environment, or it doesn't match the Secret Key shown in Tebex for this endpoint.",
+      },
+      { status: 401 },
+    );
   }
 
   if (!raw.length) {

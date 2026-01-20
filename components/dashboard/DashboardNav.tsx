@@ -38,7 +38,7 @@ export function DashboardNav({
     <aside className="rounded-xl border p-4">
       <div className="text-sm font-semibold">Dashboard</div>
       <div className="mt-1 text-xs opacity-70">{username ? `Signed in as ${username}` : "Signed in"}</div>
-      <div className="mt-1 text-[11px] opacity-60">Admin hidden unless allowed.</div>
+      {!isAdmin ? <div className="mt-1 text-[11px] opacity-60">Admin hidden unless allowed.</div> : null}
 
       <nav className="mt-4 space-y-1">
         {items

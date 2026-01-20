@@ -80,7 +80,20 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (ticketIns.error || !ticketIns.data?.id) {
-    return NextResponse.json({ error: "Failed to create ticket" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to create ticket",
+        supabase: ticketIns.error
+          ? {
+              message: ticketIns.error.message,
+              code: ticketIns.error.code,
+              details: ticketIns.error.details,
+              hint: ticketIns.error.hint,
+            }
+          : null,
+      },
+      { status: 500 },
+    );
   }
 
   const ticketId = ticketIns.data.id as string;
@@ -93,7 +106,18 @@ export async function POST(req: NextRequest) {
   });
 
   if (msgIns.error) {
-    return NextResponse.json({ error: "Failed to create first message" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to create first message",
+        supabase: {
+          message: msgIns.error.message,
+          code: msgIns.error.code,
+          details: msgIns.error.details,
+          hint: msgIns.error.hint,
+        },
+      },
+      { status: 500 },
+    );
   }
 
   // For HTML form POSTs, redirect to the new ticket page.
