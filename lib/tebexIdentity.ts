@@ -59,10 +59,20 @@ export function extractTebexIdentity(basketPayload: any): TebexIdentity | null {
   const fivem =
     asIdString(root?.player?.uuid) ??
     asIdString(root?.player?.identifier) ??
+    asIdString(root?.player?.id) ??
     asIdString(root?.player?.fivem_id) ??
-    asIdString(root?.player?.fivemId);
+    asIdString(root?.player?.fivemId) ??
+    asIdString(root?.player?.fivem) ??
+    asIdString(root?.player?.fivemID) ??
+    asIdString(root?.fivem_id) ??
+    asIdString(root?.fivemId);
   if (fivem) {
     return { tebexCustomerId: `fivem:${fivem}`, username, email };
+  }
+
+  // Final fallback: username-only sessions (not ideal, but better than blocking dashboard).
+  if (username) {
+    return { tebexCustomerId: `username:${username.toLowerCase()}`, username, email };
   }
 
   return null;
