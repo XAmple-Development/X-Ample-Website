@@ -5,6 +5,37 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
+function wantsHtml(req: NextRequest) {
+  const accept = req.headers.get("accept") ?? "";
+  return accept.includes("text/html");
+}
+
+async function readBodyField(req: NextRequest, field: string): Promise<string> {
+  const ct = req.headers.get("content-type") ?? "";
+
+  if (ct.includes("application/json")) {
+    const json = (await req.json().catch(() => null)) as any;
+    return typeof json?.[field] === "string" ? String(json[field]) : "";
+  }
+
+  // Safari/standard form posts are usually application/x-www-form-urlencoded.
+  if (ct.includes("application/x-www-form-urlencoded")) {
+    const text = await req.text();
+    const params = new URLSearchParams(text);
+    const v = params.get(field);
+    return typeof v === "string" ? v : "";
+  }
+
+  // multipart/form-data
+  try {
+    const form = await req.formData();
+    const v = form.get(field);
+    return typeof v === "string" ? v : "";
+  } catch {
+    return "";
+  }
+}
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -54,16 +85,7 @@ export async function POST(
   const ticketId = id.trim();
   if (!ticketId) return NextResponse.json({ error: "Missing ticket id" }, { status: 400 });
 
-  const ct = req.headers.get("content-type") ?? "";
-  let body = "";
-  if (ct.includes("application/json")) {
-    const json = (await req.json().catch(() => null)) as any;
-    body = typeof json?.body === "string" ? json.body : "";
-  } else {
-    const form = await req.formData();
-    body = typeof form.get("body") === "string" ? String(form.get("body")) : "";
-  }
-  body = body.trim();
+  const body = (await readBodyField(req, "body")).trim();
   if (!body) return NextResponse.json({ error: "Message body is required" }, { status: 400 });
 
   const sb = supabaseAdmin();
@@ -86,6 +108,11 @@ export async function POST(
   if (ins.error) return NextResponse.json({ error: "Failed to create message" }, { status: 500 });
 
   await sb.from("tickets").update({ updated_at: now }).eq("id", ticketId);
+
+  if (wantsHtml(req)) {
+    return NextResponse.redirect(new URL(`/dashboard/tickets/${encodeURIComponent(ticketId)}`, req.url), 303);
+  }
+
   return NextResponse.json({ ok: true }, { status: 201 });
 }
 
