@@ -11,12 +11,17 @@ type TeamContent = {
 };
 
 const fallback: TeamContent = {
-  intro: "Meet the people behind X-Ample Development.",
+  intro: "Meet the people behind X-Ample.",
   members: [
     {
-      name: "X-Ample Development",
-      role: "Studio",
-      bio: "Building FiveM scripts, MLOs, and experiences with a focus on clean UX and maintainable code.",
+      name: "Dan Pilkington",
+      role: "Founder & Developer",
+      bio: "10+ years of experience in software development, with a keen interest in building tools that help people work smarter, not harder.",
+    },
+    {
+      name: "Timothy",
+      role: "Security Analyst",
+      bio: "6 Years of experience in cybersecurity, always looking for the next challenge and preventing threats.",
     },
   ],
 };
