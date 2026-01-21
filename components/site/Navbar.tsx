@@ -3,6 +3,8 @@ import { Logo } from "@/components/site/Logo";
 
 const nav = [
   { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/team", label: "Team" },
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/blog", label: "Blog" },
