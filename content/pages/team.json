@@ -1,10 +1,27 @@
 {
-  "intro": "Meet the people behind X-Ample Development.",
+  "intro": "Meet the people behind X-Ample.",
   "members": [
     {
-      "name": "X-Ample Development",
-      "role": "Studio",
-      "bio": "Building FiveM scripts, MLOs, and experiences with a focus on clean UX and maintainable code."
+      "name": "Dan Pilkington",
+      "role": "Founder & Developer",
+      "bio": "10+ years of experience in software development, with a keen interest in building tools that help people work smarter, not harder.",
+      "avatar": "https://media.discordapp.net/attachments/1263549292216324180/1263568021784629370/c2e75e082c69a8f651164db21adf57e6-removebg-preview.png?ex=6971c82c&is=697076ac&hm=e1ffe2b39956aa5d725ec0a85564d238907e9e0f6e8b4a0dd50aa7229e39c97a&=&format=webp&quality=lossless&width=750&height=750",
+      "links": {
+        "github": "",
+        "twitter": "https://github.com/X-AmpleDevelopment",
+        "discord": "https://discord.gg/x3AdQAZtF2"
+      }
+    },
+    {
+      "name": "Timothy",
+      "role": "Security Analyst",
+      "bio": "6 years of experience in cybersecurity, always looking for the next challenge and preventing threats.",
+      "avatar": "https://media.discordapp.net/attachments/1247301558891188325/1417938349389512806/4bSGPHi.png?ex=6971c1be&is=6970703e&hm=0111bf57488712076e6d3d856d19934e8b317c30bcbb3252372fb76b758ee82c&=&format=webp&quality=lossless&width=750&height=750",
+      "links": {
+        "github": "",
+        "twitter": "",
+        "discord": ""
+      }
     }
   ]
 }

@@ -1,9 +1,22 @@
-export const metadata = {
-  title: "About",
-};
-
+import type { Metadata } from "next";
 import path from "node:path";
 import { readJsonFile } from "@/lib/content";
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Learn about X-Ample Development and how we build premium FiveM assets.",
+  openGraph: {
+    title: "About · X-Ample Development",
+    description: "Learn about X-Ample Development and how we build premium FiveM assets.",
+    type: "website",
+    url: "/about",
+  },
+  twitter: {
+    card: "summary",
+    title: "About · X-Ample Development",
+    description: "Learn about X-Ample Development and how we build premium FiveM assets.",
+  },
+};
 
 type AboutContent = {
   title: string;

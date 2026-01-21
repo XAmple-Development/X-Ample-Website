@@ -92,4 +92,13 @@ collections:
               - { name: name, label: Name, widget: string }
               - { name: role, label: Role, widget: string }
               - { name: bio, label: Bio, widget: text }
+              - { name: avatar, label: Avatar, widget: image, required: false }
+              - label: Links
+                name: links
+                widget: object
+                required: false
+                fields:
+                  - { name: discord, label: Discord, widget: string, required: false }
+                  - { name: github, label: GitHub, widget: string, required: false }
+                  - { name: twitter, label: Twitter, widget: string, required: false }
 
