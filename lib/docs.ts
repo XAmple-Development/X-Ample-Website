@@ -31,11 +31,14 @@ export async function listPackageDocMetas(): Promise<PackageDocMeta[]> {
       const id = normalizeIdFromFilename(name);
       const fullPath = path.join(dir, name);
       const raw = await readFile(fullPath, "utf8").catch(() => "");
-      const parsed = raw ? matter(raw) : { data: {}, content: "" };
+      if (!raw) return { id } satisfies PackageDocMeta;
 
-      const title = typeof parsed.data?.title === "string" ? parsed.data.title : undefined;
-      const summary = typeof parsed.data?.summary === "string" ? parsed.data.summary : undefined;
-      const updated = typeof parsed.data?.updated === "string" ? parsed.data.updated : undefined;
+      const parsed = matter(raw);
+      const data = (parsed.data ?? {}) as any;
+
+      const title = typeof data.title === "string" ? data.title : undefined;
+      const summary = typeof data.summary === "string" ? data.summary : undefined;
+      const updated = typeof data.updated === "string" ? data.updated : undefined;
 
       return { id, title, summary, updated } satisfies PackageDocMeta;
     }),
