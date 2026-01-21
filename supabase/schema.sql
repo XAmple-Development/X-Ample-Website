@@ -69,3 +69,10 @@ create table if not exists public.ticket_messages (
 
 create index if not exists idx_ticket_messages_ticket_id on public.ticket_messages (ticket_id, created_at);
 
+-- Global system state (health + last-run markers)
+create table if not exists public.system_state (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+

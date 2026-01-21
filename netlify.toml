@@ -12,6 +12,10 @@
   directory = "netlify/functions"
   included_files = ["netlify/functions/templates/**"]
 
+[functions."cron-sync-purchases"]
+  # Every 15 minutes (UTC)
+  schedule = "*/15 * * * *"
+
 [[redirects]]
   from = "http://x-ampledevelopment.co.uk/*"
   to = "https://x-ampledevelopment.co.uk/:splat"

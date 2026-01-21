@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase";
+import { setSystemState } from "@/lib/systemState";
 
 export const runtime = "nodejs";
 
@@ -181,6 +182,9 @@ export async function POST(req: Request) {
     );
   }
 
+  // Mark webhook as alive (even if this is a validate/ping payload).
+  await setSystemState("tebex_webhook", { lastSeenAt: new Date().toISOString() });
+
   if (!raw.length) {
     // If Tebex validates with an empty body, accept after signature verification.
     return NextResponse.json({ ok: true }, { status: 200 });
@@ -205,6 +209,13 @@ export async function POST(req: Request) {
 
   const sb = supabaseAdmin();
   const now = new Date().toISOString();
+
+  await setSystemState("tebex_webhook", {
+    lastSeenAt: now,
+    lastPurchaseAt: now,
+    lastPaymentId: tebexPaymentId,
+    lastCustomerId: tebexCustomerId,
+  });
 
   // Upsert user (webhook might arrive before the user ever logs in on-site).
   const userUpsert = await sb

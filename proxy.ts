@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSessionFromRequest, isAdminForCustomerId } from "@/lib/auth";
+import { getSessionFromRequest } from "@/lib/auth";
 import { isAdminForSession } from "@/lib/admin";
 
 const FALLBACK_CANONICAL = "https://x-ampledevelopment.co.uk";
@@ -33,6 +33,10 @@ export async function proxy(req: NextRequest) {
   // Allow auth callback without an existing session.
   // Use startsWith to handle trailing slashes.
   if (pathname.startsWith("/dashboard/auth")) return NextResponse.next();
+
+  // Only gate dashboard pages + dashboard APIs. Everything else (marketing, store, docs, Tebex webhooks, cron) is public.
+  const isDashboardPath = pathname.startsWith("/dashboard") || pathname.startsWith("/api/dashboard");
+  if (!isDashboardPath) return NextResponse.next();
 
   const session = await getSessionFromRequest(req);
   if (!session) {

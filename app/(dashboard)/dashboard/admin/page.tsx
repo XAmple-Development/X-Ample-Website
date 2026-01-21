@@ -3,6 +3,7 @@ import { isAdminForSession } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/money";
+import { getSystemState } from "@/lib/systemState";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,9 @@ export default async function AdminPage() {
   }
 
   const sb = supabaseAdmin();
-  const [{ data: tickets }, { data: purchases }] = await Promise.all([
+  const [webhookState, pluginState, { data: tickets }, { data: purchases }] = await Promise.all([
+    getSystemState("tebex_webhook"),
+    getSystemState("plugin_sync"),
     sb
       .from("tickets")
       .select("id, user_id, subject, status, priority, updated_at")
@@ -35,10 +38,46 @@ export default async function AdminPage() {
       .limit(20),
   ]);
 
+  const webhookLast = (webhookState?.value?.lastSeenAt as string | undefined) ?? webhookState?.updated_at ?? null;
+  const pluginLastOk = (pluginState?.value?.lastSuccessAt as string | undefined) ?? null;
+  const pluginLastErr = (pluginState?.value?.lastErrorAt as string | undefined) ?? null;
+  const pluginUpserted = (pluginState?.value?.upserted as number | undefined) ?? null;
+  const pluginScanned = (pluginState?.value?.scanned as number | undefined) ?? null;
+
   return (
     <div className="rounded-xl border p-5">
       <h1 className="text-xl font-semibold">Admin</h1>
       <p className="mt-2 text-sm opacity-75">Recent activity across tickets and purchases.</p>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="rounded-xl border p-4">
+          <div className="text-sm font-semibold">Webhook health</div>
+          <div className="mt-2 text-sm opacity-80">
+            {webhookLast ? `Last webhook: ${new Date(webhookLast).toLocaleString()}` : "No webhook activity recorded yet."}
+          </div>
+          <div className="mt-1 text-xs opacity-70">
+            Endpoint: <code className="opacity-90">/api/tebex/webhook</code>
+          </div>
+        </div>
+
+        <div className="rounded-xl border p-4">
+          <div className="text-sm font-semibold">Plugin sync health</div>
+          <div className="mt-2 text-sm opacity-80">
+            {pluginLastOk ? `Last success: ${new Date(pluginLastOk).toLocaleString()}` : "No successful sync recorded yet."}
+          </div>
+          {pluginUpserted != null ? (
+            <div className="mt-1 text-xs opacity-70">
+              Upserted: {pluginUpserted}
+              {pluginScanned != null ? ` (scanned: ${pluginScanned})` : ""}
+            </div>
+          ) : null}
+          {pluginLastErr ? (
+            <div className="mt-2 text-xs text-red-600">
+              Last error: {new Date(pluginLastErr).toLocaleString()}
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       <form className="mt-4" action="/api/dashboard/admin/sync-purchases" method="post">
         <button className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" type="submit">
