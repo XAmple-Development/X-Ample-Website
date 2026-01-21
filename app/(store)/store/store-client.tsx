@@ -452,6 +452,13 @@ export default function StoreClient() {
     try {
       if (!isAuthenticated) throw new Error("Please login (FiveM) first, then add items to basket.");
 
+      // Analytics (optional): plausible custom event
+      try {
+        (window as any)?.plausible?.("Store Add To Basket", { props: { packageId: pid } });
+      } catch {
+        // ignore
+      }
+
       const res = await fetch(`/api/basket/${encodeURIComponent(ident)}/packages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -576,7 +583,17 @@ export default function StoreClient() {
             ) : null}
 
             {checkoutUrl ? (
-              <a className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white" href={checkoutUrl}>
+              <a
+                className="rounded-lg bg-green-600 px-3 py-2 text-center text-sm text-white"
+                href={checkoutUrl}
+                onClick={() => {
+                  try {
+                    (window as any)?.plausible?.("Store Checkout Click", { props: { ident: basketIdent ?? "" } });
+                  } catch {
+                    // ignore
+                  }
+                }}
+              >
                 Checkout
               </a>
             ) : (
@@ -671,22 +688,35 @@ export default function StoreClient() {
                     {price ? price : <span className="opacity-70">Price unavailable</span>}
                   </div>
 
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 grid grid-cols-3 gap-2">
                     {pid ? (
-                      <a
-                        className="flex-1 rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5"
-                        href={`/store/package/${pid}`}
-                      >
-                        View
-                      </a>
+                      <>
+                        <a
+                          className="rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5"
+                          href={`/store/package/${pid}`}
+                        >
+                          View
+                        </a>
+                        <a
+                          className="rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5"
+                          href={`/docs/package/${pid}`}
+                        >
+                          Docs
+                        </a>
+                      </>
                     ) : (
-                      <button className="flex-1 rounded-lg border px-3 py-2 text-sm opacity-60" disabled>
-                        View
-                      </button>
+                      <>
+                        <button className="rounded-lg border px-3 py-2 text-sm opacity-60" disabled>
+                          View
+                        </button>
+                        <button className="rounded-lg border px-3 py-2 text-sm opacity-60" disabled>
+                          Docs
+                        </button>
+                      </>
                     )}
 
                     <button
-                      className="flex-1 rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
+                      className="rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
                       disabled={disabledAdd}
                       onClick={() => addToBasket(p)}
                       title={!pid ? "Missing package id" : !isAuthenticated ? "Login (FiveM) first" : undefined}

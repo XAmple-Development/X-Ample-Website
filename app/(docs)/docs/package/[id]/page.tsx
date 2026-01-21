@@ -37,6 +37,16 @@ export default async function PackageDocsPage({
   if (!pid) notFound();
 
   const source = await readPackageDocSource(pid);
+  const fm = (source?.frontmatter ?? {}) as Record<string, unknown>;
+  const summary = typeof fm.summary === "string" ? fm.summary : "";
+  const updatedRaw = typeof fm.updated === "string" ? fm.updated : "";
+  const updated = updatedRaw && Number.isFinite(new Date(updatedRaw).getTime()) ? updatedRaw : "";
+
+  const editBase = process.env.NEXT_PUBLIC_GITHUB_EDIT_BASE;
+  const editUrl =
+    editBase && editBase.trim()
+      ? `${editBase.replace(/\/+$/, "")}/content/docs/packages/${encodeURIComponent(pid)}.mdx`
+      : null;
 
   // Pull package name/price for the header (best-effort).
   let pkg: TebexPackage | null = null;
@@ -100,8 +110,30 @@ export default async function PackageDocsPage({
 
       <h1 className="mt-4 text-pretty text-4xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
       {price ? <p className="mt-3 text-sm text-foreground/70">{price}</p> : null}
+      {summary ? <p className="mt-3 text-base leading-7 text-foreground/75">{summary}</p> : null}
 
-      <div className="mt-8">{compiled.content}</div>
+      <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+        <Link className="rounded-lg border px-3 py-2 hover:bg-black/5" href={`/store/package/${pid}`}>
+          Store page
+        </Link>
+        {updated ? (
+          <span className="rounded-lg border px-3 py-2 text-foreground/70">
+            Updated: {updated}
+          </span>
+        ) : null}
+        {editUrl ? (
+          <a
+            className="rounded-lg border px-3 py-2 text-foreground/70 hover:bg-black/5"
+            href={editUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Edit docs
+          </a>
+        ) : null}
+      </div>
+
+      <div className="prose prose-invert mt-8 max-w-none">{compiled.content}</div>
     </article>
   );
 }

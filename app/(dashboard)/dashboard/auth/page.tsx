@@ -11,6 +11,8 @@ export default async function DashboardAuthPage({
 }) {
   const sp = await searchParams;
   const ident = typeof sp.ident === "string" ? sp.ident.trim() : "";
+  const returnToRaw = typeof sp.returnTo === "string" ? sp.returnTo.trim() : "";
+  const returnTo = returnToRaw.startsWith("/") ? returnToRaw : "";
 
   if (!ident) {
     redirect("/store?error=missing_ident");
@@ -25,6 +27,6 @@ export default async function DashboardAuthPage({
     redirect("/store?error=dashboard_session_failed");
   }
 
-  redirect("/dashboard");
+  redirect(returnTo || "/dashboard");
 }
 

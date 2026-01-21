@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/site/Logo";
+import { MobileNav } from "@/components/site/MobileNav";
 
 const nav = [
   { href: "/", label: "Home" },
@@ -9,6 +10,7 @@ const nav = [
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/blog", label: "Blog" },
+  { href: "/support", label: "Support" },
   { href: "/contact", label: "Contact" },
   { href: "/store", label: "Store" },
   { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord" },
@@ -30,9 +32,12 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <span className="inline-flex h-9 items-center justify-center rounded-full border border-black/15 px-4 text-sm font-medium text-foreground/80 dark:border-white/15">
-          FiveM Store
-        </span>
+        <div className="flex items-center gap-2">
+          <MobileNav items={nav} />
+          <span className="hidden sm:inline-flex h-9 items-center justify-center rounded-full border border-black/15 px-4 text-sm font-medium text-foreground/80 dark:border-white/15">
+            FiveM Store
+          </span>
+        </div>
       </div>
     </header>
   );
