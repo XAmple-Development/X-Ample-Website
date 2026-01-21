@@ -1,0 +1,73 @@
+---
+title: "X-Ample Civilian Jobs"
+summary: "Install, configure, and troubleshoot X-Ample Civilian Jobs."
+updated: "2026-01-19"
+---
+
+## Overview
+
+X-Ample Civilian Jobs adds multiple civilian job activities for FiveM servers (ESX / QB-Core compatible).
+
+Store page: `/store/package/6375613`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_civilianjobs
+```
+
+If your download folder name differs, **match whatever folder name you placed in `resources/`**.
+
+## Requirements
+
+- ESX or QB-Core (depending on your server)
+- One menu/input option:
+  - `qb-menu` + `qb-input`, or
+  - `ox_lib`
+
+## Install
+
+1. Download the package from Tebex.
+2. Extract the folder into your server’s `resources/` directory.
+3. Add the resource to `server.cfg`:
+
+```
+ensure xample_civilianjobs
+```
+
+4. Restart the server.
+
+## Configuration
+
+- Look for a general config file (commonly `config.lua`) and set:
+  - framework mode (ESX/QB)
+  - pay rates
+  - job enable/disable toggles
+- Some job-specific options may be inside each job’s client file (comments usually mark what to change).
+
+## Troubleshooting
+
+### Nothing happens in-game
+
+- Confirm the resource shows as **started** in console.
+- Ensure your required menu/input dependency is installed and started **before** this resource.
+
+### Errors referencing `qb-menu`, `qb-input`, or `ox_lib`
+
+- Start the dependency first in `server.cfg`:
+
+```
+ensure ox_lib
+ensure xample_civilianjobs
+```
+
+or:
+
+```
+ensure qb-menu
+ensure qb-input
+ensure xample_civilianjobs
+```
+

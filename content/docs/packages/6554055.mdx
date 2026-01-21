@@ -1,0 +1,42 @@
+---
+title: "X-Ample NPC Crew"
+summary: "Install, configure, and troubleshoot X-Ample NPC Crew."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Lets players recruit NPCs that follow/assist/fight with command controls.
+
+Store page: `/store/package/6554055`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure x-ample_npc_crew
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure x-ample_npc_crew
+```
+
+3. Restart server.
+
+## Configuration
+
+- Configure max crew size and behavior rules in `config.lua`.
+
+## Troubleshooting
+
+### NPCs don’t follow / behave incorrectly
+
+- Check OneSync settings.
+- Confirm relationship groups and weapon permissions (if configurable).
+

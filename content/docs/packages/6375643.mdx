@@ -1,0 +1,52 @@
+---
+title: "X-Ample Job Garage"
+summary: "Install, configure, and troubleshoot X-Ample Job Garage."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Job-specific, grade-locked vehicle access for your server.
+
+Store page: `/store/package/6375643`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_jobgarage
+```
+
+## Install
+
+1. Download from Tebex and extract to `resources/`.
+2. Ensure the folder name matches the resource name you `ensure`.
+3. Add to `server.cfg`:
+
+```
+ensure xample_jobgarage
+```
+
+4. Restart the server.
+
+## Configuration
+
+- Configure jobs/grades/vehicles in the config file (usually `config.lua`).
+- Add garage locations + spawn points appropriate for your map.
+
+## Notes (QB Notify replacement)
+
+If you are using the “QB replace” notification snippet mentioned on the store description, make sure you back up your file before editing, then follow the instructions carefully.
+
+## Troubleshooting
+
+### Vehicles don’t spawn
+
+- Check spawn coords/heading in config.
+- Verify the player job/grade matches the configured access rules.
+
+### Script errors on startup
+
+- Confirm framework dependencies are started first (QB-Core/ESX and any target/menu resources you use).
+

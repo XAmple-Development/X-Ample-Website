@@ -1,0 +1,43 @@
+---
+title: "X-Ample Hunting"
+summary: "Install, configure, and troubleshoot X-Ample Hunting."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Adds a hunting gameplay loop (animals, tracking, harvesting).
+
+Store page: `/store/package/6553153`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure x-ample_hunting
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure x-ample_hunting
+```
+
+3. Restart server.
+
+## Configuration
+
+- Configure animal spawns, rewards, and zones in the config file.
+- If it includes item integration, ensure your inventory system has the required items.
+
+## Troubleshooting
+
+### No animals spawn
+
+- Check spawn zones and OneSync settings.
+- Ensure any required framework/inventory dependencies are installed.
+

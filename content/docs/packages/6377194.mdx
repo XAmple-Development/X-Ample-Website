@@ -1,0 +1,45 @@
+---
+title: "X-Ample Hostage"
+summary: "Install, configure, and troubleshoot X-Ample Hostage."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Adds hostage-taking mechanics (commonly QB-Core oriented).
+
+Store page: `/store/package/6377194`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_hostage
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample_hostage
+```
+
+3. Restart server.
+
+## Configuration
+
+- Check config for:
+  - allowed weapons
+  - keybinds / commands
+  - distance checks / animations
+
+## Troubleshooting
+
+### Can’t take hostage
+
+- Confirm both players are close enough and conditions match the script rules.
+- Check console for missing dependency errors.
+

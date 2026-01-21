@@ -1,0 +1,52 @@
+---
+title: "X-Ample Admin"
+summary: "Install, configure, and troubleshoot X-Ample Admin."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Admin menu for QB-Core / ESX servers with metrics, logs, player management, and reports.
+
+Store page: `/store/package/6375849`
+
+## Requirements
+
+- QB-Core or ESX (depending on your server)
+- Database library: typically `oxmysql` (required per store description)
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Ensure your DB library is started first:
+
+```
+ensure oxmysql
+```
+
+3. Add the admin resource to `server.cfg` (use the folder name you installed):
+
+```
+ensure <xample_admin_resource_name>
+```
+
+4. Restart server.
+
+## Configuration
+
+Common tasks:
+- Set framework mode (QB vs ESX)
+- Configure permissions / ACE / groups
+- Configure logging integrations (e.g. qb-logs)
+
+## Troubleshooting
+
+### Menu doesn’t open
+
+- Check permissions/ACE rules for your identifier.
+- Confirm the resource started without errors.
+
+### Database errors
+
+- Verify `oxmysql` is running and your connection string is correct.
+

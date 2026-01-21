@@ -1,0 +1,45 @@
+---
+title: "X-Ample Hydroplaning"
+summary: "Install, configure, and troubleshoot X-Ample Hydroplaning."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Adds hydroplaning mechanics in wet weather conditions (configurable thresholds and weather integration).
+
+Store page: `/store/package/6667932`
+
+## Resource name
+
+The store description references:
+
+```
+ensure xample-hydroplaning
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample-hydroplaning
+```
+
+3. Restart server.
+
+## Configuration
+
+- Check config (`client.lua` / `config.lua`) for:
+  - speed thresholds
+  - affected weather types
+  - grip loss intensity/duration
+
+## Troubleshooting
+
+### Hydroplaning never triggers
+
+- Verify weather integration is enabled and your weather resource isn’t overriding state.
+- Confirm thresholds aren’t set too high.
+

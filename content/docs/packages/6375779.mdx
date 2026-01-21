@@ -1,0 +1,42 @@
+---
+title: "X-Ample HandsUp"
+summary: "Install, configure, and troubleshoot X-Ample HandsUp."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Standalone hands-up action for any framework (default key often `X`).
+
+Store page: `/store/package/6375779`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_handsup
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample_handsup
+```
+
+3. Restart server.
+
+## Configuration
+
+- Change keybind or command (if provided) in the config file.
+
+## Troubleshooting
+
+### Animation plays but cancels
+
+- Check for conflicts with emote/animation resources.
+- Ensure required animation dicts are loading.
+

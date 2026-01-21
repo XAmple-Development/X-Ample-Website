@@ -1,0 +1,45 @@
+---
+title: "X-Ample Billing"
+summary: "Install, configure, and troubleshoot X-Ample Billing."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Basic billing/invoicing script for QB-Core / ESX servers.
+
+Store page: `/store/package/6375773`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_billing
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample_billing
+```
+
+3. Restart server.
+
+## Configuration
+
+- Check config settings for:
+  - allowed jobs
+  - payment handling
+  - commands / permissions
+
+## Troubleshooting
+
+### Bills aren’t created
+
+- Verify the job/role permissions.
+- Confirm framework compatibility mode is correct (QB vs ESX if applicable).
+

@@ -1,0 +1,45 @@
+---
+title: "X-Ample NPC"
+summary: "Install, configure, and troubleshoot X-Ample NPC."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Adds richer NPC interactions for your FiveM server.
+
+Store page: `/store/package/6375658`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_npc
+```
+
+## Install
+
+1. Download and extract the resource into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample_npc
+```
+
+3. Restart server.
+
+## Configuration
+
+- Check `config.lua` (or similar) for:
+  - interaction toggles
+  - keybinds / commands
+  - any target/menu integration
+
+## Troubleshooting
+
+### Interactions don’t trigger
+
+- Confirm the resource is started.
+- If it uses a target system, ensure your target resource is installed/started first.
+

@@ -1,0 +1,42 @@
+---
+title: "X-Ample NPC Interactions"
+summary: "Install, configure, and troubleshoot X-Ample NPC Interactions."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Adds structured NPC interaction systems (dialogue, quests, trades) configured via `config.lua`.
+
+Store page: `/store/package/6554051`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure x-ample_npc_interactions
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure x-ample_npc_interactions
+```
+
+3. Restart server.
+
+## Configuration
+
+- NPC locations, roles, dialogue, and quest options are typically defined in `config.lua`.
+
+## Troubleshooting
+
+### NPCs don’t spawn
+
+- Verify coordinates and model names in config.
+- Ensure any required target/menu dependencies are installed and started first.
+

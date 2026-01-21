@@ -1,0 +1,34 @@
+---
+title: "Vapid Sandstorm Marked/Unmarked NON-ELS"
+summary: "Install and troubleshoot the Vapid Sandstorm (NON-ELS) vehicle package."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Marked + unmarked NON-ELS law enforcement vehicle package.
+
+Store page: `/store/package/7039208`
+
+## Install (typical vehicle resource)
+
+1. Download and extract into `resources/`.
+2. Ensure the resource in `server.cfg` (resource name is the folder name you installed):
+
+```
+ensure <resource_folder_name>
+```
+
+3. Restart server.
+
+## Configuration
+
+- Liveries are usually selectable in-game; if you run a vehicle menu, confirm it supports liveries.
+
+## Troubleshooting
+
+### Lights don’t work / siren issues
+
+- NON-ELS lighting relies on GTA natives; ensure no ELS config is required.
+- Verify your siren/handling meta files are included and loaded.
+

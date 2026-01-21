@@ -1,0 +1,48 @@
+---
+title: "X-Ample Garages"
+summary: "Install, configure, and troubleshoot X-Ample Garages."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Premium garage system for QB-Core servers (public/job/gang/impound, favorites, transfers, search).
+
+Store page: `/store/package/7038989`
+
+## Resource name
+
+The store description references:
+
+```
+ensure x-ample_garages
+```
+
+## Requirements
+
+- QB-Core
+- Database (SQL) – import the included SQL file
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Import the included `.sql` file into your database.
+3. Add to `server.cfg`:
+
+```
+ensure x-ample_garages
+```
+
+4. Restart server.
+
+## Configuration
+
+- Set garage locations, impound rules, fees, and transfer options in `config.lua`.
+
+## Troubleshooting
+
+### Garages open but vehicles don’t show
+
+- Confirm SQL imported successfully.
+- Check database connection / `oxmysql` logs.
+

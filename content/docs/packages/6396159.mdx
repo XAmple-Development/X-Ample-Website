@@ -1,0 +1,43 @@
+---
+title: "X-Ample Weather"
+summary: "Install, configure, and troubleshoot X-Ample Weather."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Standalone dynamic weather control for FiveM.
+
+Store page: `/store/package/6396159`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_weather
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample_weather
+```
+
+3. Restart server.
+
+## Configuration
+
+- Adjust weather cycles/durations/transitions in the config file.
+- If commands are provided, lock them behind admin permissions.
+
+## Troubleshooting
+
+### Weather doesn’t change
+
+- Verify no other weather resource is overriding it.
+- Check config for “enable” toggles / permissions.
+

@@ -1,0 +1,37 @@
+---
+title: "X-Ample Notify"
+summary: "Install and troubleshoot X-Ample Notify."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Notification system replacement (commonly used with QB-Core).
+
+Store page: `/store/package/6377181`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure x-ample_notify
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure x-ample_notify
+```
+
+3. Restart server.
+
+## Troubleshooting
+
+### Old notifications still show
+
+- Disable the old notify resource (e.g. `qb-notify`) and restart.
+

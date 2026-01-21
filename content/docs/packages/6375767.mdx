@@ -1,0 +1,42 @@
+---
+title: "X-Ample FingerPoint"
+summary: "Install and troubleshoot X-Ample FingerPoint."
+updated: "2026-01-19"
+---
+
+## Overview
+
+Adds a pointing animation (default key: `B`) aligned with camera direction.
+
+Store page: `/store/package/6375767`
+
+## Resource name
+
+Most installs use:
+
+```
+ensure xample_fingerpoint
+```
+
+## Install
+
+1. Download and extract into `resources/`.
+2. Add to `server.cfg`:
+
+```
+ensure xample_fingerpoint
+```
+
+3. Restart server.
+
+## Configuration
+
+- If a config exists, you can typically change the keybind and animation options.
+
+## Troubleshooting
+
+### Key does nothing
+
+- Check if another resource is binding the same key.
+- Confirm the resource is started.
+
