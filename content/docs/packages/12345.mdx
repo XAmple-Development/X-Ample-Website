@@ -1,0 +1,36 @@
+---
+title: "Package Docs (Example)"
+summary: "Example install + troubleshooting template for a package."
+updated: "2026-01-21"
+---
+
+## Install
+
+1. Download the resource from Tebex.
+2. Extract it into your server’s `resources/` folder.
+3. Add it to your `server.cfg`:
+
+```
+ensure xa_example_resource
+```
+
+4. Restart the server and confirm the resource started without errors.
+
+## Configuration
+
+- Open the resource config file (if included) and set your framework/integration options.
+- If the package uses SQL, import the included `.sql` file into your database.
+
+## Troubleshooting
+
+### The resource won’t start
+
+- Check your server console for errors.
+- Verify the folder name matches the resource name in `ensure ...`.
+- Ensure your server artifacts are up-to-date.
+
+### UI doesn’t show / NUI errors
+
+- Clear your client cache.
+- Check for blocked asset URLs or CSP issues if you’re running a strict proxy setup.
+

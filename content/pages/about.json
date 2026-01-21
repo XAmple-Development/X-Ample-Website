@@ -14,6 +14,14 @@
     {
       "title": "Support & iteration",
       "body": "We listen, fix issues quickly, and keep improving."
+    },
+    {
+      "title": "Security first",
+      "body": "Security is our top priority, we ensure that all our scripts are secure and up to date."
+    },
+    {
+      "title": "Privacy focused",
+      "body": "We ensure that all our scripts are privacy focused and do not collect any personal data."
     }
   ]
 }
