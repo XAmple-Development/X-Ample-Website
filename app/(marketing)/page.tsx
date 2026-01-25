@@ -2,6 +2,7 @@ import Link from "next/link";
 import path from "node:path";
 import { readJsonFile } from "@/lib/content";
 import type { Metadata } from "next";
+import { priceText, tebexAccountToken, tebexFetch, type TebexMoney, type TebexPackage } from "@/lib/tebex";
 
 type HomeContent = {
   kicker: string;
@@ -154,6 +155,8 @@ export default async function HomePage() {
         />
       </div>
 
+      <FeaturedPackages />
+
       {/* Final CTA */}
       <div className="rounded-3xl border border-black/10 bg-background p-8 dark:border-white/10 sm:p-10">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -213,6 +216,96 @@ function Card({
         </Link>
       </div>
     </div>
+  );
+}
+
+type FeaturedPkg = Pick<TebexPackage, "id" | "name" | "image" | "description" | "price" | "base_price" | "total_price">;
+
+function parseFeaturedIds(): string[] {
+  const raw = process.env.NEXT_PUBLIC_FEATURED_PACKAGE_IDS || "";
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function extractPackages(payload: any): FeaturedPkg[] {
+  if (!payload) return [];
+  if (Array.isArray(payload?.data)) return payload.data as FeaturedPkg[];
+  if (Array.isArray(payload?.data?.packages)) return payload.data.packages as FeaturedPkg[];
+  if (Array.isArray(payload?.packages)) return payload.packages as FeaturedPkg[];
+  if (Array.isArray(payload)) return payload as FeaturedPkg[];
+  return [];
+}
+
+async function FeaturedPackages() {
+  const featuredIds = parseFeaturedIds();
+  if (!featuredIds.length) return null;
+
+  let packages: FeaturedPkg[] = [];
+  try {
+    const token = tebexAccountToken();
+    const raw = await tebexFetch<any>(`/accounts/${encodeURIComponent(token)}/packages`, { method: "GET" });
+    packages = extractPackages(raw);
+  } catch {
+    // If Tebex env vars aren't set (e.g. local dev), just skip rendering.
+    return null;
+  }
+
+  const byId = new Map(packages.map((p) => [String(p.id), p]));
+  const featured = featuredIds.map((id) => byId.get(String(id))).filter(Boolean) as FeaturedPkg[];
+  if (!featured.length) return null;
+
+  return (
+    <section className="rounded-3xl border border-black/10 bg-background p-6 dark:border-white/10 sm:p-8">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold">Featured packages</div>
+          <div className="mt-1 text-sm text-foreground/70">Our top picks to upgrade your server fast.</div>
+        </div>
+        <Link className="text-sm underline opacity-80 hover:opacity-100" href="/store">
+          View all
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {featured.map((p) => {
+          const id = String(p.id);
+          const money: TebexMoney | undefined = (p.total_price ?? p.price ?? p.base_price) as any;
+          const price = priceText(money);
+          const desc = typeof p.description === "string" ? p.description.replace(/<[^>]*>/g, "") : "";
+
+          return (
+            <div key={id} className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
+              {p.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  className="h-36 w-full rounded-xl border border-black/10 object-cover dark:border-white/10"
+                />
+              ) : null}
+
+              <div className="mt-3 flex items-baseline justify-between gap-3">
+                <div className="min-w-0 truncate text-sm font-semibold">{p.name}</div>
+                <div className="shrink-0 text-xs opacity-70">{price || `ID: ${id}`}</div>
+              </div>
+
+              {desc ? <div className="mt-2 text-sm opacity-80 line-clamp-2">{desc}</div> : null}
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Link className="rounded-lg bg-black px-3 py-2 text-center text-sm text-white hover:opacity-90" href={`/store/package/${id}`}>
+                  View
+                </Link>
+                <Link className="rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5" href={`/docs/package/${id}`}>
+                  Docs
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
