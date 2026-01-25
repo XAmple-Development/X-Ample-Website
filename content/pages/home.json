@@ -11,6 +11,20 @@
     },
     { "title": "Clear docs", "body": "Easy installation and configuration." },
     { "title": "Active support", "body": "We iterate quickly and listen." }
+  ],
+  "socialProof": {
+    "headline": "Built for real servers",
+    "items": [
+      { "label": "Instant delivery", "value": "Tebex checkout" },
+      { "label": "Documentation", "value": "Per-package guides" },
+      { "label": "Support", "value": "Tickets + Discord" }
+    ]
+  },
+  "quickLinks": [
+    { "label": "Browse Store", "href": "/store" },
+    { "label": "Read Docs", "href": "/docs" },
+    { "label": "Get Support", "href": "/support" },
+    { "label": "View Vacancies", "href": "/vacancies" }
   ]
 }
 
