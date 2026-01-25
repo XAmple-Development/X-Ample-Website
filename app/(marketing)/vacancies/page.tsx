@@ -51,7 +51,7 @@ export default async function VacanciesPage() {
     <div className="mx-auto max-w-4xl">
       <h1 className="text-3xl font-semibold tracking-tight">Vacancies</h1>
       <p className="mt-4 text-lg leading-8 text-foreground/75">
-        We’re always looking for talented people to help build premium FiveM experiences.
+        We’re always looking for talented people to help us build the future of Development.
       </p>
 
       {rows.length ? (

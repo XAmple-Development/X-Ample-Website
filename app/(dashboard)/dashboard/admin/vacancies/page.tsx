@@ -75,7 +75,7 @@ export default async function AdminVacanciesPage() {
               <input name="apply_url" className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="https://…" />
             </Field>
             <Field label="Apply email (optional)">
-              <input name="apply_email" className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="jobs@x-ampledevelopment.co.uk" />
+              <input name="apply_email" className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="info@x-ampledevelopment.co.uk" />
             </Field>
           </div>
 
