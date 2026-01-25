@@ -29,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/contact`, lastModified: now },
     { url: `${base}/store`, lastModified: now },
     { url: `${base}/docs`, lastModified: now },
+    { url: `${base}/vacancies`, lastModified: now },
   ];
 
   const blog = await listBlogPosts().catch(() => []);

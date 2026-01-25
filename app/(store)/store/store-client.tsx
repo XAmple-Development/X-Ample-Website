@@ -46,6 +46,10 @@ type Identity = { label: string };
 const LS_KEY = "tebex_basket_ident";
 const LS_IDENTITY_KEY = "tebex_identity_label";
 
+type StoreConfig = {
+  featuredPackageIds?: string[];
+};
+
 function formatMoneyMajor(amountMajor: number, currency?: string) {
   const c =
     typeof currency === "string" && /^[A-Z]{3}$/i.test(currency.trim())
@@ -224,6 +228,15 @@ function extractCategories(payload: any): Category[] {
 export default function StoreClient() {
   const [loading, setLoading] = useState(true);
 
+  const config: StoreConfig = (() => {
+    const raw = process.env.NEXT_PUBLIC_FEATURED_PACKAGE_IDS || "";
+    const featuredPackageIds = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return { featuredPackageIds };
+  })();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
@@ -233,6 +246,7 @@ export default function StoreClient() {
 
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   // Restore basket ident + identity from localStorage first
   useEffect(() => {
@@ -381,6 +395,31 @@ export default function StoreClient() {
     if (!activeCategoryId) return categories[0] ?? null;
     return categories.find((c) => String(c.id ?? c.category_id ?? "") === activeCategoryId) ?? categories[0] ?? null;
   }, [categories, activeCategoryId]);
+
+  const q = query.trim().toLowerCase();
+  const filteredPackages = useMemo(() => {
+    const pkgs = (activeCategory?.packages ?? []) as Package[];
+    if (!q) return pkgs;
+    return pkgs.filter((p) => {
+      const name = String(p.name ?? p.package?.name ?? "").toLowerCase();
+      const desc = String(p.description ?? "").replace(/<[^>]*>/g, "").toLowerCase();
+      return name.includes(q) || desc.includes(q);
+    });
+  }, [activeCategory, q]);
+
+  const featuredPackages = useMemo(() => {
+    const ids = new Set((config.featuredPackageIds ?? []).map((s) => s.trim()).filter(Boolean));
+    if (!ids.size) return [];
+    const all = categories.flatMap((c) => c.packages ?? []);
+    const byId = new Map<string, Package>();
+    for (const p of all) {
+      const pid = packageIdStr(p);
+      if (pid) byId.set(pid, p);
+    }
+    return Array.from(ids)
+      .map((id) => byId.get(id))
+      .filter(Boolean) as Package[];
+  }, [categories, config.featuredPackageIds]);
 
   const checkoutUrl =
     basket?.data?.links?.checkout ??
@@ -648,13 +687,90 @@ export default function StoreClient() {
       <section className="rounded-xl border p-4">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="text-lg font-semibold">{activeCategory?.name ?? "Packages"}</h2>
+          <div className="w-full max-w-xs">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search packages…"
+              className="w-full rounded-lg border px-3 py-2 text-sm"
+            />
+          </div>
         </div>
+
+        {featuredPackages.length ? (
+          <div className="mt-4 rounded-xl border p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="text-sm font-semibold">Featured</div>
+              <div className="text-xs opacity-70">Hand-picked</div>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredPackages.map((p, idx) => {
+                const pid = packageIdStr(p);
+                const disabledAdd = !!busy || !isAuthenticated || !pid;
+
+                const priceSource =
+                  p.total_price ??
+                  p.price ??
+                  p.base_price ??
+                  p.package?.total_price ??
+                  p.package?.price ??
+                  p.package?.base_price;
+                const price = priceText(priceSource);
+
+                return (
+                  <div key={pid ?? `${p.name ?? "pkg"}-${idx}`} className="rounded-xl border p-4">
+                    {pid ? (
+                      <a href={`/store/package/${pid}`} className="hover:underline">
+                        <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
+                      </a>
+                    ) : (
+                      <div className="text-sm font-semibold">{p.name ?? p.package?.name ?? "Package"}</div>
+                    )}
+
+                    <div className="mt-3 text-sm">{price ? price : <span className="opacity-70">Price unavailable</span>}</div>
+
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {pid ? (
+                        <>
+                          <a className="rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5" href={`/store/package/${pid}`}>
+                            View
+                          </a>
+                          <a className="rounded-lg border px-3 py-2 text-center text-sm hover:bg-black/5" href={`/docs/package/${pid}`}>
+                            Docs
+                          </a>
+                        </>
+                      ) : (
+                        <>
+                          <button className="rounded-lg border px-3 py-2 text-sm opacity-60" disabled>
+                            View
+                          </button>
+                          <button className="rounded-lg border px-3 py-2 text-sm opacity-60" disabled>
+                            Docs
+                          </button>
+                        </>
+                      )}
+
+                      <button
+                        className="rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-60"
+                        disabled={disabledAdd}
+                        onClick={() => addToBasket(p)}
+                        title={!pid ? "Missing package id" : !isAuthenticated ? "Login (FiveM) first" : undefined}
+                      >
+                        {busy === `add:${pid}` ? "Adding…" : "Add"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {loading ? (
           <div className="mt-4 text-sm opacity-60">Loading packages…</div>
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(activeCategory?.packages ?? []).map((p, idx) => {
+            {filteredPackages.map((p, idx) => {
               const pid = packageIdStr(p);
               const disabledAdd = !!busy || !isAuthenticated || !pid;
 

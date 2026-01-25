@@ -29,11 +29,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "X-Ample Development",
+    url: process.env.SITE_URL || "https://x-ampledevelopment.co.uk",
+    sameAs: ["https://discord.gg/PfUWNvnT8Y"],
+  };
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
         <Plausible />
         <SiteShell>{children}</SiteShell>
       </body>
