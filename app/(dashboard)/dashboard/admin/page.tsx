@@ -79,6 +79,12 @@ export default async function AdminPage() {
         </div>
       </div>
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" href="/dashboard/admin/vacancies">
+          Manage vacancies
+        </Link>
+      </div>
+
       <form className="mt-4" action="/api/dashboard/admin/sync-purchases" method="post">
         <button className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" type="submit">
           Sync purchases (Plugin API)

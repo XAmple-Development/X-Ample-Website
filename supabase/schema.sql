@@ -76,3 +76,23 @@ create table if not exists public.system_state (
   updated_at timestamptz not null default now()
 );
 
+-- Vacancies (editable by dashboard admins)
+create table if not exists public.vacancies (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  title text not null,
+  location text,
+  type text,
+  salary text,
+  body_mdx text not null,
+  apply_url text,
+  apply_email text,
+  status text not null default 'draft', -- open|closed|draft
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_vacancies_status on public.vacancies (status);
+create index if not exists idx_vacancies_published_at on public.vacancies (published_at desc);
+
