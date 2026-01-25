@@ -5,7 +5,6 @@ import { isAdminForSession } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase";
 import {
   normalizeEmail,
-  normalizePublishedAt,
   normalizeStatus,
   normalizeUrl,
   safeTrim,
@@ -42,10 +41,12 @@ export async function POST(req: NextRequest) {
   const apply_url = normalizeUrl(form.get("apply_url"));
   const apply_email = normalizeEmail(form.get("apply_email"));
   const status = normalizeStatus(form.get("status"));
-  const published_at = normalizePublishedAt(form.get("published_at"));
 
   const now = new Date().toISOString();
   const sb = supabaseAdmin();
+
+  // Auto publish time when status is open.
+  const published_at = status === "open" ? now : null;
 
   const ins = await sb
     .from("vacancies")

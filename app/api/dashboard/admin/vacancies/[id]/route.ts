@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth";
 import { isAdminForSession } from "@/lib/admin";
 import { supabaseAdmin } from "@/lib/supabase";
-import { normalizeEmail, normalizePublishedAt, normalizeStatus, normalizeUrl, safeTrim, slugify } from "@/lib/vacancies";
+import { normalizeEmail, normalizeStatus, normalizeUrl, safeTrim, slugify } from "@/lib/vacancies";
 
 export const runtime = "nodejs";
 
@@ -53,7 +53,7 @@ export async function POST(
   const apply_url = normalizeUrl(form.get("apply_url"));
   const apply_email = normalizeEmail(form.get("apply_email"));
   const status = normalizeStatus(form.get("status"));
-  const published_at = normalizePublishedAt(form.get("published_at"));
+  const now = new Date().toISOString();
 
   const patch: Record<string, unknown> = {
     location,
@@ -63,11 +63,17 @@ export async function POST(
     apply_url,
     apply_email,
     status,
-    published_at,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
   if (title) patch.title = title;
   if (slug) patch.slug = slug;
+
+  // Auto publish time when status is open and not already published.
+  if (status === "open") {
+    const { data } = await sb.from("vacancies").select("published_at").eq("id", vacancyId).maybeSingle();
+    const existing = (data as any)?.published_at as string | null | undefined;
+    if (!existing) patch.published_at = now;
+  }
 
   const upd = await sb.from("vacancies").update(patch).eq("id", vacancyId);
   if (upd.error) {

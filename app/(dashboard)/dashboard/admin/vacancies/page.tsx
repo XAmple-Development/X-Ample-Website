@@ -87,8 +87,8 @@ export default async function AdminVacanciesPage() {
                 <option value="closed">closed</option>
               </select>
             </Field>
-            <Field label="Published at (optional)">
-              <input name="published_at" className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="2026-01-25T12:00:00Z" />
+            <Field label="Publish date">
+              <div className="rounded-lg border px-3 py-2 text-sm opacity-70">Auto-set when status becomes open.</div>
             </Field>
           </div>
 
@@ -175,13 +175,10 @@ export default async function AdminVacanciesPage() {
                           <option value="closed">closed</option>
                         </select>
                       </Field>
-                      <Field label="Published at (ISO, optional)">
-                        <input
-                          name="published_at"
-                          className="w-full rounded-lg border px-3 py-2 text-sm"
-                          defaultValue={v.published_at ?? ""}
-                          placeholder="2026-01-25T12:00:00Z"
-                        />
+                      <Field label="Published">
+                        <div className="rounded-lg border px-3 py-2 text-sm opacity-70">
+                          {v.published_at ? new Date(v.published_at).toLocaleString() : "Not published yet (auto-set when opened)."}
+                        </div>
                       </Field>
                     </div>
 
