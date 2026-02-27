@@ -1,7 +1,5 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSessionFromRequest } from "@/lib/auth";
-import { isAdminForSession } from "@/lib/admin";
 
 const FALLBACK_CANONICAL = "https://x-ampledevelopment.co.uk";
 
@@ -16,10 +14,7 @@ function canonicalOrigin(): string | null {
 }
 
 export async function proxy(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
-
-  // If a user lands on a Netlify deploy-preview domain, force them onto the canonical domain.
-  // Otherwise cookies like `xa_session` won't exist on the new host and it looks like a sign-out.
+  // If a user lands on a Netlify deploy-preview domain, redirect to the canonical domain.
   const host = req.headers.get("host") ?? "";
   const canonical = canonicalOrigin();
   if (canonical && host.endsWith(".netlify.app")) {
@@ -29,36 +24,6 @@ export async function proxy(req: NextRequest) {
     next.host = canon.host;
     return NextResponse.redirect(next, 308);
   }
-
-  // Allow auth callback without an existing session.
-  // Use startsWith to handle trailing slashes.
-  if (pathname.startsWith("/dashboard/auth")) return NextResponse.next();
-
-  // Only gate dashboard pages + dashboard APIs. Everything else (marketing, store, docs, Tebex webhooks, cron) is public.
-  const isDashboardPath = pathname.startsWith("/dashboard") || pathname.startsWith("/api/dashboard");
-  if (!isDashboardPath) return NextResponse.next();
-
-  const session = await getSessionFromRequest(req);
-  if (!session) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/store";
-    url.search = "";
-    url.searchParams.set("error", "login_required");
-    return NextResponse.redirect(url);
-  }
-
-  // Admin gating
-  const isAdminPath = pathname.startsWith("/dashboard/admin") || pathname.startsWith("/api/dashboard/admin");
-  if (isAdminPath && !(await isAdminForSession(session))) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
-    url.searchParams.set("error", "admin_required");
-    return NextResponse.redirect(url);
-  }
-
-  // Keep existing query params; no changes needed.
-  void searchParams;
   return NextResponse.next();
 }
 

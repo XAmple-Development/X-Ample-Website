@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { listBlogPosts } from "@/lib/blog";
-import { listPackageDocMetas } from "@/lib/docs";
 
 function siteBaseUrl() {
   return (
@@ -27,8 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/portfolio`, lastModified: now },
     { url: `${base}/blog`, lastModified: now },
     { url: `${base}/contact`, lastModified: now },
-    { url: `${base}/store`, lastModified: now },
-    { url: `${base}/docs`, lastModified: now },
+    { url: `${base}/support`, lastModified: now },
     { url: `${base}/vacancies`, lastModified: now },
   ];
 
@@ -38,14 +36,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: safeDate(p.date),
   }));
 
-  const docs = await listPackageDocMetas().catch(() => []);
-  const docRoutes: MetadataRoute.Sitemap = docs
-    .filter((d) => d.id)
-    .map((d) => ({
-      url: `${base}/docs/package/${encodeURIComponent(d.id)}`,
-      lastModified: safeDate(d.updated),
-    }));
-
-  return [...staticRoutes, ...blogRoutes, ...docRoutes];
+  return [...staticRoutes, ...blogRoutes];
 }
 

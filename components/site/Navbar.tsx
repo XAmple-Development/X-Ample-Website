@@ -4,8 +4,6 @@ import { MobileNav } from "@/components/site/MobileNav";
 
 const nav = [
   { href: "/", label: "Home" },
-  { href: "/store", label: "Store" },
-  { href: "/docs", label: "Docs" },
   { href: "/support", label: "Support" },
   { href: "/about", label: "About" },
   { href: "/team", label: "Team" },
@@ -31,12 +29,7 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <MobileNav items={nav} />
-          <span className="hidden sm:inline-flex h-9 items-center justify-center rounded-full border border-black/15 px-4 text-sm font-medium text-foreground/80 dark:border-white/15">
-            FiveM Store
-          </span>
-        </div>
+        <MobileNav items={nav} />
       </div>
     </header>
   );

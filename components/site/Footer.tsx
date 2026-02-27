@@ -14,16 +14,10 @@ export function Footer() {
           <div className="grid gap-4 sm:grid-cols-3 text-sm">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60">
-                Product
-              </p>
-              <Link className="block text-foreground/80 hover:text-foreground" href="/store">
-                Store
-              </Link>
-              <Link className="block text-foreground/80 hover:text-foreground" href="/docs">
-                Docs
-              </Link>
-              <Link className="block text-foreground/80 hover:text-foreground" href="/support">
                 Support
+              </p>
+              <Link className="block text-foreground/80 hover:text-foreground" href="/support">
+                Get support
               </Link>
             </div>
             <div className="space-y-2">
