@@ -66,9 +66,15 @@ Notes:
 
 **Vacancies** – Managed via the **content admin** at `/admin/vacancies`:
 
-- Set `CONTENT_ADMIN_SECRET` in your environment (min 8 characters). This is the password to access the vacancy admin.
+- Set `CONTENT_ADMIN_SECRET` in your environment (min 8 characters). This is the password to access the content admin.
 - Go to `https://your-site.co.uk/admin/vacancies`. You’ll be redirected to `/admin/login` until you sign in with that password.
 - Create, edit, and delete vacancies. Data is stored in **Supabase** (`vacancies` table). Set status to **Open** and a **Published at** date for a vacancy to appear on the public site.
+
+**Team** – Managed at `/admin/team` (same content admin password):
+
+- Edit the **page intro** and manage **team members** (name, role, bio, avatar, Discord/GitHub/Twitter links, sort order).
+- Data is stored in **Supabase** (`team_page` and `team_members` tables). Run the new SQL in `supabase/schema.sql` (team_page + team_members) if you haven’t already.
+- If Supabase team data is missing, the public Team page falls back to `content/pages/team.json`.
 
 ### CMS (Decap / Netlify CMS)
 

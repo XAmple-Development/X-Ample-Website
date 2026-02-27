@@ -96,3 +96,29 @@ create table if not exists public.vacancies (
 create index if not exists idx_vacancies_status on public.vacancies (status);
 create index if not exists idx_vacancies_published_at on public.vacancies (published_at desc);
 
+-- Team page (content admin): singleton intro + members
+create table if not exists public.team_page (
+  id int primary key default 1 check (id = 1),
+  intro text not null default 'Meet the people behind X-Ample.',
+  updated_at timestamptz not null default now()
+);
+
+insert into public.team_page (id, intro) values (1, 'Meet the people behind X-Ample.')
+on conflict (id) do nothing;
+
+create table if not exists public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  role text,
+  bio text,
+  avatar_url text,
+  discord_url text,
+  github_url text,
+  twitter_url text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_team_members_sort on public.team_members (sort_order asc, updated_at desc);
+
