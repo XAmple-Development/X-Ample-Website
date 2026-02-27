@@ -4,14 +4,14 @@ import { MobileNav } from "@/components/site/MobileNav";
 
 const nav = [
   { href: "/", label: "Home" },
+  { href: "/store", label: "Store" },
+  { href: "/docs", label: "Docs" },
+  { href: "/support", label: "Support" },
   { href: "/about", label: "About" },
   { href: "/team", label: "Team" },
   { href: "/vacancies", label: "Vacancies" },
-  { href: "/docs", label: "Docs" },
   { href: "/blog", label: "Blog" },
-  { href: "/support", label: "Support" },
   { href: "/contact", label: "Contact" },
-  { href: "/store", label: "Store" },
   { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord" },
 ];
 
