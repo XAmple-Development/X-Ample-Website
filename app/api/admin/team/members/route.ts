@@ -42,6 +42,15 @@ export async function POST(req: Request) {
 
   const sb = supabaseAdmin();
   const { data, error } = await sb.from("team_members").insert(row).select("id").single();
-  if (error) return NextResponse.json({ error: "Failed to create team member." }, { status: 500 });
+  if (error) {
+    const message =
+      error.code === "42P01"
+        ? "Team table missing. Run the SQL in supabase/schema.sql (team_page and team_members) in your Supabase SQL editor."
+        : error.code === "42501"
+          ? "Permission denied. Ensure your Supabase project uses the service role key and RLS allows inserts for the API."
+          : error.message || "Failed to create team member.";
+    console.error("team_members insert error:", error.code, error.message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
   return NextResponse.json({ id: data.id });
 }
