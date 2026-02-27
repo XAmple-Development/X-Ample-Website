@@ -46,26 +46,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
     }
 
-    // Notify admin via Resend (same as contact form)
+    // Send emails via Resend (admin notification + auto-reply to signup)
     const apiKey = process.env.RESEND_API_KEY;
     if (apiKey) {
       const resend = new Resend(apiKey);
-      const subject = `Waitlist signup: ${email}`;
-      const text = `A new person joined the waitlist.\n\nEmail: ${email}\nTime: ${new Date().toISOString()}`;
-      const html = `
+
+      // 1) Notify admin
+      const adminSubject = `Waitlist signup: ${email}`;
+      const adminText = `A new person joined the waitlist.\n\nEmail: ${email}\nTime: ${new Date().toISOString()}`;
+      const adminHtml = `
         <p><strong>New waitlist signup</strong></p>
         <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
         <p><strong>Time:</strong> ${escapeHtml(new Date().toISOString())}</p>
       `.trim();
-      const { error: sendError } = await resend.emails.send({
+      const { error: adminError } = await resend.emails.send({
         from: FROM_EMAIL,
         to: [NOTIFY_EMAIL],
         replyTo: email,
-        subject,
-        text,
-        html,
+        subject: adminSubject,
+        text: adminText,
+        html: adminHtml,
       });
-      if (sendError) console.error("waitlist notify email error:", sendError);
+      if (adminError) console.error("waitlist notify email error:", adminError);
+
+      // 2) Auto-reply to the person who signed up
+      const replySubject = "You're on the list – X-Ample Development";
+      const replyText = `Thanks for joining the waitlist!\n\nWe'll be in touch when we have updates, new releases, or early access to share.\n\nIn the meantime, feel free to reach out at ${NOTIFY_EMAIL} or via our website.\n\n— X-Ample Development`;
+      const replyHtml = `
+        <p>Thanks for joining the waitlist!</p>
+        <p>We'll be in touch when we have updates, new releases, or early access to share.</p>
+        <p>In the meantime, feel free to <a href="mailto:${escapeHtml(NOTIFY_EMAIL)}">reach out</a> or visit our website.</p>
+        <p>— X-Ample Development</p>
+      `.trim();
+      const { error: replyError } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: [email],
+        subject: replySubject,
+        text: replyText,
+        html: replyHtml,
+      });
+      if (replyError) console.error("waitlist auto-reply error:", replyError);
     }
 
     return NextResponse.json({ success: true });

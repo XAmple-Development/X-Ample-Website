@@ -18,19 +18,22 @@ type HomeContent = {
   quickLinks?: Array<{ label: string; href: string }>;
 };
 
+const homeDescription =
+  "Premium FiveM scripts, Discord bots, websites, and custom development. Bug fixes, performance tuning, and clean UX. Get in touch or join the waitlist.";
+
 export const metadata: Metadata = {
   title: "Home",
-  description: "Premium FiveM scripts, MLOs, and experiences built for performance, clarity, and clean UX.",
+  description: homeDescription,
   openGraph: {
     title: "X-Ample Development",
-    description: "Premium FiveM scripts, MLOs, and experiences built for performance, clarity, and clean UX.",
+    description: homeDescription,
     url: "/",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "X-Ample Development",
-    description: "Premium FiveM scripts, MLOs, and experiences built for performance, clarity, and clean UX.",
+    description: homeDescription,
   },
 };
 

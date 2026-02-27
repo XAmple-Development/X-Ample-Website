@@ -14,14 +14,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://x-ampledevelopment.co.uk";
+const defaultDescription =
+  "X-Ample Development Studios: FiveM scripts, Discord bots, websites, and custom development. Bug fixes, performance tuning, and support.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl.replace(/\/+$/, "")),
   title: {
     default: "X-Ample Development",
     template: "%s · X-Ample Development",
   },
-  description:
-    "X-Ample Development Studios builds high-quality FiveM scripts, MLOs, and experiences.",
-  metadataBase: process.env.SITE_URL ? new URL(process.env.SITE_URL) : undefined,
+  description: defaultDescription,
+  keywords: [
+    "FiveM",
+    "Discord bots",
+    "custom development",
+    "X-Ample Development",
+    "game development",
+    "web development",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "en_GB",
+    siteName: "X-Ample Development",
+    description: defaultDescription,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "X-Ample Development" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    description: defaultDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -33,7 +59,7 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "X-Ample Development",
-    url: process.env.SITE_URL || "https://x-ampledevelopment.co.uk",
+    url: siteUrl,
     sameAs: ["https://discord.gg/PfUWNvnT8Y"],
   };
 
