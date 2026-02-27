@@ -1,30 +1,62 @@
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Services",
+  description:
+    "FiveM scripts, Discord bots, websites, bug fixing, performance tuning, and custom development from X-Ample Development.",
 };
+
+const services = [
+  {
+    title: "FiveM scripts",
+    body: "Gameplay systems, UIs, and integrations for ESX, QBCore, and standalone. From small utilities to full frameworks.",
+  },
+  {
+    title: "MLOs & mapping",
+    body: "High-quality interiors and environments built for performance and visual consistency.",
+  },
+  {
+    title: "Discord bots",
+    body: "Custom bots for moderation, automation, ticketing, roles, and community tools. We build and host to your specs.",
+  },
+  {
+    title: "Websites & web apps",
+    body: "Marketing sites, dashboards, and web applications. Modern stacks, clear design, and maintainable code.",
+  },
+  {
+    title: "Bug hunting & fixes",
+    body: "Strange behaviour, crashes, or logic errors? We track them down, fix the root cause, and document the change.",
+  },
+  {
+    title: "Performance & optimization",
+    body: "Lag, stutter, or high resource usage? We profile, identify bottlenecks, and optimize so things run smoothly.",
+  },
+  {
+    title: "UI/UX polish",
+    body: "Modern interfaces with consistent patterns, accessibility, and great readability across your products.",
+  },
+  {
+    title: "Custom development",
+    body: "From concept to delivery: new features, refactors, integrations, and ongoing support when you need it.",
+  },
+];
 
 export default function ServicesPage() {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-4xl">
       <h1 className="text-3xl font-semibold tracking-tight">Services</h1>
       <p className="mt-4 text-lg leading-8 text-foreground/75">
-        X-Ample Development builds FiveM assets and custom solutions. If you
-        need something bespoke, we can scope it and deliver with clean UX and
-        maintainable code.
+        X-Ample Development builds FiveM assets, Discord bots, websites, and custom solutions.
+        We also fix bugs, tackle performance issues, and polish UI/UX. If you need something
+        bespoke or a problem solved, we can scope it and deliver with clean, maintainable code.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Card title="FiveM scripts">
-          Gameplay systems, UIs, and integrations (ESX / QB / standalone).
-        </Card>
-        <Card title="MLOs & mapping">
-          High-quality interiors and environments built for performance.
-        </Card>
-        <Card title="UI/UX polish">
-          Modern interfaces with consistent patterns and great readability.
-        </Card>
-        <Card title="Custom work">
-          From concept to delivery: features, optimization, and support.
-        </Card>
+        {services.map((s) => (
+          <Card key={s.title} title={s.title}>
+            {s.body}
+          </Card>
+        ))}
       </div>
     </div>
   );

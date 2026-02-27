@@ -24,6 +24,9 @@ export function Footer() {
               <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60">
                 Studio
               </p>
+              <Link className="block text-foreground/80 hover:text-foreground" href="/services">
+                Services
+              </Link>
               <Link className="block text-foreground/80 hover:text-foreground" href="/about">
                 About
               </Link>
