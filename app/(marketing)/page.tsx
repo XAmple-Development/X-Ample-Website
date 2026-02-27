@@ -1,6 +1,7 @@
 import Link from "next/link";
 import path from "node:path";
 import { readJsonFile } from "@/lib/content";
+import { WaitlistSignup } from "@/components/site/WaitlistSignup";
 import type { Metadata } from "next";
 
 type HomeContent = {
@@ -153,6 +154,8 @@ export default async function HomePage() {
           cta="Read blog"
         />
       </div>
+
+      <WaitlistSignup />
 
       {/* Final CTA */}
       <div className="rounded-3xl border border-black/10 bg-background p-8 dark:border-white/10 sm:p-10">

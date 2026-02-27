@@ -48,6 +48,14 @@ export default function AdminTeamPage() {
     if (!res.ok) setError("Failed to save intro.");
   }
 
+  async function deleteMember(id: string, name: string) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    setError("");
+    const res = await fetch(`/api/admin/team/members/${id}`, { method: "DELETE" });
+    if (res.ok) setMembers((prev) => prev.filter((m) => m.id !== id));
+    else setError("Failed to delete member.");
+  }
+
   if (loading) return <p className="text-sm text-foreground/70">Loading…</p>;
 
   return (
@@ -118,6 +126,13 @@ export default function AdminTeamPage() {
                   <Link href={`/admin/team/members/${m.id}/edit`} className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5">
                     Edit
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => deleteMember(m.id, m.name)}
+                    className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))

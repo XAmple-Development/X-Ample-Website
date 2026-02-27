@@ -122,3 +122,13 @@ create table if not exists public.team_members (
 
 create index if not exists idx_team_members_sort on public.team_members (sort_order asc, updated_at desc);
 
+-- Waitlist signup (email collection)
+create table if not exists public.waitlist (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  created_at timestamptz not null default now(),
+  unique (email)
+);
+
+create index if not exists idx_waitlist_created_at on public.waitlist (created_at desc);
+
