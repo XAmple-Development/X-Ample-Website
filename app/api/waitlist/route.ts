@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase";
+
+const NOTIFY_EMAIL = process.env.CONTACT_EMAIL || "info@x-ampledevelopment.co.uk";
+const FROM_EMAIL = process.env.RESEND_FROM || "Contact Form <onboarding@resend.dev>";
 
 function isValidEmail(s: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export async function POST(req: Request) {
@@ -33,6 +45,29 @@ export async function POST(req: Request) {
       console.error("waitlist insert error:", error);
       return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
     }
+
+    // Notify admin via Resend (same as contact form)
+    const apiKey = process.env.RESEND_API_KEY;
+    if (apiKey) {
+      const resend = new Resend(apiKey);
+      const subject = `Waitlist signup: ${email}`;
+      const text = `A new person joined the waitlist.\n\nEmail: ${email}\nTime: ${new Date().toISOString()}`;
+      const html = `
+        <p><strong>New waitlist signup</strong></p>
+        <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
+        <p><strong>Time:</strong> ${escapeHtml(new Date().toISOString())}</p>
+      `.trim();
+      const { error: sendError } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: [NOTIFY_EMAIL],
+        replyTo: email,
+        subject,
+        text,
+        html,
+      });
+      if (sendError) console.error("waitlist notify email error:", sendError);
+    }
+
     return NextResponse.json({ success: true });
   } catch (e) {
     console.error("waitlist error:", e);

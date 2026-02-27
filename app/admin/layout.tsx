@@ -19,6 +19,9 @@ export default function AdminLayout({
             <Link href="/admin/team" className="hover:text-foreground">
               Team
             </Link>
+            <Link href="/admin/waitlist" className="hover:text-foreground">
+              Waitlist
+            </Link>
             <a href="/admin" target="_blank" rel="noreferrer" className="hover:text-foreground">
               Blog (Decap)
             </a>
