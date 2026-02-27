@@ -55,15 +55,30 @@ Notes:
 - Purchases show up in `/dashboard/purchases` after webhooks are received.
 - Support tickets are stored in Supabase (`tickets`, `ticket_messages`).
 
+### Managing content (blog + vacancies)
+
+**Blog** – Managed via **Decap CMS** at `/admin`:
+
+- Open `https://your-site.co.uk/admin` (or `/admin` locally).
+- Log in with **GitHub** (OAuth is configured via Netlify Functions: `oauth-begin`, `oauth-complete`).
+- Use the **Blog** collection to create and edit posts. Content is stored in `content/blog/*.mdx` and committed to your repo.
+- The **Pages** collection edits `content/pages/*.json` (Home, About, Team, etc.).
+
+**Vacancies** – Managed via the **content admin** at `/admin/vacancies`:
+
+- Set `CONTENT_ADMIN_SECRET` in your environment (min 8 characters). This is the password to access the vacancy admin.
+- Go to `https://your-site.co.uk/admin/vacancies`. You’ll be redirected to `/admin/login` until you sign in with that password.
+- Create, edit, and delete vacancies. Data is stored in **Supabase** (`vacancies` table). Set status to **Open** and a **Published at** date for a vacancy to appear on the public site.
+
 ### CMS (Decap / Netlify CMS)
 
-- Admin UI lives at `/admin` (served from `public/admin/`).
-- Uses **Decap CMS + GitHub backend** (Netlify Identity/Git Gateway are deprecated).
+- Decap admin UI lives at `/admin` (served from `public/admin/`).
+- Uses **Decap CMS + GitHub backend**.
 - Configure GitHub OAuth via Netlify Functions:
   - `/.netlify/functions/oauth-begin`
   - `/.netlify/functions/oauth-complete`
 
-Content lives in:
+Content edited in Decap:
 
 - Blog posts: `content/blog/*.mdx`
 - Marketing page data: `content/pages/*.json`
