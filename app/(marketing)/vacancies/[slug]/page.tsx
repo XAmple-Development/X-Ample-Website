@@ -15,10 +15,25 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const s = slug.trim();
+  const path = `/vacancies/${encodeURIComponent(s)}`;
+  const desc = s
+    ? `Vacancy: ${s} at X-Ample Development. View role details and how to apply.`
+    : "Vacancy at X-Ample Development.";
   return {
-    title: s ? `Vacancy · ${s}` : "Vacancy",
-    description: "Vacancy at X-Ample Development.",
-    openGraph: { url: `/vacancies/${encodeURIComponent(s)}` },
+    title: s ? s : "Vacancy",
+    description: desc,
+    alternates: { canonical: path },
+    openGraph: {
+      title: s ? `${s} · Vacancies · X-Ample Development` : "Vacancy · X-Ample Development",
+      description: desc,
+      type: "website",
+      url: path,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: s ? `${s} · X-Ample Development` : "Vacancy · X-Ample Development",
+      description: desc,
+    },
   };
 }
 

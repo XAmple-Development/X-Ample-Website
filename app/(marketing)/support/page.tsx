@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const supportDescription =
+  "Get help with X-Ample Development. Contact us or join Discord for support, enquiries, and community.";
+
 export const metadata: Metadata = {
   title: "Support",
-  description: "Get help with X-Ample Development. Contact us or join Discord for support and enquiries.",
+  description: supportDescription,
+  alternates: { canonical: "/support" },
   openGraph: {
     title: "Support · X-Ample Development",
-    description: "Get help with X-Ample Development. Contact us or join our Discord for support and enquiries.",
+    description: supportDescription,
+    type: "website",
     url: "/support",
   },
   twitter: {
     card: "summary_large_image",
     title: "Support · X-Ample Development",
-    description: "Get help with X-Ample Development. Contact us or join Discord for support and enquiries.",
+    description: supportDescription,
   },
 };
 

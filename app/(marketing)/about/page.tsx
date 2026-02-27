@@ -2,19 +2,23 @@ import type { Metadata } from "next";
 import path from "node:path";
 import { readJsonFile } from "@/lib/content";
 
+const aboutDescription =
+  "X-Ample Development Studios: who we are, what we build (FiveM, Discord bots, websites), and how we work. Quality, performance, and support.";
+
 export const metadata: Metadata = {
   title: "About",
-  description: "Learn about X-Ample Development and how we build premium FiveM assets.",
+  description: aboutDescription,
+  alternates: { canonical: "/about" },
   openGraph: {
     title: "About · X-Ample Development",
-    description: "Learn about X-Ample Development and how we build premium FiveM assets.",
+    description: aboutDescription,
     type: "website",
     url: "/about",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "About · X-Ample Development",
-    description: "Learn about X-Ample Development and how we build premium FiveM assets.",
+    description: aboutDescription,
   },
 };
 

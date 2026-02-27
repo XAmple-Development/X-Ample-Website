@@ -2,6 +2,7 @@ import Link from "next/link";
 import path from "node:path";
 import { readJsonFile } from "@/lib/content";
 import { WaitlistSignup } from "@/components/site/WaitlistSignup";
+import { siteBaseUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 
 type HomeContent = {
@@ -24,6 +25,7 @@ const homeDescription =
 export const metadata: Metadata = {
   title: "Home",
   description: homeDescription,
+  alternates: { canonical: "/" },
   openGraph: {
     title: "X-Ample Development",
     description: homeDescription,
@@ -72,8 +74,23 @@ export default async function HomePage() {
   const contentPath = path.join(process.cwd(), "content", "pages", "home.json");
   const content = await readJsonFile<HomeContent>(contentPath, fallback);
 
+  const baseUrl = siteBaseUrl();
+  const webSiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "X-Ample Development",
+    url: baseUrl,
+    description: homeDescription,
+    publisher: { "@type": "Organization", name: "X-Ample Development", url: baseUrl },
+  };
+
   return (
     <div className="space-y-10">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
+      />
       {/* Hero */}
       <div className="xa-grid rounded-3xl border border-black/10 bg-background p-8 dark:border-white/10 sm:p-12">
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">

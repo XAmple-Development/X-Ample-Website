@@ -1,8 +1,25 @@
 import Link from "next/link";
 import { listBlogPosts } from "@/lib/blog";
+import type { Metadata } from "next";
 
-export const metadata = {
+const blogDescription =
+  "Updates, releases, and behind-the-scenes notes from X-Ample Development. FiveM, Discord bots, and studio news.";
+
+export const metadata: Metadata = {
   title: "Blog",
+  description: blogDescription,
+  alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "Blog · X-Ample Development",
+    description: blogDescription,
+    type: "website",
+    url: "/blog",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blog · X-Ample Development",
+    description: blogDescription,
+  },
 };
 
 export default async function BlogIndexPage() {

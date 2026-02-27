@@ -1,5 +1,21 @@
+const portfolioDescription =
+  "A curated view of X-Ample Development work: FiveM scripts, MLOs, and custom development projects.";
+
 export const metadata = {
   title: "Portfolio",
+  description: portfolioDescription,
+  alternates: { canonical: "/portfolio" },
+  openGraph: {
+    title: "Portfolio · X-Ample Development",
+    description: portfolioDescription,
+    type: "website",
+    url: "/portfolio",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Portfolio · X-Ample Development",
+    description: portfolioDescription,
+  },
 };
 
 import path from "node:path";

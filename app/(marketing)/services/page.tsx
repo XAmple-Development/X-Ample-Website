@@ -1,9 +1,23 @@
 import type { Metadata } from "next";
 
+const servicesDescription =
+  "FiveM scripts, Discord bots, websites, bug fixing, performance tuning, and custom development. MLOs, UI/UX polish, and ongoing support from X-Ample Development.";
+
 export const metadata: Metadata = {
   title: "Services",
-  description:
-    "FiveM scripts, Discord bots, websites, bug fixing, performance tuning, and custom development from X-Ample Development.",
+  description: servicesDescription,
+  alternates: { canonical: "/services" },
+  openGraph: {
+    title: "Services · X-Ample Development",
+    description: servicesDescription,
+    type: "website",
+    url: "/services",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Services · X-Ample Development",
+    description: servicesDescription,
+  },
 };
 
 const services = [

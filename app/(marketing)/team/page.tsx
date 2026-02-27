@@ -6,19 +6,23 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+const teamDescription =
+  "Meet the team behind X-Ample Development. Developers, security, and the people building FiveM scripts, Discord bots, and custom solutions.";
+
 export const metadata: Metadata = {
   title: "Team",
-  description: "Meet the people behind X-Ample Development.",
+  description: teamDescription,
+  alternates: { canonical: "/team" },
   openGraph: {
     title: "Team · X-Ample Development",
-    description: "Meet the people behind X-Ample Development.",
+    description: teamDescription,
     type: "website",
     url: "/team",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Team · X-Ample Development",
-    description: "Meet the people behind X-Ample Development.",
+    description: teamDescription,
   },
 };
 

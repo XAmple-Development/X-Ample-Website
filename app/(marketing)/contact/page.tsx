@@ -1,8 +1,24 @@
 import { ContactForm } from "./ContactForm";
 import type { Metadata } from "next";
 
+const contactDescription =
+  "Get in touch with X-Ample Development. General enquiries, careers, or custom work. Email or use the contact form.";
+
 export const metadata: Metadata = {
   title: "Contact",
+  description: contactDescription,
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "Contact · X-Ample Development",
+    description: contactDescription,
+    type: "website",
+    url: "/contact",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact · X-Ample Development",
+    description: contactDescription,
+  },
 };
 
 const contactEmails = [

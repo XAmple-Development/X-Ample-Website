@@ -5,18 +5,23 @@ import { supabaseAdmin } from "@/lib/supabase";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const vacanciesDescription =
+  "Open roles and careers at X-Ample Development. Join the team building FiveM scripts, Discord bots, and custom development.";
+
 export const metadata: Metadata = {
   title: "Vacancies",
-  description: "Open roles at X-Ample Development.",
+  description: vacanciesDescription,
+  alternates: { canonical: "/vacancies" },
   openGraph: {
     title: "Vacancies · X-Ample Development",
-    description: "Open roles at X-Ample Development.",
+    description: vacanciesDescription,
+    type: "website",
     url: "/vacancies",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Vacancies · X-Ample Development",
-    description: "Open roles at X-Ample Development.",
+    description: vacanciesDescription,
   },
 };
 
