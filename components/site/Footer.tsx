@@ -36,9 +36,6 @@ export function Footer() {
               <Link className="block text-foreground/80 hover:text-foreground" href="/vacancies">
                 Vacancies
               </Link>
-              <Link className="block text-foreground/80 hover:text-foreground" href="/blog">
-                Blog
-              </Link>
               <Link className="block text-foreground/80 hover:text-foreground" href="/contact">
                 Contact
               </Link>

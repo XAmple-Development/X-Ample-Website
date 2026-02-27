@@ -9,7 +9,6 @@ const nav = [
   { href: "/about", label: "About" },
   { href: "/team", label: "Team" },
   { href: "/vacancies", label: "Vacancies" },
-  { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
   { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord" },
 ];
