@@ -35,14 +35,14 @@ export async function POST(req: Request) {
     if (error) {
       if (error.code === "42P01") {
         return NextResponse.json(
-          { error: "Waitlist is not set up yet. Add the waitlist table in Supabase." },
+          { error: "Newsletter is not set up yet. Add the waitlist table in Supabase." },
           { status: 503 }
         );
       }
       if (error.code === "23505") {
-        return NextResponse.json({ error: "This email is already on the waitlist." }, { status: 409 });
+        return NextResponse.json({ error: "This email is already subscribed." }, { status: 409 });
       }
-      console.error("waitlist insert error:", error);
+      console.error("newsletter insert error:", error);
       return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
     }
 
@@ -52,10 +52,10 @@ export async function POST(req: Request) {
       const resend = new Resend(apiKey);
 
       // 1) Notify admin
-      const adminSubject = `Waitlist signup: ${email}`;
-      const adminText = `A new person joined the waitlist.\n\nEmail: ${email}\nTime: ${new Date().toISOString()}`;
+      const adminSubject = `Newsletter signup: ${email}`;
+      const adminText = `A new newsletter subscriber.\n\nEmail: ${email}\nTime: ${new Date().toISOString()}`;
       const adminHtml = `
-        <p><strong>New waitlist signup</strong></p>
+        <p><strong>New newsletter signup</strong></p>
         <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
         <p><strong>Time:</strong> ${escapeHtml(new Date().toISOString())}</p>
       `.trim();
@@ -67,14 +67,13 @@ export async function POST(req: Request) {
         text: adminText,
         html: adminHtml,
       });
-      if (adminError) console.error("waitlist notify email error:", adminError);
+      if (adminError) console.error("newsletter notify email error:", adminError);
 
-      // 2) Auto-reply to the person who signed up
-      const replySubject = "You're on the list – X-Ample Development";
-      const replyText = `Thanks for joining the waitlist!\n\nWe'll be in touch when we have updates, new releases, or early access to share.\n\nIn the meantime, feel free to reach out at ${NOTIFY_EMAIL} or via our website.\n\n— X-Ample Development`;
+      const replySubject = "You're subscribed – X-Ample Development";
+      const replyText = `Thanks for subscribing to studio updates!\n\nWe'll share project news, blog posts, and announcements when there's something worth your time.\n\nIn the meantime, feel free to reach out at ${NOTIFY_EMAIL} or via our website.\n\n— X-Ample Development`;
       const replyHtml = `
-        <p>Thanks for joining the waitlist!</p>
-        <p>We'll be in touch when we have updates, new releases, or early access to share.</p>
+        <p>Thanks for subscribing to studio updates!</p>
+        <p>We'll share project news, blog posts, and announcements when there's something worth your time.</p>
         <p>In the meantime, feel free to <a href="mailto:${escapeHtml(NOTIFY_EMAIL)}">reach out</a> or visit our website.</p>
         <p>— X-Ample Development</p>
       `.trim();
@@ -85,12 +84,12 @@ export async function POST(req: Request) {
         text: replyText,
         html: replyHtml,
       });
-      if (replyError) console.error("waitlist auto-reply error:", replyError);
+      if (replyError) console.error("newsletter auto-reply error:", replyError);
     }
 
     return NextResponse.json({ success: true });
   } catch (e) {
-    console.error("waitlist error:", e);
+    console.error("newsletter error:", e);
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 }

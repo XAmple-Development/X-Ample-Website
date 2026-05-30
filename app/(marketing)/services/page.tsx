@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
+import { siteBaseUrl } from "@/lib/seo";
 
 const servicesDescription =
   "Discord bots, websites, bug fixing, performance tuning, and custom development. UI/UX polish and ongoing support from X-Ample Development.";
@@ -56,8 +57,38 @@ const supportingServices = [
 ];
 
 export default function ServicesPage() {
+  const baseUrl = siteBaseUrl();
+  const servicesJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: "X-Ample Development",
+    url: `${baseUrl}/services`,
+    description: servicesDescription,
+    areaServed: "GB",
+    serviceType: ["Discord bot development", "Web development", "Custom software development"],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "X-Ample Development services",
+      itemListElement: [...featuredServices, ...supportingServices].map((s, i) => ({
+        "@type": "Offer",
+        position: i + 1,
+        itemOffered: {
+          "@type": "Service",
+          name: s.title,
+          description: s.body,
+          provider: { "@type": "Organization", name: "X-Ample Development", url: baseUrl },
+        },
+      })),
+    },
+  };
+
   return (
     <div className="space-y-12">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesJsonLd) }}
+      />
       <PageHeader
         kicker="Services"
         title="Discord bots, websites, and everything in between"

@@ -1,6 +1,7 @@
 -- X-Ample dashboard schema (Supabase/Postgres)
 -- Apply in Supabase SQL editor (or migrations) before enabling the dashboard.
 
+-- Legacy: Tebex/FiveM dashboard tables (no longer used by the marketing site; safe to drop if unused)
 -- Users authenticated via Tebex/FiveM basket auth.
 create table if not exists public.users (
   id uuid primary key default gen_random_uuid(),
@@ -122,7 +123,7 @@ create table if not exists public.team_members (
 
 create index if not exists idx_team_members_sort on public.team_members (sort_order asc, updated_at desc);
 
--- Waitlist signup (email collection)
+-- Newsletter signup (stored in `waitlist` table for backwards compatibility)
 create table if not exists public.waitlist (
   id uuid primary key default gen_random_uuid(),
   email text not null,
@@ -131,4 +132,28 @@ create table if not exists public.waitlist (
 );
 
 create index if not exists idx_waitlist_created_at on public.waitlist (created_at desc);
+
+-- Portfolio page (content admin)
+create table if not exists public.portfolio_page (
+  id int primary key default 1 check (id = 1),
+  intro text not null default 'A curated view of Discord bots, websites, and web apps we''ve shipped.',
+  updated_at timestamptz not null default now()
+);
+
+insert into public.portfolio_page (id, intro) values (1, 'A curated view of Discord bots, websites, and web apps we''ve shipped.')
+on conflict (id) do nothing;
+
+create table if not exists public.portfolio_items (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null default '',
+  category text,
+  image_url text,
+  project_url text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_portfolio_items_sort on public.portfolio_items (sort_order asc, updated_at desc);
 

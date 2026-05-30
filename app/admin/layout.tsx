@@ -12,15 +12,18 @@ export default function AdminLayout({
           <Link href="/admin/vacancies" className="text-sm font-semibold">
             Content admin
           </Link>
-          <nav className="flex gap-4 text-sm text-muted">
+          <nav className="flex flex-wrap justify-end gap-x-4 gap-y-1 text-sm text-muted">
             <Link href="/admin/vacancies" className="transition-colors hover:text-accent">
               Vacancies
+            </Link>
+            <Link href="/admin/portfolio" className="transition-colors hover:text-accent">
+              Portfolio
             </Link>
             <Link href="/admin/team" className="transition-colors hover:text-accent">
               Team
             </Link>
-            <Link href="/admin/waitlist" className="transition-colors hover:text-accent">
-              Waitlist
+            <Link href="/admin/newsletter" className="transition-colors hover:text-accent">
+              Newsletter
             </Link>
             <a href="/admin" target="_blank" rel="noreferrer" className="transition-colors hover:text-accent">
               Blog (Decap)

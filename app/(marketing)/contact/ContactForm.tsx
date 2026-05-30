@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { BUDGET_BANDS, PROJECT_TYPES, TIMELINES } from "@/lib/site";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
@@ -13,11 +14,14 @@ export function ContactForm() {
     const data = {
       name: (form.elements.namedItem("name") as HTMLInputElement).value.trim(),
       email: (form.elements.namedItem("email") as HTMLInputElement).value.trim(),
+      projectType: (form.elements.namedItem("projectType") as HTMLSelectElement).value,
+      budget: (form.elements.namedItem("budget") as HTMLSelectElement).value,
+      timeline: (form.elements.namedItem("timeline") as HTMLSelectElement).value,
       message: (form.elements.namedItem("message") as HTMLTextAreaElement).value.trim(),
     };
     if (!data.name || !data.email || !data.message) {
       setStatus("error");
-      setErrorMessage("Please fill in all fields.");
+      setErrorMessage("Please fill in name, email, and message.");
       return;
     }
     setStatus("sending");
@@ -45,6 +49,38 @@ export function ContactForm() {
       <Field label="Email">
         <input name="email" type="email" required disabled={status === "sending"} className="xa-input" />
       </Field>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Project type">
+          <select name="projectType" disabled={status === "sending"} className="xa-input">
+            <option value="">Select…</option>
+            {PROJECT_TYPES.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Budget">
+          <select name="budget" disabled={status === "sending"} className="xa-input">
+            <option value="">Select…</option>
+            {BUDGET_BANDS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Timeline">
+          <select name="timeline" disabled={status === "sending"} className="xa-input">
+            <option value="">Select…</option>
+            {TIMELINES.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
       <Field label="Message">
         <textarea name="message" required rows={6} disabled={status === "sending"} className="xa-input" />
       </Field>

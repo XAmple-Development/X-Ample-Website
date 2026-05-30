@@ -1,9 +1,11 @@
 import { ContactForm } from "./ContactForm";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { calendlyUrl } from "@/lib/site";
 
 const contactDescription =
-  "Get in touch with X-Ample Development. General enquiries, careers, or custom work. Email or use the contact form.";
+  "Get in touch with X-Ample Development. General enquiries, careers, or custom Discord bot and web development work.";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -28,13 +30,29 @@ const contactEmails = [
 ];
 
 export default function ContactPage() {
+  const bookingUrl = calendlyUrl();
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <PageHeader
         kicker="Contact"
         title="Get in touch"
-        description="Have a question, need support, or want custom work? Send a message or email us — we'll get back to you."
+        description="Have a question, need support, or want custom work? Send a message, book a call, or email us directly."
       />
+
+      {bookingUrl ? (
+        <div className="rounded-2xl border border-accent/30 bg-accent-muted p-5">
+          <p className="text-sm font-semibold">Book a call</p>
+          <p className="mt-2 text-sm text-muted">
+            Pick a time that works for you — ideal for scoping Discord bots, websites, or custom projects.
+          </p>
+          <div className="mt-4">
+            <Button href={bookingUrl} variant="primary" external>
+              Schedule a call
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="rounded-2xl border border-border bg-surface p-5">
         <p className="text-sm font-semibold">Email</p>

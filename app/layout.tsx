@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteShell } from "@/components/SiteShell";
 import { Plausible } from "@/components/analytics/Plausible";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +61,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "X-Ample Development",
     url: siteUrl,
-    sameAs: ["https://discord.gg/PfUWNvnT8Y"],
+    sameAs: [DISCORD_INVITE_URL],
   };
 
   return (

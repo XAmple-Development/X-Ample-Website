@@ -1,12 +1,15 @@
 import Link from "next/link";
 import path from "node:path";
 import { HeroMotion } from "@/components/home/HeroMotion";
-import { WaitlistSignup } from "@/components/site/WaitlistSignup";
+import { NewsletterSignup } from "@/components/site/NewsletterSignup";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MotionInView } from "@/components/ui/MotionInView";
+import { PortfolioCard } from "@/components/ui/PortfolioCard";
 import { Section } from "@/components/ui/Section";
 import { readJsonFile } from "@/lib/content";
+import { getPortfolioContent } from "@/lib/portfolio";
+import { calendlyUrl } from "@/lib/site";
 import { siteBaseUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -76,27 +79,14 @@ const fallback: HomeContent = {
   ],
 };
 
-const portfolioPreview = [
-  {
-    title: "Community Discord Bot",
-    body: "Custom moderation and ticketing for a growing community.",
-    tag: "Discord",
-  },
-  {
-    title: "Marketing Website",
-    body: "Fast, modern site with CMS and contact flows.",
-    tag: "Web",
-  },
-  {
-    title: "Admin Dashboard",
-    body: "Internal tooling and dashboards for team workflows.",
-    tag: "Web",
-  },
-];
-
 export default async function HomePage() {
   const contentPath = path.join(process.cwd(), "content", "pages", "home.json");
-  const content = await readJsonFile<HomeContent>(contentPath, fallback);
+  const [content, portfolio] = await Promise.all([
+    readJsonFile<HomeContent>(contentPath, fallback),
+    getPortfolioContent(),
+  ]);
+  const previewItems = portfolio.items.slice(0, 3);
+  const bookingUrl = calendlyUrl();
 
   const baseUrl = siteBaseUrl();
   const webSiteJsonLd = {
@@ -207,16 +197,10 @@ export default async function HomePage() {
       </Section>
 
       {/* Portfolio preview */}
-      <Section
-        kicker="Portfolio"
-        title="Recent work"
-        description="Placeholder projects — swap these for your real Discord and web work when ready."
-      >
+      <Section kicker="Portfolio" title="Recent work" description={portfolio.intro}>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {portfolioPreview.map((item) => (
-            <Card key={item.title} title={item.title} tag={item.tag} accent>
-              {item.body}
-            </Card>
+          {previewItems.map((item) => (
+            <PortfolioCard key={item.id} item={item} />
           ))}
         </div>
         <div className="mt-6">
@@ -241,7 +225,7 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      <WaitlistSignup />
+      <NewsletterSignup />
 
       {/* Final CTA */}
       <MotionInView>
@@ -258,9 +242,15 @@ export default async function HomePage() {
               <Button href="/contact" variant="primary">
                 Contact Us
               </Button>
-              <Button href="/support" variant="secondary">
-                Get Support
-              </Button>
+              {bookingUrl ? (
+                <Button href={bookingUrl} variant="secondary" external>
+                  Book a call
+                </Button>
+              ) : (
+                <Button href="/support" variant="secondary">
+                  Get Support
+                </Button>
+              )}
             </div>
           </div>
         </div>

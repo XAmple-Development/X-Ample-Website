@@ -1,7 +1,6 @@
-import path from "node:path";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
-import { readJsonFile } from "@/lib/content";
+import { PortfolioCard } from "@/components/ui/PortfolioCard";
+import { getPortfolioContent } from "@/lib/portfolio";
 import type { Metadata } from "next";
 
 const portfolioDescription =
@@ -24,35 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-type PortfolioContent = {
-  intro: string;
-  items: Array<{ title: string; description: string; category?: string }>;
-};
-
-const fallback: PortfolioContent = {
-  intro: "A curated view of Discord bots, websites, and web apps we've shipped.",
-  items: [
-    {
-      title: "Community Discord Bot",
-      description: "Custom moderation and ticketing for a growing community.",
-      category: "Discord",
-    },
-    {
-      title: "Marketing Website",
-      description: "Fast, modern site with CMS and contact flows.",
-      category: "Web",
-    },
-    {
-      title: "Admin Dashboard",
-      description: "Internal tooling and dashboards for team workflows.",
-      category: "Web",
-    },
-  ],
-};
-
 export default async function PortfolioPage() {
-  const contentPath = path.join(process.cwd(), "content", "pages", "portfolio.json");
-  const content = await readJsonFile<PortfolioContent>(contentPath, fallback);
+  const content = await getPortfolioContent();
 
   return (
     <div className="space-y-10">
@@ -60,9 +32,7 @@ export default async function PortfolioPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {content.items.map((item) => (
-          <Card key={item.title} title={item.title} tag={item.category} accent featured>
-            {item.description}
-          </Card>
+          <PortfolioCard key={item.id} item={item} />
         ))}
       </div>
     </div>

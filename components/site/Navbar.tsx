@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/site/Logo";
 import { MobileNav } from "@/components/site/MobileNav";
 import { Button } from "@/components/ui/Button";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 export type NavItem = { href: string; label: string; external?: boolean };
 
@@ -13,7 +14,7 @@ const nav: NavItem[] = [
   { href: "/team", label: "Team" },
   { href: "/blog", label: "Blog" },
   { href: "/support", label: "Support" },
-  { href: "https://discord.gg/PfUWNvnT8Y", label: "Discord", external: true },
+  { href: DISCORD_INVITE_URL, label: "Discord", external: true },
 ];
 
 export function Navbar() {

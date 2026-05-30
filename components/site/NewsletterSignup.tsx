@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-export function WaitlistSignup() {
+export function NewsletterSignup() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -13,7 +13,7 @@ export function WaitlistSignup() {
     if (!email.trim()) return;
     setStatus("sending");
     setMessage("");
-    const res = await fetch("/api/waitlist", {
+    const res = await fetch("/api/newsletter", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: email.trim() }),

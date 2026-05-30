@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { DiscordWidget } from "@/components/site/DiscordWidget";
 
 const supportDescription =
   "Get help with X-Ample Development. Contact us or join Discord for support, enquiries, and community.";
@@ -42,17 +43,7 @@ export default function SupportPage() {
           </div>
         </Card>
 
-        <div className="rounded-2xl border border-accent/30 bg-accent-muted p-5">
-          <div className="text-sm font-semibold text-accent">Discord</div>
-          <p className="mt-2 text-sm text-muted">
-            Quick questions, announcements, and community help.
-          </p>
-          <div className="mt-4">
-            <Button href="https://discord.gg/PfUWNvnT8Y" variant="secondary" external>
-              Join Discord
-            </Button>
-          </div>
-        </div>
+        <DiscordWidget />
       </div>
 
       <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-muted">

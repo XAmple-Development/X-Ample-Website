@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import path from "node:path";
 import Link from "next/link";
@@ -132,10 +133,11 @@ function MemberCard({ member }: { member: TeamMember }) {
         <div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-6">
           <div className="shrink-0">
             {member.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={member.avatar_url}
                 alt={member.name}
+                width={112}
+                height={112}
                 className="h-24 w-24 rounded-2xl border border-border object-cover ring-2 ring-transparent transition-all group-hover:ring-accent/30 sm:h-28 sm:w-28"
               />
             ) : (

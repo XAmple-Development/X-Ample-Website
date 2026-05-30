@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listBlogPosts } from "@/lib/blog";
+import { supabaseAdmin } from "@/lib/supabase";
 
 function siteBaseUrl() {
   return (
@@ -28,6 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/contact`, lastModified: now },
     { url: `${base}/support`, lastModified: now },
     { url: `${base}/vacancies`, lastModified: now },
+    { url: `${base}/privacy`, lastModified: now },
+    { url: `${base}/terms`, lastModified: now },
   ];
 
   const blog = await listBlogPosts().catch(() => []);
@@ -36,6 +39,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: safeDate(p.date),
   }));
 
-  return [...staticRoutes, ...blogRoutes];
-}
+  let vacancyRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const sb = supabaseAdmin();
+    const ts = new Date().toISOString();
+    const { data } = await sb
+      .from("vacancies")
+      .select("slug, updated_at, published_at")
+      .neq("status", "draft")
+      .not("published_at", "is", null)
+      .lte("published_at", ts)
+      .limit(200);
+    vacancyRoutes = (data ?? []).map((v) => ({
+      url: `${base}/vacancies/${encodeURIComponent(v.slug)}`,
+      lastModified: safeDate(v.updated_at ?? v.published_at ?? undefined),
+    }));
+  } catch {
+    // Supabase not configured
+  }
 
+  return [...staticRoutes, ...blogRoutes, ...vacancyRoutes];
+}

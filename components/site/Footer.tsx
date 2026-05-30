@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/site";
 
 export function Footer() {
   return (
@@ -48,16 +49,26 @@ export function Footer() {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">Community</p>
               <Link
                 className="block text-accent transition-colors hover:text-accent-hover"
-                href="https://discord.gg/PfUWNvnT8Y"
+                href={DISCORD_INVITE_URL}
               >
                 Discord
               </Link>
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted">
-          © {new Date().getFullYear()} X-Ample Development. All rights reserved.
-        </p>
+        <div className="flex flex-col gap-2 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted">
+            © {new Date().getFullYear()} X-Ample Development. All rights reserved.
+          </p>
+          <div className="flex gap-4 text-xs text-muted">
+            <Link href="/privacy" className="hover:text-accent">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-accent">
+              Terms
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
