@@ -1,1 +1,27 @@
-{"title":"About X-Ample Development","subtitle":"We build premium FiveM assets, Discord bots, websites, and custom solutions—with clean UX, performance-first code, and support you can rely on.","body":"X-Ample Development (also known as X-Ample Studios) creates modern FiveM scripts, MLOs, Discord bots, websites, and gameplay experiences. We focus on readable UI, practical features, and maintainable code. We also handle bug hunting, performance fixes, and optimization so your projects run smoothly.\n\nWhether you're upgrading an existing community, launching a new product, or need something fixed or polished, we ship quality work and can take on custom development when you need something bespoke.","highlights":[{"title":"Quality first","body":"Consistent UI, sensible defaults, and attention to detail."},{"title":"Performance-minded","body":"Built to run smoothly and scale with your player base or traffic."},{"title":"Support & iteration","body":"We listen, fix issues quickly, and keep improving."},{"title":"Security first","body":"Security is our top priority; we keep scripts and apps secure and up to date."},{"title":"Privacy focused","body":"We ensure our work is privacy-focused and does not collect personal data without need."}]}
+{
+  "title": "About X-Ample Development",
+  "subtitle": "We build Discord bots, websites, and web apps with clean UX, performance-first code, and support you can rely on.",
+  "body": "X-Ample Development (also known as X-Ample Studios) is a development studio focused on Discord bots, websites, and custom web applications.\n\nWe focus on readable UI, practical features, and maintainable code that scales with your community or business. We also handle bug hunting, performance fixes, and optimization so your projects run smoothly.\n\nWhether you're launching a new community tool, upgrading an existing site, or need something fixed or polished, we ship quality work and can take on custom development when you need something bespoke.",
+  "highlights": [
+    {
+      "title": "Quality first",
+      "body": "Consistent UI, sensible defaults, and attention to detail."
+    },
+    {
+      "title": "Performance-minded",
+      "body": "Built to run smoothly and scale with your traffic and community size."
+    },
+    {
+      "title": "Support & iteration",
+      "body": "We listen, fix issues quickly, and keep improving."
+    },
+    {
+      "title": "Security first",
+      "body": "Security is our top priority; we keep bots and apps secure and up to date."
+    },
+    {
+      "title": "Privacy focused",
+      "body": "We ensure our work is privacy-focused and does not collect personal data without need."
+    }
+  ]
+}

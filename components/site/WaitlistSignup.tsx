@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
 
 export function WaitlistSignup() {
   const [email, setEmail] = useState("");
@@ -28,11 +29,12 @@ export function WaitlistSignup() {
   }
 
   return (
-    <div className="rounded-3xl border border-black/10 bg-background p-8 dark:border-white/10 sm:p-10">
+    <div className="rounded-3xl border border-border bg-surface p-8 sm:p-10">
       <div className="mx-auto max-w-xl text-center">
-        <h2 className="text-xl font-semibold">Join the waitlist</h2>
-        <p className="mt-2 text-sm text-foreground/75">
-          Be the first to hear about new releases, updates, and early access.
+        <p className="text-sm font-medium uppercase tracking-wider text-accent">Newsletter</p>
+        <h2 className="mt-2 text-xl font-semibold sm:text-2xl">Get studio updates</h2>
+        <p className="mt-2 text-sm text-muted">
+          Project news, blog posts, and studio announcements — no spam, just the good stuff.
         </p>
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
           <input
@@ -42,21 +44,17 @@ export function WaitlistSignup() {
             placeholder="you@example.com"
             required
             disabled={status === "sending"}
-            className="h-11 min-w-0 flex-1 rounded-full border border-black/15 bg-background px-4 text-sm outline-none ring-0 focus:border-black/40 disabled:opacity-60 dark:border-white/15 dark:focus:border-white/35 sm:max-w-xs"
+            className="xa-input h-11 min-w-0 flex-1 rounded-full sm:max-w-xs"
           />
-          <button
-            type="submit"
-            disabled={status === "sending"}
-            className="h-11 shrink-0 rounded-full bg-foreground px-6 text-sm font-medium text-background transition-colors hover:opacity-90 disabled:opacity-60"
-          >
-            {status === "sending" ? "Joining…" : "Join"}
-          </button>
+          <Button type="submit" variant="primary" disabled={status === "sending"} className="shrink-0">
+            {status === "sending" ? "Subscribing…" : "Subscribe"}
+          </Button>
         </form>
         {status === "success" && (
-          <p className="mt-4 text-sm text-green-700 dark:text-green-300">You’re on the list. We’ll be in touch.</p>
+          <p className="mt-4 text-sm text-green-400">You&apos;re subscribed. We&apos;ll be in touch.</p>
         )}
         {status === "error" && message && (
-          <p className="mt-4 text-sm text-red-600 dark:text-red-400">{message}</p>
+          <p className="mt-4 text-sm text-red-400">{message}</p>
         )}
       </div>
     </div>

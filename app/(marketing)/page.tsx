@@ -1,7 +1,12 @@
 import Link from "next/link";
 import path from "node:path";
-import { readJsonFile } from "@/lib/content";
+import { HeroMotion } from "@/components/home/HeroMotion";
 import { WaitlistSignup } from "@/components/site/WaitlistSignup";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { MotionInView } from "@/components/ui/MotionInView";
+import { Section } from "@/components/ui/Section";
+import { readJsonFile } from "@/lib/content";
 import { siteBaseUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -20,7 +25,7 @@ type HomeContent = {
 };
 
 const homeDescription =
-  "Premium FiveM scripts, Discord bots, websites, and custom development. Bug fixes, performance tuning, and clean UX. Get in touch or join the waitlist.";
+  "Discord bots, websites, and custom web development from X-Ample Development. Modern stacks, polished UI, and ongoing support.";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -40,19 +45,19 @@ export const metadata: Metadata = {
 };
 
 const fallback: HomeContent = {
-  kicker: "X-Ample Development · Studios",
-  title: "Premium development that feels polished on day one.",
+  kicker: "X-Ample Development · Discord & Web Studio",
+  title: "Build communities and products that feel premium from day one.",
   subtitle:
-    "We build scripts, MLOs, and experiences designed for performance, clarity, and clean UX. Read our blog, explore vacancies, or get in touch for custom work.",
+    "We design and ship Discord bots, websites, and web apps — with clean UX, fast performance, and support you can actually reach.",
   primaryCta: { label: "Contact Us", href: "/contact" },
-  secondaryCta: { label: "Get Support", href: "/support" },
+  secondaryCta: { label: "View Services", href: "/services" },
   features: [
     {
       title: "Production-ready",
-      body: "Modern UI, sane defaults, and real-world performance.",
+      body: "Modern UI, sane defaults, and real-world performance for bots and web apps.",
     },
-    { title: "Clear communication", body: "We keep you in the loop." },
-    { title: "Active support", body: "We iterate quickly and listen." },
+    { title: "Clear communication", body: "We keep you in the loop from scoping through delivery." },
+    { title: "Active support", body: "We iterate quickly, listen to feedback, and fix issues fast." },
   ],
   socialProof: {
     headline: "Built for real teams",
@@ -64,11 +69,30 @@ const fallback: HomeContent = {
   },
   quickLinks: [
     { label: "Get Support", href: "/support" },
+    { label: "View Portfolio", href: "/portfolio" },
     { label: "View Vacancies", href: "/vacancies" },
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
   ],
 };
+
+const portfolioPreview = [
+  {
+    title: "Community Discord Bot",
+    body: "Custom moderation and ticketing for a growing community.",
+    tag: "Discord",
+  },
+  {
+    title: "Marketing Website",
+    body: "Fast, modern site with CMS and contact flows.",
+    tag: "Web",
+  },
+  {
+    title: "Admin Dashboard",
+    body: "Internal tooling and dashboards for team workflows.",
+    tag: "Web",
+  },
+];
 
 export default async function HomePage() {
   const contentPath = path.join(process.cwd(), "content", "pages", "home.json");
@@ -85,156 +109,171 @@ export default async function HomePage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-16">
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
+
       {/* Hero */}
-      <div className="xa-grid rounded-3xl border border-black/10 bg-background p-8 dark:border-white/10 sm:p-12">
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-          <div className="flex flex-col gap-4">
-            <p className="text-sm font-medium text-foreground/70">{content.kicker}</p>
-            <h1 className="text-pretty text-4xl font-semibold tracking-tight sm:text-5xl">{content.title}</h1>
-            <p className="text-pretty text-lg leading-8 text-foreground/75">{content.subtitle}</p>
+      <div className="xa-hero-bg relative rounded-3xl border border-border p-8 sm:p-12 lg:p-14">
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+          <HeroMotion
+            kicker={content.kicker}
+            title={
+              <>
+                Build communities and products that feel{" "}
+                <span className="xa-gradient-text">premium from day one.</span>
+              </>
+            }
+            subtitle={content.subtitle}
+            actions={
+              <>
+                <Button href={content.primaryCta.href} variant="primary">
+                  {content.primaryCta.label}
+                </Button>
+                <Button href={content.secondaryCta.href} variant="secondary">
+                  {content.secondaryCta.label}
+                </Button>
+              </>
+            }
+            features={content.features.slice(0, 3).map((f) => (
+              <Feature key={f.title} title={f.title} body={f.body} />
+            ))}
+          />
 
-            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={content.primaryCta.href}
-                className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition-colors hover:opacity-90"
-              >
-                {content.primaryCta.label}
-              </Link>
-              <Link
-                href={content.secondaryCta.href}
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-medium transition-colors hover:bg-black/[.04] dark:border-white/15 dark:hover:bg-white/[.06]"
-              >
-                {content.secondaryCta.label}
-              </Link>
-            </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {content.features.slice(0, 3).map((f) => (
-                <Feature key={f.title} title={f.title} body={f.body} />
-              ))}
-            </div>
-          </div>
-
-          {/* Quick links + social proof */}
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-black/10 bg-background/60 p-5 dark:border-white/10">
-              <div className="text-sm font-semibold">{content.socialProof?.headline ?? "Built for real servers"}</div>
+          <MotionInView delay={0.15} className="space-y-4">
+            <div className="rounded-2xl border border-border bg-surface/80 p-5 backdrop-blur-sm">
+              <div className="text-sm font-semibold">{content.socialProof?.headline ?? "Built for real teams"}</div>
               <div className="mt-3 grid gap-3">
                 {(content.socialProof?.items ?? []).slice(0, 3).map((it) => (
                   <div key={`${it.label}-${it.value}`} className="flex items-baseline justify-between gap-3">
-                    <div className="text-xs opacity-70">{it.label}</div>
+                    <div className="text-xs text-muted">{it.label}</div>
                     <div className="text-sm font-medium">{it.value}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-black/10 bg-background/60 p-5 dark:border-white/10">
+            <div className="rounded-2xl border border-border bg-surface/80 p-5 backdrop-blur-sm">
               <div className="text-sm font-semibold">Quick links</div>
               <div className="mt-3 grid gap-2">
                 {(content.quickLinks ?? []).slice(0, 6).map((l) => (
                   <Link
                     key={l.href}
                     href={l.href}
-                    className="rounded-xl border border-black/10 px-3 py-2 text-sm hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5"
+                    className="rounded-xl border border-border px-3 py-2 text-sm transition-colors hover:border-accent/40 hover:bg-accent-muted"
                   >
                     {l.label}
                   </Link>
                 ))}
               </div>
             </div>
-          </div>
+          </MotionInView>
         </div>
       </div>
 
+      {/* Service pillars */}
+      <Section
+        kicker="What we build"
+        title="Discord bots and web apps, done properly"
+        description="Two core strengths — community tooling and modern web development — backed by the same attention to quality."
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card
+            title="Discord Bots"
+            featured
+            accent
+            tag="Core service"
+            href="/services"
+            cta="Explore services"
+          >
+            Custom bots for moderation, automation, ticketing, roles, and community tools. Built to your specs
+            and ready to scale with your server.
+          </Card>
+          <Card
+            title="Websites & Web Apps"
+            featured
+            accent
+            tag="Core service"
+            href="/services"
+            cta="Explore services"
+          >
+            Marketing sites, dashboards, admin panels, and full-stack web applications. Modern stacks, clear
+            design, and maintainable code.
+          </Card>
+        </div>
+      </Section>
+
+      {/* Portfolio preview */}
+      <Section
+        kicker="Portfolio"
+        title="Recent work"
+        description="Placeholder projects — swap these for your real Discord and web work when ready."
+      >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {portfolioPreview.map((item) => (
+            <Card key={item.title} title={item.title} tag={item.tag} accent>
+              {item.body}
+            </Card>
+          ))}
+        </div>
+        <div className="mt-6">
+          <Button href="/portfolio" variant="secondary">
+            View full portfolio
+          </Button>
+        </div>
+      </Section>
+
       {/* Quick paths */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card
-          title="Support that responds"
-          body="Open a ticket or ask quick questions on Discord. We're here to help."
-          href="/support"
-          cta="Get support"
-        />
-        <Card
-          title="Join the team"
-          body="Check open vacancies and see if there's a role that fits you."
-          href="/vacancies"
-          cta="View vacancies"
-        />
-        <Card
-          title="Stay in the loop"
-          body="Updates, releases, and studio news on the blog."
-          href="/blog"
-          cta="Read blog"
-        />
-      </div>
+      <Section title="More ways to connect" animate={false}>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Card title="Support that responds" href="/support" cta="Get support">
+            Open a ticket or ask quick questions on Discord. We&apos;re here to help.
+          </Card>
+          <Card title="Join the team" href="/vacancies" cta="View vacancies">
+            Check open vacancies and see if there&apos;s a role that fits you.
+          </Card>
+          <Card title="Stay in the loop" href="/blog" cta="Read blog">
+            Updates, project news, and studio notes on the blog.
+          </Card>
+        </div>
+      </Section>
 
       <WaitlistSignup />
 
       {/* Final CTA */}
-      <div className="rounded-3xl border border-black/10 bg-background p-8 dark:border-white/10 sm:p-10">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <div className="text-xl font-semibold">Ready to work together?</div>
-            <div className="mt-1 text-sm text-foreground/75">
-              Contact us for custom development or general enquiries.
+      <MotionInView>
+        <div className="relative overflow-hidden rounded-3xl border border-accent/30 bg-gradient-to-br from-accent-muted via-surface to-surface p-8 sm:p-10">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
+          <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <div>
+              <div className="text-xl font-semibold sm:text-2xl">Ready to work together?</div>
+              <div className="mt-2 text-sm text-muted">
+                Contact us for custom Discord bots, websites, or general enquiries.
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button href="/contact" variant="primary">
+                Contact Us
+              </Button>
+              <Button href="/support" variant="secondary">
+                Get Support
+              </Button>
             </div>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/contact"
-              className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition-colors hover:opacity-90"
-            >
-              Contact Us
-            </Link>
-            <Link
-              href="/support"
-              className="inline-flex h-11 items-center justify-center rounded-full border border-black/15 px-6 text-sm font-medium transition-colors hover:bg-black/[.04] dark:border-white/15 dark:hover:bg-white/[.06]"
-            >
-              Get Support
-            </Link>
-          </div>
         </div>
-      </div>
+      </MotionInView>
     </div>
   );
 }
 
 function Feature({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-black/10 bg-background/60 p-5 dark:border-white/10">
+    <div className="rounded-2xl border border-border bg-surface/60 p-5 backdrop-blur-sm">
       <p className="text-sm font-semibold">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-foreground/75">{body}</p>
-    </div>
-  );
-}
-
-function Card({
-  title,
-  body,
-  href,
-  cta,
-}: {
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
-      <div className="text-sm font-semibold">{title}</div>
-      <div className="mt-2 text-sm text-foreground/75">{body}</div>
-      <div className="mt-4">
-        <Link className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" href={href}>
-          {cta}
-        </Link>
-      </div>
+      <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
     </div>
   );
 }

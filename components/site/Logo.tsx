@@ -7,17 +7,16 @@ export function Logo() {
   return (
     <Link
       href="/"
-      className="inline-flex items-center gap-2 font-semibold tracking-tight"
+      className="group inline-flex items-center gap-2.5 font-semibold tracking-tight transition-opacity hover:opacity-90"
       aria-label="X-Ample Development"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={LOGO_SRC}
         alt=""
-        className="h-8 w-8 rounded-lg object-cover"
+        className="h-8 w-8 rounded-lg object-cover ring-1 ring-border transition-all group-hover:ring-accent/50 group-hover:shadow-[0_0_16px_var(--accent-glow)]"
       />
       <span className="hidden sm:inline">X-Ample Development</span>
     </Link>
   );
 }
-

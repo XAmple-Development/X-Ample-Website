@@ -38,7 +38,7 @@ export const mdxComponents = {
   p: (props: ComponentProps<"p">) => (
     <p
       {...props}
-      className={["mt-4 leading-7 text-foreground/80", props.className]
+      className={["mt-4 leading-7 text-muted", props.className]
         .filter(Boolean)
         .join(" ")}
     />
@@ -48,7 +48,7 @@ export const mdxComponents = {
     const isExternal = /^https?:\/\//i.test(href);
 
     const className = [
-      "font-medium underline underline-offset-4 decoration-black/30 hover:decoration-black/60 dark:decoration-white/30 dark:hover:decoration-white/60",
+      "font-medium text-accent underline underline-offset-4 decoration-accent/40 hover:text-accent-hover hover:decoration-accent",
       props.className,
     ]
       .filter(Boolean)
@@ -75,13 +75,13 @@ export const mdxComponents = {
     <ol {...props} className={["mt-4 list-decimal pl-6", props.className].filter(Boolean).join(" ")} />
   ),
   li: (props: ComponentProps<"li">) => (
-    <li {...props} className={["mt-2 leading-7 text-foreground/80", props.className].filter(Boolean).join(" ")} />
+    <li {...props} className={["mt-2 leading-7 text-muted", props.className].filter(Boolean).join(" ")} />
   ),
   code: (props: ComponentProps<"code">) => (
     <code
       {...props}
       className={[
-        "rounded-md bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.10]",
+        "rounded-md bg-accent-muted px-1.5 py-0.5 font-mono text-[0.9em] text-accent",
         props.className,
       ]
         .filter(Boolean)
@@ -92,7 +92,7 @@ export const mdxComponents = {
     <pre
       {...props}
       className={[
-        "mt-6 overflow-x-auto rounded-2xl bg-black/[.06] p-4 text-sm leading-6 dark:bg-white/[.10]",
+        "mt-6 overflow-x-auto rounded-2xl border border-border bg-surface-elevated p-4 text-sm leading-6",
         props.className,
       ]
         .filter(Boolean)
@@ -100,9 +100,8 @@ export const mdxComponents = {
     />
   ),
   Blockquote: ({ children }: { children: ReactNode }) => (
-    <blockquote className="mt-6 rounded-2xl border border-black/10 bg-black/[.03] p-4 text-sm text-foreground/80 dark:border-white/10 dark:bg-white/[.06]">
+    <blockquote className="mt-6 rounded-2xl border border-border bg-surface p-4 text-sm text-muted">
       {children}
     </blockquote>
   ),
 };
-

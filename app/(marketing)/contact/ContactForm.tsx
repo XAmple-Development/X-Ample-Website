@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/Button";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
@@ -37,52 +38,31 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <Field label="Name">
-        <input
-          name="name"
-          required
-          disabled={status === "sending"}
-          className="h-11 w-full rounded-xl border border-black/15 bg-background px-3 text-sm outline-none ring-0 focus:border-black/40 disabled:opacity-60 dark:border-white/15 dark:focus:border-white/35"
-        />
+        <input name="name" required disabled={status === "sending"} className="xa-input" />
       </Field>
       <Field label="Email">
-        <input
-          name="email"
-          type="email"
-          required
-          disabled={status === "sending"}
-          className="h-11 w-full rounded-xl border border-black/15 bg-background px-3 text-sm outline-none ring-0 focus:border-black/40 disabled:opacity-60 dark:border-white/15 dark:focus:border-white/35"
-        />
+        <input name="email" type="email" required disabled={status === "sending"} className="xa-input" />
       </Field>
       <Field label="Message">
-        <textarea
-          name="message"
-          required
-          rows={6}
-          disabled={status === "sending"}
-          className="w-full rounded-xl border border-black/15 bg-background px-3 py-2 text-sm outline-none ring-0 focus:border-black/40 disabled:opacity-60 dark:border-white/15 dark:focus:border-white/35"
-        />
+        <textarea name="message" required rows={6} disabled={status === "sending"} className="xa-input" />
       </Field>
 
       {status === "success" && (
-        <p className="rounded-xl bg-green-500/10 px-4 py-3 text-sm text-green-800 dark:text-green-200">
-          Thanks! Your message has been sent. We’ll get back to you soon.
+        <p className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+          Thanks! Your message has been sent. We&apos;ll get back to you soon.
         </p>
       )}
       {status === "error" && errorMessage && (
-        <p className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-800 dark:text-red-200">
+        <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {errorMessage}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={status === "sending"}
-        className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition-colors hover:opacity-90 disabled:opacity-60"
-      >
+      <Button type="submit" variant="primary" disabled={status === "sending"}>
         {status === "sending" ? "Sending…" : "Send message"}
-      </button>
+      </Button>
     </form>
   );
 }

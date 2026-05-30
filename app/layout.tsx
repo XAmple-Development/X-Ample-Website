@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://x-ampledevelopment.co.uk";
 const defaultDescription =
-  "X-Ample Development Studios: FiveM scripts, Discord bots, websites, and custom development. Bug fixes, performance tuning, and support.";
+  "X-Ample Development: Discord bots, websites, and custom web development. Modern stacks, polished UI, and ongoing support.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl.replace(/\/+$/, "")),
@@ -26,12 +26,12 @@ export const metadata: Metadata = {
   },
   description: defaultDescription,
   keywords: [
-    "FiveM",
     "Discord bots",
+    "web development",
     "custom development",
     "X-Ample Development",
-    "game development",
-    "web development",
+    "Next.js",
+    "web apps",
   ],
   openGraph: {
     type: "website",

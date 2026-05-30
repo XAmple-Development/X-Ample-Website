@@ -1,1 +1,36 @@
-{"kicker":"X-Ample Development · X-Ample Studios","title":"Premium development that feels polished on day one.","subtitle":"We build scripts, MLOs, and experiences designed for performance, clarity, and clean UX. Read our blog, explore vacancies, or get in touch for custom work.","primaryCta":{"label":"Contact Us","href":"/contact"},"secondaryCta":{"label":"Get Support","href":"/support"},"features":[{"title":"Production-ready","body":"Modern UI, sane defaults, and real-world performance."},{"title":"Clear communication","body":"We keep you in the loop."},{"title":"Active support","body":"We iterate quickly and listen."}],"socialProof":{"headline":"Built for real teams","items":[{"label":"Custom work","value":"Get in touch"},{"label":"Vacancies","value":"Join the team"},{"label":"Support","value":"Tickets + Discord"}]},"quickLinks":[{"label":"Get Support","href":"/support"},{"label":"View Vacancies","href":"/vacancies"},{"label":"Blog","href":"/blog"},{"label":"Contact","href":"/contact"}]}
+{
+  "kicker": "X-Ample Development · Discord & Web Studio",
+  "title": "Build communities and products that feel premium from day one.",
+  "subtitle": "We design and ship Discord bots, websites, and web apps — with clean UX, fast performance, and support you can actually reach.",
+  "primaryCta": { "label": "Contact Us", "href": "/contact" },
+  "secondaryCta": { "label": "View Services", "href": "/services" },
+  "features": [
+    {
+      "title": "Production-ready",
+      "body": "Modern UI, sane defaults, and real-world performance for bots and web apps."
+    },
+    {
+      "title": "Clear communication",
+      "body": "We keep you in the loop from scoping through delivery."
+    },
+    {
+      "title": "Active support",
+      "body": "We iterate quickly, listen to feedback, and fix issues fast."
+    }
+  ],
+  "socialProof": {
+    "headline": "Built for real teams",
+    "items": [
+      { "label": "Custom work", "value": "Get in touch" },
+      { "label": "Vacancies", "value": "Join the team" },
+      { "label": "Support", "value": "Tickets + Discord" }
+    ]
+  },
+  "quickLinks": [
+    { "label": "Get Support", "href": "/support" },
+    { "label": "View Portfolio", "href": "/portfolio" },
+    { "label": "View Vacancies", "href": "/vacancies" },
+    { "label": "Blog", "href": "/blog" },
+    { "label": "Contact", "href": "/contact" }
+  ]
+}

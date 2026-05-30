@@ -1,21 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --muted: #a3a3a3;
+  --surface: #141414;
+  --surface-elevated: #1a1a1a;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --accent: #8b5cf6;
+  --accent-hover: #a78bfa;
+  --accent-glow: rgba(139, 92, 246, 0.35);
+  --accent-muted: rgba(139, 92, 246, 0.12);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #fafafa;
+    --foreground: #171717;
+    --muted: #737373;
+    --surface: #ffffff;
+    --surface-elevated: #f5f5f5;
+    --border: rgba(0, 0, 0, 0.1);
+    --border-strong: rgba(0, 0, 0, 0.18);
+    --accent-glow: rgba(139, 92, 246, 0.25);
+    --accent-muted: rgba(139, 92, 246, 0.08);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-muted: var(--accent-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
   }
 }
 
@@ -26,17 +61,81 @@ body {
     Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* Subtle page grid (optional, low-contrast) */
+/* Hero background: gradient mesh + subtle grid */
+.xa-hero-bg {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -20%, var(--accent-glow), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(6, 182, 212, 0.12), transparent 60%),
+    var(--surface);
+}
+
+.xa-hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklab, var(--foreground) 8%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 28px 28px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 .xa-grid {
   background-image: radial-gradient(
     circle at 1px 1px,
-    color-mix(in oklab, var(--foreground) 12%, transparent) 1px,
+    color-mix(in oklab, var(--foreground) 10%, transparent) 1px,
     transparent 0
   );
   background-size: 24px 24px;
 }
 
-/* Minimal prose styling for rendered Tebex HTML */
+.xa-gradient-text {
+  background: linear-gradient(135deg, var(--foreground) 0%, var(--accent) 50%, var(--accent-hover) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.xa-glow {
+  box-shadow: 0 0 40px var(--accent-glow);
+}
+
+.xa-surface {
+  background: color-mix(in oklab, var(--surface) 90%, var(--foreground) 2%);
+  border: 1px solid var(--border);
+}
+
+.xa-input {
+  height: 2.75rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.xa-input:focus {
+  border-color: var(--accent);
+}
+
+.xa-input:disabled {
+  opacity: 0.6;
+}
+
+textarea.xa-input {
+  height: auto;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Minimal prose styling */
 .prose :where(h1, h2, h3) {
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -71,16 +170,21 @@ body {
   font-size: 0.95em;
   padding: 0.1rem 0.35rem;
   border-radius: 0.5rem;
-  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+  background: var(--accent-muted);
 }
 .prose :where(pre) {
   overflow-x: auto;
   padding: 0.75rem;
   border-radius: 1rem;
-  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
 }
 .prose :where(a) {
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent);
+  text-decoration-color: color-mix(in oklab, var(--accent) 50%, transparent);
+}
+.prose :where(a:hover) {
+  color: var(--accent-hover);
 }

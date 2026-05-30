@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 const teamDescription =
-  "Meet the team behind X-Ample Development. Developers, security, and the people building FiveM scripts, Discord bots, and custom solutions.";
+  "Meet the team behind X-Ample Development. Developers building Discord bots, websites, and custom solutions.";
 
 export const metadata: Metadata = {
   title: "Team",
@@ -91,19 +91,21 @@ export default async function TeamPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
-      {/* Hero intro */}
-      <section className="rounded-3xl border border-black/10 bg-gradient-to-b from-black/[.02] to-transparent px-8 py-12 text-center dark:border-white/10 dark:from-white/[.03] sm:px-12 sm:py-16">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Team</h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-foreground/80">{intro}</p>
+    <div className="mx-auto max-w-5xl space-y-12">
+      <section className="xa-hero-bg relative rounded-3xl border border-border px-8 py-12 text-center sm:px-12 sm:py-16">
+        <div className="relative z-10">
+          <p className="text-sm font-medium uppercase tracking-wider text-accent">Team</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Meet the people behind X-Ample</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted">{intro}</p>
+        </div>
       </section>
 
       {/* Members grid */}
       <section className="mt-12 sm:mt-16">
         {members.length === 0 ? (
-          <div className="rounded-3xl border border-black/10 bg-background/60 px-8 py-16 text-center dark:border-white/10">
-            <p className="text-foreground/70">No team members to show yet.</p>
-            <Link href="/contact" className="mt-4 inline-block text-sm font-medium underline underline-offset-4 hover:opacity-80">
+          <div className="rounded-3xl border border-border bg-surface px-8 py-16 text-center">
+            <p className="text-muted">No team members to show yet.</p>
+            <Link href="/contact" className="mt-4 inline-block text-sm font-medium text-accent hover:text-accent-hover">
               Get in touch
             </Link>
           </div>
@@ -125,7 +127,7 @@ function MemberCard({ member }: { member: TeamMember }) {
   const hasLinks = member.discord_url || member.github_url || member.twitter_url;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-black/10 bg-background transition-shadow hover:shadow-lg dark:border-white/10 dark:hover:shadow-black/20">
+    <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-surface transition-all hover:border-accent/30 hover:shadow-[0_0_32px_var(--accent-glow)]">
       <div className="flex flex-col p-8 sm:p-10">
         <div className="flex flex-col items-start sm:flex-row sm:items-center sm:gap-6">
           <div className="shrink-0">
@@ -134,11 +136,11 @@ function MemberCard({ member }: { member: TeamMember }) {
               <img
                 src={member.avatar_url}
                 alt={member.name}
-                className="h-24 w-24 rounded-2xl border border-black/10 object-cover ring-2 ring-transparent transition-all group-hover:ring-foreground/10 dark:border-white/10 sm:h-28 sm:w-28"
+                className="h-24 w-24 rounded-2xl border border-border object-cover ring-2 ring-transparent transition-all group-hover:ring-accent/30 sm:h-28 sm:w-28"
               />
             ) : (
               <div
-                className="flex h-24 w-24 items-center justify-center rounded-2xl border border-black/10 bg-gradient-to-br from-black/5 to-black/10 text-2xl font-semibold text-foreground/40 dark:border-white/10 dark:from-white/5 dark:to-white/10 sm:h-28 sm:w-28"
+                className="flex h-24 w-24 items-center justify-center rounded-2xl border border-border bg-surface-elevated text-2xl font-semibold text-muted sm:h-28 sm:w-28"
                 aria-hidden
               >
                 {member.name.charAt(0)}
@@ -164,7 +166,7 @@ function MemberCard({ member }: { member: TeamMember }) {
                 href={member.discord_url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-black/15 px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:border-black/25 hover:bg-black/5 hover:text-foreground dark:border-white/15 dark:hover:border-white/25 dark:hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-full border border-border-strong px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:border-accent/50 hover:bg-accent-muted hover:text-foreground"
               >
                 <DiscordIcon className="h-4 w-4" />
                 Discord
@@ -175,7 +177,7 @@ function MemberCard({ member }: { member: TeamMember }) {
                 href={member.github_url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-black/15 px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:border-black/25 hover:bg-black/5 hover:text-foreground dark:border-white/15 dark:hover:border-white/25 dark:hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-full border border-border-strong px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:border-accent/50 hover:bg-accent-muted hover:text-foreground"
               >
                 <GitHubIcon className="h-4 w-4" />
                 GitHub
@@ -186,7 +188,7 @@ function MemberCard({ member }: { member: TeamMember }) {
                 href={member.twitter_url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-black/15 px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:border-black/25 hover:bg-black/5 hover:text-foreground dark:border-white/15 dark:hover:border-white/25 dark:hover:bg-white/5"
+                className="inline-flex items-center gap-2 rounded-full border border-border-strong px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:border-accent/50 hover:bg-accent-muted hover:text-foreground"
               >
                 <TwitterIcon className="h-4 w-4" />
                 X

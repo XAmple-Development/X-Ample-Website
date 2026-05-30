@@ -1,14 +1,20 @@
 {
-  "intro": "A curated view of shipped work.",
+  "intro": "A curated view of Discord bots, websites, and web apps we've shipped.",
   "items": [
     {
-      "title": "X-Ample PlayerList",
-      "description": "A polished player list UI with configurable display options."
+      "title": "Community Discord Bot",
+      "description": "Custom moderation and ticketing for a growing community.",
+      "category": "Discord"
     },
     {
-      "title": "X-Ample Civilian Jobs",
-      "description": "A set of civilian jobs built to fit common RP frameworks."
+      "title": "Marketing Website",
+      "description": "Fast, modern site with CMS and contact flows.",
+      "category": "Web"
+    },
+    {
+      "title": "Admin Dashboard",
+      "description": "Internal tooling and dashboards for team workflows.",
+      "category": "Web"
     }
   ]
 }
-

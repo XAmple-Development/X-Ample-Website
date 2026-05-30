@@ -1,5 +1,6 @@
 import { ContactForm } from "./ContactForm";
 import type { Metadata } from "next";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const contactDescription =
   "Get in touch with X-Ample Development. General enquiries, careers, or custom work. Email or use the contact form.";
@@ -28,22 +29,22 @@ const contactEmails = [
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-3xl font-semibold tracking-tight">Contact</h1>
-      <p className="mt-4 text-lg leading-8 text-foreground/75">
-        Have a question, need support, or want custom work? Send a message or
-        email us—we’ll get back to you.
-      </p>
+    <div className="mx-auto max-w-2xl space-y-8">
+      <PageHeader
+        kicker="Contact"
+        title="Get in touch"
+        description="Have a question, need support, or want custom work? Send a message or email us — we'll get back to you."
+      />
 
-      <div className="mt-8 rounded-2xl border border-black/10 p-5 dark:border-white/10">
+      <div className="rounded-2xl border border-border bg-surface p-5">
         <p className="text-sm font-semibold">Email</p>
         <ul className="mt-3 space-y-2">
           {contactEmails.map(({ label, email }) => (
             <li key={email} className="flex flex-wrap items-baseline gap-2 text-sm">
-              <span className="text-foreground/70">{label}:</span>
+              <span className="text-muted">{label}:</span>
               <a
                 href={`mailto:${email}`}
-                className="text-foreground underline decoration-foreground/30 hover:decoration-foreground"
+                className="text-accent underline decoration-accent/30 hover:text-accent-hover hover:decoration-accent"
               >
                 {email}
               </a>
@@ -56,4 +57,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

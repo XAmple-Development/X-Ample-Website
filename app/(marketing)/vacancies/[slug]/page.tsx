@@ -84,48 +84,48 @@ export default async function VacancyPage({
     <article className="mx-auto max-w-3xl">
       <Link
         href="/vacancies"
-        className="text-sm text-foreground/70 underline underline-offset-4 decoration-black/25 hover:text-foreground dark:decoration-white/25"
+        className="text-sm text-muted underline underline-offset-4 decoration-border-strong hover:text-accent hover:decoration-accent"
       >
         Back to vacancies
       </Link>
 
       <h1 className="mt-4 text-pretty text-4xl font-semibold tracking-tight sm:text-5xl">{v.title}</h1>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs opacity-80">
-        {v.location ? <span className="rounded-full border px-2 py-1">{v.location}</span> : null}
-        {v.type ? <span className="rounded-full border px-2 py-1">{v.type}</span> : null}
-        {v.salary ? <span className="rounded-full border px-2 py-1">{v.salary}</span> : null}
-        <span className="rounded-full border px-2 py-1">{v.status === "closed" ? "Closed" : "Open"}</span>
+      <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
+        {v.location ? <span className="rounded-full border border-border px-2 py-1">{v.location}</span> : null}
+        {v.type ? <span className="rounded-full border border-border px-2 py-1">{v.type}</span> : null}
+        {v.salary ? <span className="rounded-full border border-border px-2 py-1">{v.salary}</span> : null}
+        <span className="rounded-full border border-border px-2 py-1">{v.status === "closed" ? "Closed" : "Open"}</span>
       </div>
 
       <div className="prose prose-invert mt-8 max-w-none">{compiled.content}</div>
 
-      <div className="mt-10 rounded-2xl border border-black/10 p-5 dark:border-white/10">
+      <div className="mt-10 rounded-2xl border border-border bg-surface p-5">
         <div className="text-sm font-semibold">Apply</div>
         {v.status === "closed" ? (
-          <p className="mt-2 text-sm text-foreground/75">This role is currently closed.</p>
+          <p className="mt-2 text-sm text-muted">This role is currently closed.</p>
         ) : null}
 
         <div className="mt-4 flex flex-wrap gap-2">
           {v.apply_url ? (
-            <a className="rounded-lg bg-black px-3 py-2 text-sm text-white hover:opacity-90" href={v.apply_url} target="_blank" rel="noreferrer">
+            <a className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover" href={v.apply_url} target="_blank" rel="noreferrer">
               Apply now
             </a>
           ) : null}
           {v.apply_email ? (
-            <a className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" href={`mailto:${v.apply_email}`}>
+            <a className="inline-flex h-11 items-center justify-center rounded-full border border-border-strong px-6 text-sm font-medium hover:border-accent/50 hover:bg-accent-muted" href={`mailto:${v.apply_email}`}>
               Email: {v.apply_email}
             </a>
           ) : null}
           {!v.apply_url && !v.apply_email ? (
-            <Link className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5" href="/support">
+            <Link className="inline-flex h-11 items-center justify-center rounded-full border border-border-strong px-6 text-sm font-medium hover:border-accent/50 hover:bg-accent-muted" href="/support">
               Contact support
             </Link>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-6 text-xs opacity-60">Last updated {new Date(v.updated_at).toLocaleString()}</div>
+      <div className="mt-6 text-xs text-muted">Last updated {new Date(v.updated_at).toLocaleString()}</div>
     </article>
   );
 }

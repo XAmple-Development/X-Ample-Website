@@ -82,7 +82,7 @@ export default async function BlogPostPage({
       />
       <Link
         href="/blog"
-        className="text-sm text-foreground/70 underline underline-offset-4 decoration-black/25 hover:text-foreground dark:decoration-white/25"
+        className="text-sm text-muted underline underline-offset-4 decoration-border-strong hover:text-accent hover:decoration-accent"
       >
         Back to blog
       </Link>

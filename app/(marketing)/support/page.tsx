@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 const supportDescription =
   "Get help with X-Ample Development. Contact us or join Discord for support, enquiries, and community.";
@@ -23,51 +25,43 @@ export const metadata: Metadata = {
 
 export default function SupportPage() {
   return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="text-3xl font-semibold tracking-tight">Support</h1>
-      <p className="mt-4 text-lg leading-8 text-foreground/75">
-        Need help or have a question? Use the options below and we’ll get you sorted.
-      </p>
+    <div className="space-y-10">
+      <PageHeader
+        kicker="Support"
+        title="We're here to help"
+        description="Need help or have a question? Use the options below and we'll get you sorted."
+      />
 
-      <div className="mt-8 grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
-          <div className="text-sm font-semibold">Contact us</div>
-          <p className="mt-2 text-sm text-foreground/75">
-            For enquiries, custom work, or anything that needs a direct reply.
-          </p>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card title="Contact us" accent>
+          For enquiries, custom work, or anything that needs a direct reply.
           <div className="mt-4">
-            <Link className="rounded-lg bg-black px-3 py-2 text-sm text-white hover:opacity-90" href="/contact">
+            <Button href="/contact" variant="primary">
               Contact
-            </Link>
+            </Button>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
-          <div className="text-sm font-semibold">Discord</div>
-          <p className="mt-2 text-sm text-foreground/75">
+        <div className="rounded-2xl border border-accent/30 bg-accent-muted p-5">
+          <div className="text-sm font-semibold text-accent">Discord</div>
+          <p className="mt-2 text-sm text-muted">
             Quick questions, announcements, and community help.
           </p>
           <div className="mt-4">
-            <a
-              className="rounded-lg border px-3 py-2 text-sm hover:bg-black/5"
-              href="https://discord.gg/PfUWNvnT8Y"
-              target="_blank"
-              rel="noreferrer"
-            >
+            <Button href="https://discord.gg/PfUWNvnT8Y" variant="secondary" external>
               Join Discord
-            </a>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="mt-10 rounded-2xl border border-black/10 p-5 text-sm text-foreground/75 dark:border-white/10">
+      <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-muted">
         <div className="text-sm font-semibold text-foreground">When you contact us</div>
         <ul className="mt-3 list-disc space-y-1 pl-5">
           <li>Describe your question or project so we can help quickly.</li>
-          <li>Share any relevant details (e.g. framework, dependencies) if it’s technical.</li>
+          <li>Share any relevant details (stack, integrations, error logs) if it&apos;s technical.</li>
         </ul>
       </div>
     </div>
   );
 }
-

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import path from "node:path";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
 import { readJsonFile } from "@/lib/content";
 
 const aboutDescription =
-  "X-Ample Development Studios: who we are, what we build (FiveM, Discord bots, websites), and how we work. Quality, performance, and support.";
+  "X-Ample Development Studios: who we are, what we build (Discord bots, websites, web apps), and how we work. Quality, performance, and support.";
 
 export const metadata: Metadata = {
   title: "About",
@@ -32,11 +34,11 @@ type AboutContent = {
 const fallback: AboutContent = {
   title: "About X-Ample Development",
   subtitle:
-    "We build premium FiveM assets with clean UX, performance-first code, and support you can rely on.",
-  body: "X-Ample Development (also known as X-Ample Studios) creates modern FiveM scripts, MLOs, and gameplay experiences.\n\nWe focus on readable UI, practical features, and maintainable code that’s easy to run on real servers.",
+    "We build Discord bots, websites, and web apps with clean UX, performance-first code, and support you can rely on.",
+  body: "X-Ample Development (also known as X-Ample Studios) is a development studio focused on Discord bots, websites, and custom web applications.\n\nWe focus on readable UI, practical features, and maintainable code that scales with your community or business.",
   highlights: [
     { title: "Quality first", body: "Consistent UI, sensible defaults, and attention to detail." },
-    { title: "Performance-minded", body: "Built to run smoothly and scale with your player base." },
+    { title: "Performance-minded", body: "Built to run smoothly and scale with your traffic and community size." },
     { title: "Support & iteration", body: "We listen, fix issues quickly, and keep improving." },
   ],
 };
@@ -46,11 +48,10 @@ export default async function AboutPage() {
   const content = await readJsonFile<AboutContent>(contentPath, fallback);
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold tracking-tight">{content.title}</h1>
-      <p className="mt-4 text-lg leading-8 text-foreground/75">{content.subtitle}</p>
+    <div className="space-y-10">
+      <PageHeader title={content.title} description={content.subtitle} />
 
-      <div className="mt-6 space-y-4 text-sm leading-7 text-foreground/80">
+      <div className="mx-auto max-w-3xl space-y-4 text-sm leading-7 text-foreground/80">
         {String(content.body || "")
           .split("\n\n")
           .filter(Boolean)
@@ -59,9 +60,9 @@ export default async function AboutPage() {
           ))}
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {(content.highlights ?? []).map((h) => (
-          <Card key={h.title} title={h.title}>
+          <Card key={h.title} title={h.title} accent>
             {h.body}
           </Card>
         ))}
@@ -69,13 +70,3 @@ export default async function AboutPage() {
     </div>
   );
 }
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
-      <p className="text-sm font-semibold">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-foreground/75">{children}</p>
-    </div>
-  );
-}
-

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const vacanciesDescription =
-  "Open roles and careers at X-Ample Development. Join the team building FiveM scripts, Discord bots, and custom development.";
+  "Open roles and careers at X-Ample Development. Join the team building Discord bots, websites, and custom development.";
 
 export const metadata: Metadata = {
   title: "Vacancies",
@@ -63,64 +65,66 @@ export default async function VacanciesPage() {
   const closed = (closedData ?? []) as VacancyListRow[];
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <h1 className="text-3xl font-semibold tracking-tight">Vacancies</h1>
-      <p className="mt-4 text-lg leading-8 text-foreground/75">
-        We’re always looking for talented people to help us build the future of Development.
-      </p>
+    <div className="space-y-10">
+      <PageHeader
+        kicker="Careers"
+        title="Vacancies"
+        description="We're always looking for talented people to help us build Discord bots, websites, and great web experiences."
+      />
 
       {rows.length ? (
-        <div className="mt-8 grid gap-3">
+        <div className="grid gap-3">
           {rows.map((v) => (
-            <div key={v.id} className="rounded-2xl border border-black/10 p-5 dark:border-white/10">
+            <div key={v.id} className="rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/30">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <Link
                     href={`/vacancies/${encodeURIComponent(v.slug)}`}
-                    className="block truncate text-sm font-semibold hover:underline"
+                    className="block truncate text-sm font-semibold hover:text-accent"
                   >
                     {v.title}
                   </Link>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs opacity-80">
-                    {v.location ? <span className="rounded-full border px-2 py-1">{v.location}</span> : null}
-                    {v.type ? <span className="rounded-full border px-2 py-1">{v.type}</span> : null}
-                    {v.salary ? <span className="rounded-full border px-2 py-1">{v.salary}</span> : null}
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
+                    {v.location ? <span className="rounded-full border border-border px-2 py-1">{v.location}</span> : null}
+                    {v.type ? <span className="rounded-full border border-border px-2 py-1">{v.type}</span> : null}
+                    {v.salary ? <span className="rounded-full border border-border px-2 py-1">{v.salary}</span> : null}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="hidden sm:block text-xs opacity-70">
+                  <div className="hidden text-xs text-muted sm:block">
                     Updated {new Date(v.updated_at).toLocaleDateString()}
                   </div>
-                  <Link
-                    href={`/vacancies/${encodeURIComponent(v.slug)}`}
-                    className="rounded-lg bg-black px-3 py-2 text-sm text-white hover:opacity-90"
-                  >
+                  <Button href={`/vacancies/${encodeURIComponent(v.slug)}`} variant="primary" className="h-9 px-4 text-xs">
                     Apply
-                  </Link>
+                  </Button>
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="mt-8 rounded-2xl border border-black/10 p-5 text-sm text-foreground/75 dark:border-white/10">
-          No open roles right now. Check back soon, or reach out via <Link href="/support" className="underline">Support</Link>.
+        <div className="rounded-2xl border border-border bg-surface p-5 text-sm text-muted">
+          No open roles right now. Check back soon, or reach out via{" "}
+          <Link href="/support" className="text-accent hover:text-accent-hover">
+            Support
+          </Link>
+          .
         </div>
       )}
 
       {closed.length ? (
-        <details className="mt-8 rounded-2xl border border-black/10 p-5 dark:border-white/10">
+        <details className="rounded-2xl border border-border bg-surface p-5">
           <summary className="cursor-pointer text-sm font-semibold">Closed roles</summary>
           <div className="mt-4 grid gap-2">
             {closed.map((v) => (
               <Link
                 key={v.id}
                 href={`/vacancies/${encodeURIComponent(v.slug)}`}
-                className="flex flex-wrap items-baseline justify-between gap-3 rounded-xl border border-black/10 p-4 text-sm hover:bg-black/5 dark:border-white/10 dark:hover:bg-white/5"
+                className="flex flex-wrap items-baseline justify-between gap-3 rounded-xl border border-border p-4 text-sm transition-colors hover:border-accent/30 hover:bg-accent-muted"
               >
                 <span className="font-medium">{v.title}</span>
-                <span className="text-xs opacity-70">Closed</span>
+                <span className="text-xs text-muted">Closed</span>
               </Link>
             ))}
           </div>
@@ -129,4 +133,3 @@ export default async function VacanciesPage() {
     </div>
   );
 }
-
