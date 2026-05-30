@@ -1,11 +1,14 @@
 /**
- * Completes the OAuth flow for Decap/Netlify CMS.
+ * Completes the OAuth flow for Decap CMS.
  *
- * This is a minimal GitHub OAuth handler that returns an HTML page which
- * communicates back to the Decap CMS popup opener via postMessage using the
- * standard Netlify/Decap message format:
- *   authorization:github:success:{"token":"...","provider":"github"}
+ * Handshake (both directions):
+ * 1. This popup posts "authorizing:github" to the CMS window
+ * 2. Decap replies (often with "authorizing:github" again)
+ * 3. This popup posts authorization:github:success:{token JSON}
+ *
+ * See: https://decapcms.org/docs/backends-overview/
  */
+
 export const handler = async (event) => {
   try {
     const params = event.queryStringParameters ?? {};
@@ -15,22 +18,19 @@ export const handler = async (event) => {
     const adminPanelUrl = process.env.ADMIN_PANEL_URL || "/cms";
 
     if (!originList) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
-        body: "OAuth complete error: missing env var ORIGIN",
-      };
+      return plainError("OAuth complete error: missing env var ORIGIN");
     }
+
+    const allowedOrigins = expandOrigins(originList);
 
     if (!code) {
       return htmlResponse(
         renderCompleteHtml({
           oauthProvider: "github",
-          originPattern: originListToPattern(originList),
+          allowedOrigins,
           adminPanelUrl,
           message: "error",
-          content:
-            "Invalid code received from GitHub or code could not be received.",
+          content: "Invalid code received from GitHub or code could not be received.",
           display:
             "An error occurred. Please close this page and try again. Invalid code received from GitHub.",
           displayClasses: "error",
@@ -43,11 +43,9 @@ export const handler = async (event) => {
     const completeUrl = process.env.COMPLETE_URL;
 
     if (!clientId || !clientSecret || !completeUrl) {
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
-        body: "OAuth complete error: missing OAUTH_CLIENT_ID/OAUTH_CLIENT_SECRET/COMPLETE_URL",
-      };
+      return plainError(
+        "OAuth complete error: missing OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, or COMPLETE_URL",
+      );
     }
 
     const token = await exchangeGitHubCodeForToken({
@@ -62,22 +60,37 @@ export const handler = async (event) => {
     return htmlResponse(
       renderCompleteHtml({
         oauthProvider: "github",
-        originPattern: originListToPattern(originList),
+        allowedOrigins,
         adminPanelUrl,
         message: "success",
         content,
-        display: "Logging you in via GitHub...",
+        display: "Logging you in via GitHub…",
         displayClasses: "",
       }),
     );
   } catch (e) {
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-      body: `OAuth complete error: ${e instanceof Error ? e.message : String(e)}`,
-    };
+    const msg = e instanceof Error ? e.message : String(e);
+    return htmlResponse(
+      renderCompleteHtml({
+        oauthProvider: "github",
+        allowedOrigins: expandOrigins(process.env.ORIGIN || "x-ampledevelopment.co.uk"),
+        adminPanelUrl: process.env.ADMIN_PANEL_URL || "/cms",
+        message: "error",
+        content: msg,
+        display: `Login failed: ${msg}`,
+        displayClasses: "error",
+      }),
+    );
   }
 };
+
+function plainError(body) {
+  return {
+    statusCode: 500,
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+    body,
+  };
+}
 
 function htmlResponse(body) {
   return {
@@ -113,48 +126,36 @@ async function exchangeGitHubCodeForToken({
 
   const json = await res.json().catch(() => null);
   if (!res.ok || !json || !json.access_token) {
-    const msg =
+    const detail =
       json && typeof json === "object"
         ? JSON.stringify(json)
         : `HTTP ${res.status}`;
-    throw new Error(`GitHub token exchange failed: ${msg}`);
+    throw new Error(`GitHub token exchange failed: ${detail}`);
   }
   return json.access_token;
 }
 
-function originListToPattern(originList) {
-  // Accept comma-separated list; allow either full origin or bare domain.
-  const origins = originList
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .flatMap((o) => expandOrigin(o));
-
-  const escaped = origins.map((o) =>
-    o
-      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\//g, "\\/"),
-  );
-  return `/^(${escaped.join("|")})$/i`;
-}
-
-function expandOrigin(origin) {
-  // If protocol provided, keep as-is. Otherwise allow http/https with optional default ports.
-  if (/^https?:\/\//i.test(origin)) {
-    return [origin];
+function expandOrigins(originList) {
+  const out = new Set();
+  for (const raw of originList.split(",")) {
+    const item = raw.trim();
+    if (!item) continue;
+    if (/^https?:\/\//i.test(item)) {
+      out.add(item.replace(/\/+$/, ""));
+      continue;
+    }
+    const host = item.replace(/\/+$/, "");
+    out.add(`https://${host}`);
+    out.add(`http://${host}`);
+    out.add(`https://www.${host}`);
+    out.add(`http://www.${host}`);
   }
-  const host = origin.replace(/\/+$/g, "");
-  return [
-    `https://${host}`,
-    `http://${host}`,
-    `https://${host}:443`,
-    `http://${host}:80`,
-  ];
+  return [...out];
 }
 
 function renderCompleteHtml({
   oauthProvider,
-  originPattern,
+  allowedOrigins,
   adminPanelUrl,
   message,
   content,
@@ -163,83 +164,92 @@ function renderCompleteHtml({
 }) {
   const adminLink =
     adminPanelUrl && adminPanelUrl !== "#"
-      ? `<a href="${escapeHtml(
-          adminPanelUrl,
-        )}" target="_blank" class="close-link">the admin panel</a>`
-      : "the admin panel";
-
-  // content: for success should be a JSON string like {"token":"...","provider":"github"}
-  const contentJs =
-    message === "success"
-      ? content
-      : JSON.stringify(String(content || "An error occurred."));
+      ? `<a href="${escapeHtml(adminPanelUrl)}" class="close-link">the CMS</a>`
+      : "the CMS";
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Logging you in via GitHub...</title>
-  <meta name="description" content="Logging you in via GitHub...">
+  <title>Logging you in via GitHub…</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { text-align: center; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; }
+    body { text-align: center; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding: 24px; max-width: 32rem; margin: 2rem auto; line-height: 1.5; }
     .error { color: #ff6a6a; }
+    .hint { color: #888; font-size: 0.875rem; margin-top: 1rem; }
     a { color: inherit; }
   </style>
 </head>
 <body>
-  <p class="display${displayClasses ? " " + displayClasses : ""}">${escapeHtml(
-    display || "",
-  )}</p>
-  <p class="error origin-error" hidden>
-    Couldn't verify you came from an authorized website. To protect your account, you'll need to return to
-    ${adminLink} and try to log in again.
-  </p>
+  <p class="display${displayClasses ? " " + displayClasses : ""}">${escapeHtml(display || "")}</p>
+  <p class="hint" id="hint" hidden>If this page does not close automatically, return to ${adminLink} and refresh.</p>
   <script>
     (function() {
-      window.log = function log() {
-        if (console && console.log) console.log.apply(console, Array.prototype.slice.call(arguments));
-      };
-    })();
-  </script>
-  <script>
-    (function() {
-      if (window.opener) {
-        function receiveMessage(e) {
-          log('Receiving message:', e);
-          var origin = e.origin === 'null' ? false : e.origin;
-          if (!origin || !origin.match(${originPattern})) {
-            log('Invalid origin: %s', e.origin);
-            var display = document.getElementsByClassName('display');
-            if (display && display.length) display[0].hidden = true;
-            var originError = document.getElementsByClassName('origin-error');
-            if (originError && originError.length) originError[0].hidden = false;
-            return;
-          }
-          window.removeEventListener('message', receiveMessage, false);
-          var msg = 'authorization:${oauthProvider}:${message}:' + ${contentJs};
-          log('Sending message:', msg);
-          window.opener.postMessage(msg, origin);
+      var oauthProvider = ${JSON.stringify(oauthProvider)};
+      var status = ${JSON.stringify(message)};
+      var content = ${JSON.stringify(content)};
+      var allowedOrigins = ${JSON.stringify(allowedOrigins)};
+      var sent = false;
+
+      function isAllowedOrigin(origin) {
+        if (!origin || origin === "null") return false;
+        var o = origin.replace(/\\/$/, "");
+        return allowedOrigins.some(function(allowed) {
+          return allowed.toLowerCase() === o.toLowerCase();
+        });
+      }
+
+      function buildMessage() {
+        return "authorization:" + oauthProvider + ":" + status + ":" + content;
+      }
+
+      function deliverToken(targetOrigin) {
+        if (sent || !window.opener) return;
+        sent = true;
+        var msg = buildMessage();
+        try {
+          window.opener.postMessage(msg, targetOrigin || "*");
+        } catch (err) {
+          console.error("postMessage failed", err);
         }
-        window.addEventListener('message', receiveMessage, false);
-        var handshakeMessage = 'authorizing:${oauthProvider}';
-        log('Sending message:', handshakeMessage);
-        window.opener.postMessage(handshakeMessage, '*');
-      } else {
-        log('No opener. Not doing anything.');
+        setTimeout(function() {
+          try { window.close(); } catch (e) {}
+        }, 300);
       }
-    })();
-  </script>
-  <script>
-    (function () {
-      var closeLinks = document.getElementsByClassName('close-link');
-      for (var i = 0, n = closeLinks.length || 0; i < n; i++) {
-        closeLinks[i].addEventListener('click', function (event) {
-          if (event.target && event.target.href === '#') event.preventDefault();
-          window.close();
-        }, false);
+
+      if (!window.opener) {
+        var el = document.querySelector(".display");
+        if (el) {
+          el.textContent = "Could not connect to the CMS window. Close this tab, open /cms, and try logging in again.";
+          el.className = "display error";
+        }
+        return;
       }
+
+      function onMessage(e) {
+        if (!isAllowedOrigin(e.origin)) return;
+        // Decap / Sveltia: parent echoes "authorizing:github" — or any allowed message completes the handshake
+        deliverToken(e.origin);
+      }
+
+      window.addEventListener("message", onMessage, false);
+
+      // Decap protocol: notify parent we are ready
+      try {
+        window.opener.postMessage("authorizing:" + oauthProvider, "*");
+      } catch (err) {
+        console.error("handshake postMessage failed", err);
+      }
+
+      // Fallback: parent may not reply (popup opener chain broken, or timing)
+      setTimeout(function() {
+        if (!sent) {
+          var hint = document.getElementById("hint");
+          if (hint) hint.hidden = false;
+          allowedOrigins.forEach(function(o) { deliverToken(o); });
+          deliverToken("*");
+        }
+      }, 1200);
     })();
   </script>
 </body>
@@ -254,4 +264,3 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-

@@ -6,6 +6,9 @@ backend:
   base_url: https://x-ampledevelopment.co.uk
   auth_endpoint: auth
 
+# Helps Decap resolve the CMS panel origin for OAuth postMessage
+site_url: https://x-ampledevelopment.co.uk
+
 media_folder: public/uploads
 public_folder: /uploads
 
