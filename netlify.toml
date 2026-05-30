@@ -28,3 +28,10 @@
   status = 301
   force = true
 
+# Decap CMS GitHub OAuth — CMS opens {base_url}/auth → oauth-begin function
+[[redirects]]
+  from = "/auth"
+  to = "/.netlify/functions/oauth-begin"
+  status = 302
+  force = true
+

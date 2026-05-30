@@ -2,7 +2,9 @@ backend:
   name: github
   repo: XAmple-Development/X-Ample-Website
   branch: tebex
-  auth_endpoint: https://x-ampledevelopment.co.uk/.netlify/functions/oauth-begin
+  # base_url + auth_endpoint (relative path only — do NOT use a full URL for auth_endpoint)
+  base_url: https://x-ampledevelopment.co.uk
+  auth_endpoint: auth
 
 media_folder: public/uploads
 public_folder: /uploads

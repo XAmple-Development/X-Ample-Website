@@ -47,10 +47,12 @@ Apply schema from [`supabase/schema.sql`](supabase/schema.sql) in the Supabase S
 
 ### Blog (Decap CMS)
 
-- Admin UI: **`/cms`** (served from `public/cms/` — separate from password-protected `/admin/*` routes)
+- Admin UI: **`/cms`** (served from `public/cms/`)
 - Posts: `content/blog/*.mdx`
-- Requires GitHub OAuth via Netlify Functions (`oauth-begin`, `oauth-complete`) on production
-- Local editing: use [Decap local backend](https://decapcms.org/docs/working-with-a-local-git-repository/) or edit MDX files directly
+- GitHub login uses **`base_url` + `/auth`** → Netlify function `oauth-begin` (see `netlify.toml`)
+- **Do not** put a full URL in `auth_endpoint` in `config.yml` — use `auth_endpoint: auth` only
+- Netlify env required: `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET`, `COMPLETE_URL`, `ORIGIN`, `ADMIN_PANEL_URL=/cms`
+- GitHub OAuth app callback URL must be: `https://x-ampledevelopment.co.uk/.netlify/functions/oauth-complete`
 
 ### Public routes
 
