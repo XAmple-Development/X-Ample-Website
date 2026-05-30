@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { verifyContentAdminSessionToken } from "@/lib/contentAdminAuth";
 
 const FALLBACK_CANONICAL = "https://x-ampledevelopment.co.uk";
 const ADMIN_COOKIE = "xa_content_admin";
@@ -14,21 +15,37 @@ function canonicalOrigin(): string | null {
   }
 }
 
+/** Next.js app routes for Supabase-backed content admin (password login). */
+function isContentAdminAppRoute(pathname: string): boolean {
+  return (
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/vacancies") ||
+    pathname.startsWith("/admin/portfolio") ||
+    pathname.startsWith("/admin/team") ||
+    pathname.startsWith("/admin/newsletter") ||
+    pathname.startsWith("/admin/waitlist")
+  );
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Content admin: protect /admin except /admin/login
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login" && !pathname.startsWith("/admin/login/")) {
+  // Content admin: protect app routes only — not Decap CMS at /cms
+  if (
+    isContentAdminAppRoute(pathname) &&
+    pathname !== "/admin/login" &&
+    !pathname.startsWith("/admin/login/")
+  ) {
     const secret = process.env.CONTENT_ADMIN_SECRET;
     if (secret && secret.length >= 8) {
       const cookie = req.cookies.get(ADMIN_COOKIE)?.value;
-      if (cookie !== secret) {
+      if (!verifyContentAdminSessionToken(cookie)) {
         return NextResponse.redirect(new URL("/admin/login", req.url));
       }
     }
   }
 
-  // If a user lands on a Netlify deploy-preview domain, redirect to the canonical domain.
+  // Redirect Netlify deploy-preview domains to canonical production URL.
   const host = req.headers.get("host") ?? "";
   const canonical = canonicalOrigin();
   if (canonical && host.endsWith(".netlify.app")) {
@@ -38,11 +55,10 @@ export async function proxy(req: NextRequest) {
     next.host = canon.host;
     return NextResponse.redirect(next, 308);
   }
+
   return NextResponse.next();
 }
 
 export const config = {
-  // Apply to all routes so deploy-preview domains can't break auth/session.
   matcher: ["/:path*"],
 };
-

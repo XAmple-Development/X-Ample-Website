@@ -25,7 +25,7 @@ export default function AdminLayout({
             <Link href="/admin/newsletter" className="transition-colors hover:text-accent">
               Newsletter
             </Link>
-            <a href="/admin" target="_blank" rel="noreferrer" className="transition-colors hover:text-accent">
+            <a href="/cms" target="_blank" rel="noreferrer" className="transition-colors hover:text-accent">
               Blog (Decap)
             </a>
           </nav>

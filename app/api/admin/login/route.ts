@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
-import { getContentAdminSecret, isContentAdminConfigured, CONTENT_ADMIN_COOKIE_NAME } from "@/lib/contentAdminAuth";
+import {
+  createContentAdminSessionToken,
+  getContentAdminSecret,
+  isContentAdminConfigured,
+  CONTENT_ADMIN_COOKIE_NAME,
+  contentAdminSessionCookieOptions,
+} from "@/lib/contentAdminAuth";
 
 export async function POST(req: Request) {
   if (!isContentAdminConfigured()) {
-    return NextResponse.json({ error: "Admin not configured." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Content admin is not configured. Set CONTENT_ADMIN_SECRET (min 8 characters) in your environment." },
+      { status: 503 },
+    );
   }
   const secret = getContentAdminSecret()!;
 
@@ -18,13 +27,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid password." }, { status: 401 });
   }
 
+  const token = createContentAdminSessionToken();
+  if (!token) {
+    return NextResponse.json({ error: "Could not create session." }, { status: 500 });
+  }
+
   const res = NextResponse.json({ success: true });
-  res.cookies.set(CONTENT_ADMIN_COOKIE_NAME, secret, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
+  res.cookies.set(CONTENT_ADMIN_COOKIE_NAME, token, contentAdminSessionCookieOptions());
   return res;
+}
+
+export async function GET() {
+  return NextResponse.json({
+    configured: isContentAdminConfigured(),
+  });
 }

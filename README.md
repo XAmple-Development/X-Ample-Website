@@ -41,15 +41,16 @@ Set `CONTENT_ADMIN_SECRET` (min 8 characters), then sign in at `/admin/login`.
 | `/admin/portfolio` | Portfolio intro + projects (Supabase) |
 | `/admin/team` | Team page intro + members (Supabase) |
 | `/admin/newsletter` | Newsletter subscribers (Supabase `waitlist` table) |
-| `/admin` (Decap) | Blog posts + JSON page content in git |
+| `/cms` (Decap) | Blog posts + JSON page content in git |
 
 Apply schema from [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL editor before using admin features.
 
 ### Blog (Decap CMS)
 
-- Admin UI: `/admin` (served from `public/admin/`)
+- Admin UI: **`/cms`** (served from `public/cms/` — separate from password-protected `/admin/*` routes)
 - Posts: `content/blog/*.mdx`
-- Requires GitHub OAuth via Netlify Functions (`oauth-begin`, `oauth-complete`)
+- Requires GitHub OAuth via Netlify Functions (`oauth-begin`, `oauth-complete`) on production
+- Local editing: use [Decap local backend](https://decapcms.org/docs/working-with-a-local-git-repository/) or edit MDX files directly
 
 ### Public routes
 

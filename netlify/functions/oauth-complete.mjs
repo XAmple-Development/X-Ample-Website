@@ -12,7 +12,7 @@ export const handler = async (event) => {
     const code = params.code;
 
     const originList = process.env.ORIGIN;
-    const adminPanelUrl = process.env.ADMIN_PANEL_URL || "/admin";
+    const adminPanelUrl = process.env.ADMIN_PANEL_URL || "/cms";
 
     if (!originList) {
       return {
