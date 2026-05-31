@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export type BlogPostMeta = {
   slug: string;
@@ -19,7 +20,14 @@ function isPostFile(name: string) {
   return name.endsWith(".mdx") || name.endsWith(".md");
 }
 
-export async function listBlogPosts(): Promise<BlogPostMeta[]> {
+function formatPostDate(isoOrDate: string | null | undefined): string {
+  if (!isoOrDate) return "";
+  const d = new Date(isoOrDate);
+  if (!Number.isFinite(d.getTime())) return String(isoOrDate).slice(0, 10);
+  return d.toISOString().slice(0, 10);
+}
+
+async function listBlogPostsFromFiles(): Promise<BlogPostMeta[]> {
   const dir = blogDir();
   const names = await readdir(dir).catch(() => []);
 
@@ -51,7 +59,77 @@ export async function listBlogPosts(): Promise<BlogPostMeta[]> {
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
-export async function readBlogPostSource(slug: string) {
+async function listBlogPostsFromSupabase(): Promise<BlogPostMeta[] | null> {
+  try {
+    const sb = supabaseAdmin();
+    const ts = new Date().toISOString();
+    const { data, error } = await sb
+      .from("blog_posts")
+      .select("slug, title, excerpt, published_at, body_mdx")
+      .eq("status", "published")
+      .not("published_at", "is", null)
+      .lte("published_at", ts)
+      .order("published_at", { ascending: false })
+      .limit(200);
+
+    if (error) throw error;
+
+    return (data ?? []).map((row) => {
+      const rt = readingTime(row.body_mdx ?? "");
+      return {
+        slug: row.slug,
+        title: row.title,
+        date: formatPostDate(row.published_at),
+        excerpt: row.excerpt ?? undefined,
+        readingTimeText: rt.text,
+      };
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function listBlogPosts(): Promise<BlogPostMeta[]> {
+  const fromDb = await listBlogPostsFromSupabase();
+  const fromFiles = await listBlogPostsFromFiles();
+
+  if (fromDb === null) return fromFiles;
+
+  const dbSlugs = new Set(fromDb.map((p) => p.slug));
+  const merged = [...fromDb, ...fromFiles.filter((p) => !dbSlugs.has(p.slug))];
+
+  return merged.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
+async function readBlogPostFromSupabase(slug: string) {
+  try {
+    const sb = supabaseAdmin();
+    const ts = new Date().toISOString();
+    const { data } = await sb
+      .from("blog_posts")
+      .select("title, excerpt, published_at, body_mdx")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .not("published_at", "is", null)
+      .lte("published_at", ts)
+      .maybeSingle();
+
+    if (!data) return null;
+
+    return {
+      frontmatter: {
+        title: data.title,
+        date: formatPostDate(data.published_at),
+        excerpt: data.excerpt ?? undefined,
+      },
+      content: data.body_mdx ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function readBlogPostFromFiles(slug: string) {
   const dir = blogDir();
   const mdxPath = path.join(dir, `${slug}.mdx`);
   const mdPath = path.join(dir, `${slug}.md`);
@@ -68,3 +146,8 @@ export async function readBlogPostSource(slug: string) {
   };
 }
 
+export async function readBlogPostSource(slug: string) {
+  const fromDb = await readBlogPostFromSupabase(slug);
+  if (fromDb) return fromDb;
+  return readBlogPostFromFiles(slug);
+}

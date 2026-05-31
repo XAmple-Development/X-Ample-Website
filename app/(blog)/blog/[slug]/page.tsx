@@ -6,6 +6,8 @@ import { listBlogPosts, readBlogPostSource } from "@/lib/blog";
 import { siteBaseUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   const posts = await listBlogPosts();
   return posts.map((p) => ({ slug: p.slug }));

@@ -6,6 +6,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 const blogDescription =
   "Updates, releases, and behind-the-scenes notes from X-Ample Development. Discord bots, web development, and studio news.";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blog",
   description: blogDescription,

@@ -12,20 +12,8 @@ site_url: https://x-ampledevelopment.co.uk
 media_folder: public/uploads
 public_folder: /uploads
 
+# Blog, team, and portfolio are managed in /admin (Supabase). Decap is for static page copy only.
 collections:
-  - name: blog
-    label: Blog
-    folder: content/blog
-    create: true
-    slug: "{{slug}}"
-    extension: mdx
-    format: frontmatter
-    fields:
-      - { name: title, label: Title, widget: string }
-      - { name: date, label: Date, widget: datetime }
-      - { name: excerpt, label: Excerpt, widget: text, required: false }
-      - { name: body, label: Body, widget: markdown }
-
   - name: pages
     label: Pages
     files:
@@ -56,19 +44,6 @@ collections:
               - { name: title, label: Title, widget: string }
               - { name: body, label: Body, widget: text }
 
-      - label: Portfolio
-        name: portfolio
-        file: content/pages/portfolio.json
-        format: json
-        fields:
-          - { name: intro, label: Intro, widget: text }
-          - label: Items
-            name: items
-            widget: list
-            fields:
-              - { name: title, label: Title, widget: string }
-              - { name: description, label: Description, widget: text }
-
       - label: About
         name: about
         file: content/pages/about.json
@@ -83,40 +58,3 @@ collections:
             fields:
               - { name: title, label: Title, widget: string }
               - { name: body, label: Body, widget: text }
-
-      - label: Team
-        name: team
-        file: content/pages/team.json
-        format: json
-        fields:
-          - { name: intro, label: Intro, widget: text }
-          - label: Members
-            name: members
-            widget: list
-            fields:
-              - { name: name, label: Name, widget: string }
-              - { name: role, label: Role, widget: string }
-              - { name: bio, label: Bio, widget: text }
-              - { name: avatar, label: Avatar, widget: image, required: false }
-              - label: Links
-                name: links
-                widget: object
-                required: false
-                fields:
-                  - { name: discord, label: Discord, widget: string, required: false }
-                  - { name: github, label: GitHub, widget: string, required: false }
-                  - { name: twitter, label: Twitter, widget: string, required: false }
-
-  - name: docs_packages
-    label: Docs (Packages)
-    folder: content/docs/packages
-    create: true
-    slug: "{{slug}}"
-    extension: mdx
-    format: frontmatter
-    fields:
-      - { name: title, label: Title, widget: string, required: false }
-      - { name: summary, label: Summary, widget: text, required: false }
-      - { name: updated, label: Updated, widget: datetime, required: false }
-      - { name: body, label: Body, widget: markdown }
-

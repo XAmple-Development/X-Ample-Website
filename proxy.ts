@@ -20,6 +20,7 @@ function isContentAdminAppRoute(pathname: string): boolean {
   return (
     pathname === "/admin" ||
     pathname.startsWith("/admin/vacancies") ||
+    pathname.startsWith("/admin/blog") ||
     pathname.startsWith("/admin/portfolio") ||
     pathname.startsWith("/admin/team") ||
     pathname.startsWith("/admin/newsletter") ||
