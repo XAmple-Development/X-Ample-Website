@@ -1,9 +1,15 @@
 {
   "kicker": "X-Ample Development · Discord & Web Studio",
   "title": "Build communities and products that feel premium from day one.",
-  "subtitle": "We design and ship Discord bots, websites, and web apps — with clean UX, fast performance, and support you can actually reach.",
-  "primaryCta": { "label": "Contact Us", "href": "/contact" },
-  "secondaryCta": { "label": "View Services", "href": "/services" },
+  "subtitle": "We design and ship Discord bots, websites, and web apps — with clean UX, fast performance, and support you can actually reach..",
+  "primaryCta": {
+    "label": "Contact Us",
+    "href": "/contact"
+  },
+  "secondaryCta": {
+    "label": "View Services",
+    "href": "/services"
+  },
   "features": [
     {
       "title": "Production-ready",
@@ -21,16 +27,40 @@
   "socialProof": {
     "headline": "Built for real teams",
     "items": [
-      { "label": "Custom work", "value": "Get in touch" },
-      { "label": "Vacancies", "value": "Join the team" },
-      { "label": "Support", "value": "Tickets + Discord" }
+      {
+        "label": "Custom work",
+        "value": "Get in touch"
+      },
+      {
+        "label": "Vacancies",
+        "value": "Join the team"
+      },
+      {
+        "label": "Support",
+        "value": "Tickets + Discord"
+      }
     ]
   },
   "quickLinks": [
-    { "label": "Get Support", "href": "/support" },
-    { "label": "View Portfolio", "href": "/portfolio" },
-    { "label": "View Vacancies", "href": "/vacancies" },
-    { "label": "Blog", "href": "/blog" },
-    { "label": "Contact", "href": "/contact" }
+    {
+      "label": "Get Support",
+      "href": "/support"
+    },
+    {
+      "label": "View Portfolio",
+      "href": "/portfolio"
+    },
+    {
+      "label": "View Vacancies",
+      "href": "/vacancies"
+    },
+    {
+      "label": "Blog",
+      "href": "/blog"
+    },
+    {
+      "label": "Contact",
+      "href": "/contact"
+    }
   ]
 }
